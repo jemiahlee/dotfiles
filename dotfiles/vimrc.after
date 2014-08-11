@@ -58,6 +58,9 @@ map <D-N> :CtrlPClearCache<CR>:CtrlP<CR>
 " the top that the scrolling of the file starts
 set so=8
 
+" Sets a marker in the window at 120 characters from the left.
+set colorcolumn=120
+
 " Turn on the WiLd menu
 set wildmenu
 
@@ -162,12 +165,13 @@ map <D-L> gg=G``
 map <leader>= gg=G``
 
 " map some emacs-like command in insert-mode
-" imap <C-a> <home>
-" imap <C-e> <end>
+imap <C-a> <home>
+imap <C-d> <del>
+imap <C-e> <end>
 imap <C-p> <up>
 imap <C-n> <down>
-" imap <C-b> <left>
-" imap <C-f> <right>
+imap <C-b> <left>
+imap <C-f> <right>
 imap <C-v> <PageDown>
 imap √ <PageUp>
 
