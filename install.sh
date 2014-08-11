@@ -25,7 +25,7 @@ function install_files {
 
   if [[ ! -e "${TO_DIR}" ]]; then
     echo "Making directory ${TO_DIR}"
-    mkdir .ssh 2>/dev/null
+    mkdir "${TO_DIR}" 2>/dev/null
     if [[ ! -d "${TO_DIR}" ]]; then
       echo "Directory ${TO_DIR} does not exist after attempting to make it. Skipping."
       return 1
@@ -143,8 +143,6 @@ fi
 if [[ -d "${HOME}/Google Drive/dotfiles" ]]; then
   PRIVATE_FILE_PATH="${HOME}/Google Drive/dotfiles"
 fi
-
-mkdir "${HOME}/bin" 2>/dev/null
 
 backup_vim_files
 pull_down_janus
