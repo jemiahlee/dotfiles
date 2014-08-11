@@ -1,0 +1,12 @@
+#!/usr/bin/perl 
+
+use strict;
+use warnings;
+
+unless( @ARGV > 2 ){
+  print STDERR "This command doesn't really make sense for fewer than 3 args. Try again.\n";
+  exit 1;
+}
+
+my $delimiter = shift;
+print join($delimiter, @ARGV), "\n";

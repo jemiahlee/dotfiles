@@ -1,0 +1,28 @@
+#!/usr/bin/perl
+
+# Wrap at the specified number of characters, or 80 if unspecified.
+# Usage: wrap 70 <filename>
+# Will read from STDIN if no file name is provided.
+
+use strict;
+use warnings;
+
+my $count = shift || 80;
+if($count !~ /^[1-9]\d*$/) {
+    unshift @ARGV, $count;
+    $count = 80;
+}
+
+LINE:
+while( my $line = <> ) {
+    if( length($line) <= $count ) {
+        print $line;
+        next LINE;
+    }
+
+    while( $line =~ m{(\S{$count,}|.{1,$count}\s)}g ){
+        my $match = $1;
+        $match =~ s/\s+$//g;
+        print $match, "\n";
+    }
+}

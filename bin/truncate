@@ -1,0 +1,24 @@
+#!/usr/bin/perl
+
+use warnings;
+use strict;
+
+use Getopt::Long;
+
+my($verbose, $line_length);
+$line_length = 60;
+
+GetOptions(
+           'line_length=i' => \$line_length,
+           'verbose' => \$verbose,
+          );
+
+while( <> ) {
+    if(length() < $line_length) {
+        print;
+        next;
+    }
+
+    my $leftover = length() - $line_length - 1;
+    print substr($_, 0,$line_length), "..[$leftover more]\n";
+}

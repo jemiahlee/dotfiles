@@ -1,0 +1,147 @@
+#!/usr/bin/perl
+
+@stack = ();
+
+sub print_stack{
+  print "The stack is:\n";
+  my $num = $#stack;
+  foreach (@stack) {
+    printf("%i: %.4f\n", $num+1, $stack[-($num+1)]);
+    $num--;
+  }
+}
+
+sub is_a_num{
+  my $input = shift;
+  if ($input =~/^[+\-]?(\d*\.?\d+|\d+\.?\d*)$/){
+    return 1;
+  } else {
+    return 0;
+  }
+}
+
+sub print_cmds{
+  print "Stack operations:  pop\tclear\tswitch\n";
+  print "Data operations:   avg diff\n";
+  print "Arithmetic operations: + - / *  += *= neg y^x square sqrt abs\n";
+  print "Trig functions: sin cos tan\n";
+  print "Logarithmic functions: ln exp log\n";
+  print "Constants: e pi\n";
+  print "Exit: quit exit\n";
+}
+
+sub process_input {
+  my(@cmds) = map {lc} split(/\s+/, shift);
+
+  foreach my $cmd (@cmds) {
+    if ( $cmd eq "pop"){
+      pop(@stack);
+    }
+    elsif ($cmd eq "neg") {
+      push(@stack, 0-pop(@stack));
+    }
+    elsif ($cmd eq "+") {
+      push(@stack, pop(@stack) + pop(@stack));
+    }
+    elsif ($cmd eq "-") {
+      my $first = pop(@stack);
+      push(@stack, pop(@stack) - $first );
+    }
+    elsif ($cmd eq "/") {
+      my $first = pop(@stack);
+      push(@stack, pop(@stack) / $first );
+    }
+    elsif ($cmd eq "*") {
+      push(@stack, pop(@stack) * pop(@stack));
+    }
+    elsif ($cmd eq "sqrt") {
+      push(@stack, sqrt(pop(@stack)));
+    }
+    elsif ($cmd eq "switch") {
+      $tmp = pop(@stack);
+      $tmp2 = pop(@stack);
+      push(@stack, $tmp, $tmp2);
+    }
+    elsif ($cmd eq "y^x") {
+      push(@stack, pop(@stack) ** pop(@stack));
+    }
+    elsif ($cmd eq "quit" || $cmd eq "exit") {
+      print "Goodbye\n";
+      exit(0);
+    }
+    elsif ($cmd eq "clear") {
+      @stack = ();
+    }
+    elsif ($cmd eq "+=") {
+      my($answer);
+      while ($_ = pop(@stack)) {
+	$answer += $_;
+      }
+      push(@stack, $answer);
+    }
+    elsif ($cmd eq "square") {
+      push(@stack, pop(@stack) ** 2);
+    }
+    elsif ($cmd eq "abs") {
+      push(@stack, abs(pop(@stack)) );
+    }
+    elsif ($cmd eq "sin") {
+      push(@stack, sin(pop(@stack)));
+    }
+    elsif ($cmd eq "cos") {
+      push(@stack, cos(pop(@stack)));
+    }
+    elsif ($cmd eq "tan") {
+      push(@stack, tan(pop(@stack)));
+    }
+    elsif ($cmd eq "ln") {
+      push(@stack, log(pop(@stack)));
+    }
+    elsif ($cmd eq "log") {
+      push(@stack, log(pop(@stack)) / log(10));
+    }
+    elsif ($cmd eq "pi") {
+      push(@stack, 3.14159265);
+    }
+    elsif ($cmd eq "e") {
+      push(@stack, 2.71828182846);
+    }
+    elsif ($cmd eq "exp") {
+      push(@stack, exp(pop(@stack)));
+    }
+    elsif ($cmd eq "cmds" or $cmd eq "help") {
+      print_cmds();
+    }
+    elsif ($cmd eq "*=") {
+      my($answer) = 1;
+      while ($_ = pop(@stack)) {
+	$answer *= $_;
+      }
+      push(@stack, $answer);
+    }
+    elsif (is_a_num($cmd)){
+      push(@stack, $cmd);
+    }
+    elsif ($cmd eq "avg") {
+      my $size = @stack;
+      my $sum;
+      $sum += $_ foreach @stack;
+      push @stack, $sum / @stack;
+    }
+    elsif ( $cmd eq "diff" ) {
+      my $num1 = pop @stack;
+      my $num2 = pop @stack;
+      push @stack, ($num1-$num2)/$num2;
+    }
+    else {
+      print "input not recognized!\n";
+    }
+  }
+}
+
+while (<STDIN>) {
+  process_input(lc($_));
+  print_stack();
+}
+
+

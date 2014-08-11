@@ -1,0 +1,131 @@
+#!/usr/bin/perl
+
+=for mycomment
+
+    Copyright (C) Jeremiah Lee <texasjdl@yahoo.com>
+
+    This is a program to recurse through a directory tree and execute
+    a program in each directory.  It will also allow you to evaluate
+    arbitrary Perl code in each directory if you'd rather do that.  It
+    will allow you to specify how deep to recurse.
+
+
+    The MIT License (MIT)
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+    THE SOFTWARE.
+
+=cut
+
+use strict;
+
+my($descend, @foreach, @commands, @evals, %seen, $dotfiles);
+
+my $levels_to_descend = 0;
+
+foreach (@ARGV){
+    if(/^-descend(=(\d+))?$/){
+        $descend = 1;
+        $levels_to_descend = $2;
+    }
+    elsif(s/^-cmd=//){
+        push @commands, $_;
+    }
+    elsif (s/^-eval=//) {
+        push @evals, $_;
+    }
+    elsif (s/^-foreach=//) {
+        push @foreach, $_;
+    }
+    elsif (/^-dotfiles$/) {
+        $dotfiles = 1;
+    }
+    else{
+        usage();
+    }
+
+}
+
+# if there hasn't been a command or eval given, default to deletion
+
+unless (@commands or @evals or @foreach) {
+    push @commands, 'rm -f core *~';
+}
+
+chop(my $pwd = `pwd`);
+
+do_recurse($pwd, '.', 0); #kick off the recursion.
+
+sub do_recurse {
+
+    my($pwd, $dir, $level) = @_;
+    return if defined $levels_to_descend
+              and $level > $levels_to_descend;
+
+    chdir($dir) or return;
+
+    $pwd = "$pwd/$dir" unless $dir eq '.';
+
+    opendir( CURRDIR, '.') or die "could not open $pwd";
+    my @files = sort readdir( CURRDIR );
+    closedir( CURRDIR ) or die "could not close $pwd";
+
+    if (@commands) {
+        print "In $pwd: ";
+
+        foreach my $command (@commands) {
+            print "$command\n";
+            system($command);
+        }
+    }
+
+    if (@foreach) {
+    print "In $pwd: eval'ing perl code in foreach loop\n";
+        eval 'foreach my $f ( grep { (! -d $_) and (! -l $_) } @files) { '
+         . join(";", @foreach) . '}';
+    }
+
+    if (@evals) {
+        print "In $pwd: eval'ing perl code\n";
+        foreach my $eval (@evals) {
+            #@files is still accessible here, so it should be from the eval.
+            eval $eval;
+        }
+    }
+
+    foreach (@files){
+        next if -l or /^\.\.?$/; #we don't want to follow symbolic links
+                                 #don't try . or ..
+
+        next if not $dotfiles and /^\./;
+
+        if ( -d _ and not $seen{"$pwd/$_"}++ ) {
+            do_recurse($pwd, $_, $level+1);
+        }
+    }
+
+    chdir '..';
+}
+
+sub usage {
+    (my $script = $0) =~ s{.*/}{}; #get rid of path information.
+    my $usage="$script [--help|-h|-?] [-descend[=#]] [-cmd=<command>] [-dotfiles] [-eval=<perl code to eval>] [-foreach=<code to eval inside foreach loop over list of files in current dir>]\n";
+
+    print $usage;
+    exit(0);
+}

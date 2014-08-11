@@ -1,0 +1,3 @@
+# all configuration should really be in .bash_profile_includes
+OS=`uname -s`
+source ~/.bash_profile_includes/${OS}/paths.sh

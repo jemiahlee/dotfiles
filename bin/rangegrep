@@ -1,0 +1,79 @@
+#!/usr/bin/perl
+
+use warnings;
+use strict;
+
+use Getopt::Long;
+use File::Find;
+
+my($recursive);
+
+$\ = "--\n";
+
+GetOptions(
+           'recursive' => \$recursive,
+);
+
+my $start_regex = shift;
+my $end_regex = shift;
+
+unless( $start_regex and $end_regex and @ARGV ) {
+    print STDERR "Usage: $0 [--recursive] <start_regex> <end_regex> <filename|dirname>";
+    exit 1;
+}
+
+if( not $recursive ) {
+    my $filecount = @ARGV;
+
+    foreach my $filename (@ARGV) {
+        $, = "$filename: " if $filecount > 1;
+        my @matches = grep_in_file($filename);
+        print '', @matches if @matches;
+    }
+    exit;
+}
+
+foreach my $filename (@ARGV) {
+    if( -T $filename) {
+        $, = "$filename: ";
+        my @matches = grep_in_file($filename);
+        print '', @matches if @matches;
+    }
+    elsif( -d _ ) {
+        find(\&wanted, $filename);
+    }
+}
+
+############ END OF MAIN ################
+
+sub wanted {
+    return unless -T $_;
+
+    $, = "$File::Find::name: ";
+    my @matches = grep_in_file($_);
+    print '', @matches if @matches;
+}
+
+sub grep_in_file {
+    my $filename = shift;
+    local $_;
+
+    open my $fh, '<', $filename or do { print STDERR "Cannot open $filename for reading: $!\n"; return; };
+
+    my @matched_lines;
+    my $in_match;
+    while(<$fh>) {
+        if($in_match) {
+            push @matched_lines, $_;
+            $in_match = 0 if m{$end_regex};
+        }
+        elsif(m{$start_regex}) {
+            push @matched_lines, $_;
+            $in_match = 1;
+        }
+    }
+
+    close $fh;
+
+    return @matched_lines;
+}

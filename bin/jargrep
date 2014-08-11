@@ -1,0 +1,22 @@
+#!/usr/bin/perl
+
+use warnings;
+use strict;
+
+my $JAR_EXECUTABLE = q{/cygdrive/c/Program\ Files/Java/jdk1.6.0_21/bin/jar.exe};
+
+my $search_term = shift;
+my @files = @ARGV;
+
+foreach my $file ( @files ){
+
+	open JAR_OUTPUT, "jar tf $file |" or die "Couldn't open $file: $!";
+
+	while( <JAR_OUTPUT> ){
+		if( m{$search_term} ){
+			print "$file,$.: $_";
+		}
+	}
+
+	close JAR_OUTPUT;
+}

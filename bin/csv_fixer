@@ -1,0 +1,24 @@
+#!/usr/bin/perl
+
+use warnings;
+use strict;
+use Getopt::Long;
+
+while(<>){
+  my $line = $_;
+
+  until( count_quotes($line) % 2 == 0 ){
+    $line .= <>;
+  }
+
+  $line =~ s{\n(?!$)}{<br/>}g;
+  $line =~ s{\r}{}g;
+
+  print $line;
+}
+
+sub count_quotes {
+  my $string = shift;
+
+  return $string =~ s/(?<!\\)"/QUOTE/g;
+}

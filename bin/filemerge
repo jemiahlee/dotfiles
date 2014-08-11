@@ -1,0 +1,40 @@
+#!/usr/bin/perl
+
+use warnings;
+use strict;
+
+use Getopt::Long;
+
+my($verbose, $delimiter);
+$delimiter = ',';
+
+GetOptions( 'delimiter=s' => \$delimiter,
+            'verbose'     => \$verbose,
+          );
+
+unless( @ARGV == 2 ) {
+    print "only 2 filenames allowed!\n";
+    exit 1;
+}
+
+open my $fh1, '<', $ARGV[0] or die "Couldn't open $ARGV[0]: $!";
+open my $fh2, '<', $ARGV[1] or die "Couldn't open $ARGV[1]: $!";
+
+my $line1;
+my $line2;
+
+while( $line1 = <$fh1> ) {
+    chomp $line1;
+
+    $line2 = (<$fh2> || '');
+    chomp $line2;
+
+    print join($delimiter, $line1, $line2), "\n";
+}
+
+while( $line2 = <$fh2> ) {
+    print $delimiter, $line2;
+}
+
+close $fh2;
+close $fh1;

@@ -1,0 +1,41 @@
+#!/usr/bin/perl -n
+
+BEGIN{
+  use warnings;
+  use strict;
+  our @type_and_var_list;
+  our @var_list;
+}
+
+END{
+  print "public <CLASSNAME>(", join(", ", @type_and_var_list), "){\n";
+
+  foreach my $pair (@var_list){
+      print "    $pair->[0] = $pair->[1];\n";
+  }
+
+  print "}\n";
+}
+
+next unless m{^\s*\w+\s+(\w+)\s+(m(\w+));$};
+
+my $type          = $1;
+my $var_name      = $2;
+my $var_base_name = $3;
+
+my $new_var_name = q{new} . $var_base_name;
+
+push @type_and_var_list, "$type $new_var_name";
+push @var_list, [$var_name, $new_var_name];
+
+print <<EOJAVA;
+
+public void set${var_base_name}($type $new_var_name){
+    $var_name = $new_var_name;
+}
+
+public $type get${var_base_name}(){
+    return $var_name;
+}
+
+EOJAVA

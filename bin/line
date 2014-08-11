@@ -1,0 +1,35 @@
+#!/usr/bin/perl
+
+use warnings;
+use strict;
+use File::Basename qw/basename/;
+
+my $usage = basename($0) . " <line number> [max_line_number] [filename]\n";
+
+die $usage unless @ARGV > 0;
+
+our $filename;
+
+my($min) = my($max) = shift;
+die $usage unless $min =~ /^\d+$/;
+
+if(@ARGV){
+    $max = shift;
+
+    if( $max !~ /^(?:\d+|END)$/ and -e $max ) {
+        unshift @ARGV, $max; #put it back on @ARGV for reading
+        $max = $min;
+    }
+}
+
+my $printed = 0;
+
+while( <> ) {
+    print "$.: $_" and $printed = 1 if $. >= $min;
+
+    unless( $max eq 'END' ){
+        last if $. >= $max;
+    }
+}
+
+print "Your file did not have that many lines!\n" unless $printed;

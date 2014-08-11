@@ -1,0 +1,15 @@
+#!/usr/bin/perl
+
+use warnings;
+use strict;
+
+my $status = `git status`;
+my %files = ();
+
+while( $status =~ m{modified:\s*([^\n]+)}g ) {
+    $files{$1} = 1;
+}
+
+foreach my $file (keys %files) {
+    print $file, "\n";
+}

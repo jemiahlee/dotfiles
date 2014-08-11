@@ -1,0 +1,114 @@
+#!/usr/bin/perl
+
+use File::Basename qw/dirname/;
+use Getopt::Long;
+
+use warnings;
+use strict;
+
+my @BLACKLIST = qw//;
+
+my $current_dir = `pwd`;
+chomp $current_dir;
+
+my($verbose, $interactive, $print_only, $regex, $modified_only);
+
+my $hostname = $ENV{GIT_SCP_HOSTNAME};
+my $username = $ENV{GIT_SCP_USERNAME} || $ENV{USER};
+my $ssh_options = $ENV{GIT_SCP_SSH_OPTIONS} || '';
+
+# assume mirrored directory setups
+(my $base_directory) = $current_dir =~ m{$ENV{HOME}/(.*)};
+
+GetOptions(
+           'base=s'        => \$base_directory,
+           'blacklist=s'   => sub {
+                                    my @patterns = split /,/, $_[1];
+                                    push @BLACKLIST, @patterns;
+                                  },
+           'hostname=s'    => \$hostname,
+           'interactive'   => \$interactive,
+           'modified_only' => \$modified_only,
+           'print_only'    => \$print_only,
+           'regex=s'       => \$regex,
+           'ssh_options=s' => \$ssh_options,
+           'username=s'    => \$username,
+           'verbose'       => \$verbose
+);
+
+# make sure all printing happens when we're interactive.
+$verbose = 1 if $interactive;
+
+unless( $hostname ){
+  print STDERR "You must give this script a --hostname!\n";
+  exit 1;
+}
+
+my $BLACKLIST = join '|', @BLACKLIST;
+if( $BLACKLIST ) {
+    $BLACKLIST = qr/$BLACKLIST/;
+}
+
+my $remote_base_directory = qq{/home/$username};
+my $TRANSFER_TO_URL = qq{$hostname:} . join '/', $remote_base_directory, $base_directory;
+$TRANSFER_TO_URL = "$username\@$TRANSFER_TO_URL" if $username;
+
+open PROC_OUT, 'git status |' or die "Couldn't deal with 'git status': $!";
+
+# git may actually have the file in several states internally, but it will only
+# be in one state on the disk; only need to transfer each file once.
+my %transferred = ();
+
+while( <PROC_OUT> ){
+    next unless m{^#?\s+(new file|modified):\s+(\S+)};
+    next if $modified_only and $1 eq 'new file';
+
+    my $filename = $2;
+
+    next if $transferred{$filename}++;
+
+    if( $BLACKLIST ) {
+        next if $filename =~ $BLACKLIST;
+    }
+
+    if( defined $regex ) {
+        print STDERR "Attempting to match /$regex/ against $filename..." if $verbose;
+        unless($filename =~ /$regex/) {
+            print STDERR "did NOT match!\n" if $verbose;
+            next;
+        }
+        print STDERR "matched!\n" if $verbose;
+    }
+
+    my $transfer_this_file = 1;
+
+    $filename =~ s{\\}{/}g;
+
+    my $dirname = dirname($filename);
+    $dirname = '' if $dirname eq '.';
+
+    my $execute = qq{scp $ssh_options $filename $TRANSFER_TO_URL/$dirname};
+
+    print "Executing: $execute\n" if $verbose;
+
+    if( $interactive ){
+        my $input;
+        print STDOUT "\nWould you like me to execute this command (y/N)? ";
+        $input = <STDIN>;
+
+        if( $input =~ m{^a}i ){ #allow an abort
+            last;
+        }
+
+        unless( $input =~ m{^y}i ){
+            $transfer_this_file = 0;
+        }
+
+        print STDOUT "\n"; #just some extra output whitespace
+    }
+
+    if( not $print_only and $transfer_this_file ){
+        print STDOUT "Transferring...\n" if $verbose;
+        system('scp', $filename, "$TRANSFER_TO_URL/$dirname");
+    }
+}

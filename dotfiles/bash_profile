@@ -1,0 +1,37 @@
+OS=`uname -s`
+source ~/.bash_profile_includes/${OS}/paths.sh
+
+# Additions to bash should be placed in $HOME/.bash_profile_includes
+# with a .sh extension if they are platform independent
+
+for file in ~/.bash_profile_includes/*.sh; do
+  # we already sourced the paths.sh above. No need to do it again here, and
+  # it could screw something up (if we are appending PATH to the PATH).
+
+  if ! [[ $file =~ "/paths.sh" ]]; then
+    [[ -r $file ]] && source $file
+  fi
+done
+
+if [[ -d "${HOME}/Google Drive/dotfiles/bash_profile_includes" ]]; then
+  for file in ${HOME}/"Google Drive"/dotfiles/bash_profile_includes/*
+  do
+    source "$file"
+  done
+fi
+
+# Platform-specific additions to bash should be placed in
+# $HOME/.bash_profile_includes/${OS_NAME} with a .sh extension
+
+for file in ~/.bash_profile_includes/${OS}/*.sh; do
+  # we already sourced the paths.sh above. No need to do it again here, and
+  # it could screw something up (if we are appending PATH to the PATH).
+
+  if ! [[ $file =~ "/paths.sh" ]]; then
+    [[ -r $file ]] && source $file
+  fi
+done
+
+if [[ -e "${HOME}/.bash_local" ]]; then
+  source "${HOME}/.bash_local"
+fi

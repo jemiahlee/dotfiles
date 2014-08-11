@@ -1,0 +1,37 @@
+#!/usr/bin/perl
+
+use Getopt::Std;
+
+#use warnings;
+
+getopts('evpgr');
+
+my $pattern = shift;
+my $replacement = shift;
+
+if ( !$opt_e and $replacement =~ m#\$[1-9]# ) {
+
+  $opt_e = 1;
+  $replacement =~ s#^|$#'#g;
+  $replacement =~ s#(\$[1-9])#' . $1 . '#g;
+
+}
+
+foreach my $filename (@ARGV){
+
+  my($newname) = $filename;
+
+  if ( $opt_e and $opt_g ) {
+    $newname =~ s#$pattern#$replacement#eeog;
+  } elsif ( $opt_e ) {
+    $newname =~ s#$pattern#$replacement#eeo;
+  } elsif ( $opt_g ) {
+    $newname =~s#$pattern#$replacement#og;
+  } else {
+    $newname =~ s#$pattern#$replacement#o;
+  }
+
+  print "Moving $filename to $newname\n" if $opt_v or $opt_p;
+  rename $filename, $newname unless $opt_p;
+
+}

@@ -1,0 +1,17 @@
+#!/bin/bash
+
+if [[ $# -eq 0 ]]; then
+  echo "You must provide at least one filename!"
+  exit 1
+fi
+
+for filename in $*
+do
+  TEMPFILE="/tmp/${filename}.xmlformatting"
+
+  xmllint --format ${filename} > ${TEMPFILE}
+
+  if [[ $? -eq 0 ]]; then
+    mv ${TEMPFILE} ${filename}
+  fi
+done

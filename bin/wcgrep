@@ -1,0 +1,30 @@
+#!/usr/bin/perl
+
+use warnings;
+use strict;
+
+use Getopt::Long;
+
+GetOptions();
+
+my $regex = shift;
+
+my $GREP_COMMAND = '/usr/bin/grep';
+
+open GREP_OUTPUT, "$GREP_COMMAND -P '$regex' @ARGV /dev/null |" or die "Couldn't grep @ARGV: $!";
+
+my %counter;
+
+while( <GREP_OUTPUT> ) {
+
+    my($filename, $line) = split /:/, $_, 2;
+
+    $counter{$filename}++;
+
+}
+
+close GREP_OUTPUT;
+
+foreach my $filename ( sort {$a cmp $b} keys %counter ) {
+    print "$counter{$filename}\t$filename\n";
+}

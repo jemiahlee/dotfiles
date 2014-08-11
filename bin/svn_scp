@@ -1,0 +1,105 @@
+#!/usr/bin/perl
+
+use File::Basename qw/dirname/;
+use Getopt::Long;
+
+use warnings;
+use strict;
+
+my @BLACKLIST = ();
+
+my $current_dir = `pwd`;
+chomp $current_dir;
+
+my($verbose,$hostname,$project,$path,$interactive,$print_only,$regex,$branch_name,$modified_only);
+
+$hostname = $ENV{SVN_SCP_HOSTNAME};
+
+my $base_directory = q{/cygdrive/c/ol};
+($project,$path) = $current_dir =~ m{$base_directory/([^/]+)/(?:trunk|branches/[^/]+)(?:/(.*))?};
+
+my $remote_base_directory = q{/home/jeremiah.lee};
+
+$branch_name = q{trunk};
+
+GetOptions(
+           'base=s'        => \$base_directory,
+           'blacklist=s'   => sub {
+                                    my @patterns = split /,/, $_[1];
+                                    push @BLACKLIST, @patterns;
+                                  },
+           'branch=s'      => sub { $branch_name = qq{branches/$_[1]}},
+           'host=s'        => \$hostname,
+           'interactive'   => \$interactive,
+           'modified_only' => \$modified_only,
+           'print_only'    => \$print_only,
+           'regex=s'       => \$regex,
+           'verbose'       => \$verbose );
+
+my $BLACKLIST = join '|', @BLACKLIST;
+if( $BLACKLIST ) {
+    $BLACKLIST = qr/$BLACKLIST/;
+}
+
+my $TRANSFER_TO_URL = qq{$hostname:} . join '/', grep{defined && $_} $remote_base_directory, $project, $branch_name, $path;
+
+open PROC_OUT, "svn status |" or die "Couldn't deal with 'svn status': $!";
+
+while( <PROC_OUT> ){
+    if( $modified_only ){
+        next unless m{^[AM]};
+    }
+    else {
+        next unless m{^[AM?]};
+    }
+
+    my($status,$filename) = split /[\s\+]+/;
+
+    next if -d $filename;
+
+    if( $BLACKLIST ) {
+        next if $filename =~ $BLACKLIST;
+    }
+
+    if( defined $regex ) {
+        print STDERR "Attempting to match /$regex/ against $filename..." if $verbose;
+        unless($filename =~ /$regex/) {
+            print STDERR "did NOT match!\n" if $verbose;
+            next;
+        }
+        print STDERR "matched!\n" if $verbose;
+    }
+
+    my $transfer_this_file = 1;
+
+    $filename =~ s{\\}{/}g;
+
+    my $dirname = dirname($filename);
+    $dirname = '' if $dirname eq '.';
+
+    my $execute = qq{scp $filename $TRANSFER_TO_URL/$dirname};
+    #my $execute = qq{scp $filename $TRANSFER_TO_URL};
+
+    print "$execute\n";
+
+    if( $interactive ){
+        my $input;
+        print STDOUT "\nWould you like me to execute this command (y/N)? ";
+        $input = <STDIN>;
+
+        if( $input =~ m{^a}i ){ #allow an abort
+            last;
+        }
+
+        unless( $input =~ m{^y}i ){
+            $transfer_this_file = 0;
+        }
+
+        print STDOUT "\n"; #just some extra output whitespace
+    }
+
+    if( not $print_only and $transfer_this_file ){
+        print STDOUT "Transferring...\n";
+        `$execute`;
+    }
+}

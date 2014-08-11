@@ -1,0 +1,24 @@
+#!/usr/bin/perl
+
+use warnings;
+use strict;
+
+unless(@ARGV == 2){
+  my $filename = $0;
+  $filename =~ s#.*/##;
+  print "Usage: $filename <field number> <delimiter>";
+  exit;
+}
+
+my $field = shift;
+my $delim = shift;
+
+while( <> ){
+    chomp;
+    if( $field > 0 ){
+        print + (split /$delim/)[$field-1], "\n";
+    }
+    elsif( $field <= 0 ){
+        print + (split /$delim/)[$field], "\n";
+    }
+}
