@@ -353,6 +353,7 @@ command! Vs so ~/.vimrc.after
 """"""""""""""""""""""""""""""""""""""""""""""""""""""
 autocmd FileType * set tabstop=2|set shiftwidth=2|set expandtab
 autocmd FileType python set tabstop=4|set shiftwidth=4|set expandtab
+autocmd FileType perl set tabstop=4|set shiftwidth=4|set expandtab
 autocmd FileType javascript set tabstop=4|set shiftwidth=4|set expandtab
 
 " format JSON using Python's json.tool module
