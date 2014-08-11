@@ -43,9 +43,9 @@ function install_files {
       file_name=`basename "${file}"`
 
       if [[ -z "$PREFIX_WITH_DOT" ]]; then
-        safe_link "${FROM_DIR}"/${file_name} "${HOME}/${file_name}"
+        safe_link "${FROM_DIR}"/${file_name} "${TO_DIR}/${file_name}"
       else
-        safe_link "${FROM_DIR}"/${file_name} "${HOME}/.${file_name}"
+        safe_link "${FROM_DIR}"/${file_name} "${TO_DIR}/.${file_name}"
       fi
     done
   fi
