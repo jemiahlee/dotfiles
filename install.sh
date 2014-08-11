@@ -40,14 +40,18 @@ function install_files {
   if [[ -d "${FROM_DIR}" ]]; then
     for file in "${FROM_DIR}"/*
     do
-      file_name=`basename "${file}"`
+      if ! [[ -e "$file" ]]; then
+        file_name=`basename "${file}"`
 
-      if [[ -z "$PREFIX_WITH_DOT" ]]; then
-        safe_link "${FROM_DIR}"/${file_name} "${TO_DIR}/${file_name}"
-      else
-        safe_link "${FROM_DIR}"/${file_name} "${TO_DIR}/.${file_name}"
+        if [[ -z "$PREFIX_WITH_DOT" ]]; then
+          safe_link "${FROM_DIR}"/${file_name} "${TO_DIR}/${file_name}"
+        else
+          safe_link "${FROM_DIR}"/${file_name} "${TO_DIR}/.${file_name}"
+        fi
       fi
     done
+  else
+    echo "${FROM_DIR} does not exist. Skipping."
   fi
 }
 
