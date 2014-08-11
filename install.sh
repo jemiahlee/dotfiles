@@ -146,8 +146,8 @@ fi
 
 mkdir "${HOME}/bin" 2>/dev/null
 
-# backup_vim_files
-# pull_down_janus
+backup_vim_files
+pull_down_janus
 
 echo "Fetching submodules..."
 git submodule init
