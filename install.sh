@@ -40,7 +40,7 @@ function install_files {
   if [[ -d "${FROM_DIR}" ]]; then
     for file in "${FROM_DIR}"/*
     do
-      if ! [[ -e "$file" ]]; then
+      if [[ -e "$file" ]]; then
         file_name=`basename "${file}"`
 
         if [[ -z "$PREFIX_WITH_DOT" ]]; then
@@ -56,8 +56,8 @@ function install_files {
 }
 
 function install_fonts {
-  OS=$1
-  if [[ "Darwin" -eq "$OS" ]]; then
+  OS=`uname -s`
+  if [[ -n "$OS" && "Darwin" -eq "$OS" ]]; then
     echo "Checking to see if we need to install the SourceCodePro TTF files..."
     FONTS_INSTALLED=0
     LOCAL_FONT_DIRECTORY=fonts/SourceCodePro_FontsOnly-1.017/TTF
@@ -159,7 +159,7 @@ link_bash_profile_includes "$START_PWD"
 install_files "${START_PWD}"/bin "${HOME}"/bin
 install_files "${START_PWD}"/ssh "${HOME}/.ssh"
 install_files "${START_PWD}"/dotfiles "${HOME}" true
-install_fonts `uname -s`
+install_fonts
 
 if [[ -n "${PRIVATE_FILE_PATH}" ]]; then
   install_files "${PRIVATE_FILE_PATH}"/bin "${HOME}"/bin
