@@ -57,23 +57,31 @@ function install_files {
 
 function install_fonts {
   OS=`uname -s`
-  if [[ -n "$OS" && "Darwin" -eq "$OS" ]]; then
-    echo "Checking to see if we need to install the SourceCodePro TTF files..."
-    FONTS_INSTALLED=0
-    LOCAL_FONT_DIRECTORY=fonts/SourceCodePro_FontsOnly-1.017/TTF
-    SYSTEM_FONT_DIRECTORY=/System/Library/Fonts
-
-    for file in ${LOCAL_FONT_DIRECTORY}/*.ttf
-    do
-      basename=`basename ${file}`
-      if ! [[ -e "${SYSTEM_FONT_DIRECTORY}/${basename}" ]]; then
-        FONTS_INSTALLED=$((FONTS_INSTALLED + 1))
-        sudo cp "$file" "${SYSTEM_FONT_DIRECTORY}/${basename}"
-      fi
-    done
-
-    echo "Installed ${FONTS_INSTALLED} fonts."
+  if [[ "Darwin" == "$OS" ]]; then
+    echo "Not on MacOSX. Skipping font installation."
+    return 0
   fi
+
+  echo "Checking to see if we need to install the SourceCodePro TTF files..."
+  FONTS_INSTALLED=0
+  LOCAL_FONT_DIRECTORY=fonts/SourceCodePro_FontsOnly-1.017/TTF
+  SYSTEM_FONT_DIRECTORY=/System/Library/Fonts
+
+  if ! [[ -d "${SYSTEM_FONT_DIRECTORY}" ]]; then
+    echo "System font directory does not exist. Skipping font installation."
+    return 1
+  fi
+
+  for file in ${LOCAL_FONT_DIRECTORY}/*.ttf
+  do
+    basename=`basename ${file}`
+    if ! [[ -e "${SYSTEM_FONT_DIRECTORY}/${basename}" ]]; then
+      FONTS_INSTALLED=$((FONTS_INSTALLED + 1))
+      sudo cp "$file" "${SYSTEM_FONT_DIRECTORY}/${basename}"
+    fi
+  done
+
+  echo "Installed ${FONTS_INSTALLED} fonts."
 }
 
 function link_bash_profile_includes {
