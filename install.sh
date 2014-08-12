@@ -57,7 +57,7 @@ function install_files {
 
 function install_fonts {
   OS=`uname -s`
-  if [[ "Darwin" == "$OS" ]]; then
+  if [[ "Darwin" != "$OS" ]]; then
     echo "Not on MacOSX. Skipping font installation."
     return 0
   fi
