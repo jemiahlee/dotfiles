@@ -5,6 +5,7 @@ alias gpr="git pull --rebase"
 alias gmu="git fetch upstream && git merge --ff-only upstream/master"
 alias gitprune="git remote prune origin"
 alias gst="git about && echo && git status"
+alias gfa="git fetch upstream && git fetch"
 
 alias ll="ls -lah"
 
