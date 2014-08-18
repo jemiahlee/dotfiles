@@ -39,6 +39,10 @@ GetOptions(
 # make sure all printing happens when we're interactive.
 $verbose = 1 if $interactive;
 
+if( @ARGV and not $regex ){
+    $regex = shift;
+}
+
 unless( $hostname ){
   print STDERR "You must give this script a --hostname!\n";
   exit 1;
