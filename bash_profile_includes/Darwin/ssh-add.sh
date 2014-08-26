@@ -2,10 +2,8 @@
 
 SSH_KEY_LIST="ssh-add -l"
 
-for file in hearsay_id_rsa personal_id_rsa
+for file in /Users/"$USER"/.ssh/*id_rsa
 do
-	file="/Users/${USER}/.ssh/${file}"
-
 	present=`$SSH_KEY_LIST | /usr/bin/grep ${file}`
 
 	if [ -z "$present" ]; then
