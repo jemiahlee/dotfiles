@@ -173,6 +173,8 @@ imap <C-n> <down>
 imap <C-b> <left>
 imap <C-f> <right>
 imap <C-v> <PageDown>
+inoremap <C-y> <C-\><C-O>p
+inoremap <C-k> <C-\><C-O>D
 imap √ <PageUp>
 
 " Set utf8 as standard encoding and en_US as the standard language
