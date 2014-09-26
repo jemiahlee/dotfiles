@@ -156,12 +156,14 @@ if [[ -d "${HOME}/Google Drive/dotfiles" ]]; then
   PRIVATE_FILE_PATH="${HOME}/Google Drive/dotfiles"
 fi
 
-backup_vim_files
-pull_down_janus
+if [[ $1 != '--no-vim' ]]; then
+  backup_vim_files
+  pull_down_janus
 
-echo "Fetching submodules..."
-git submodule init
-git submodule update
+  echo "Fetching submodules..."
+  git submodule init
+  git submodule update
+fi
 
 link_bash_profile_includes "$START_PWD"
 install_files "${START_PWD}"/bin "${HOME}"/bin
