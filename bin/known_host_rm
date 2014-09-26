@@ -1,0 +1,6 @@
+#!/bin/bash
+
+for hostname in $*
+do
+  perl -i -n -e "print unless m{^${hostname}};" ~/.ssh/known_hosts
+done
