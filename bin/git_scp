@@ -16,6 +16,7 @@
        --hostname       Remote machine to copy files to.
                             Defaults to ENV{GIT_SCP_HOSTNAME} if available.
        --interactive    Choose files to transfer interactively.
+       --modified_only  Copy only those files which are marked as 'modified' by git and not new or deleted.
        --print_only|-n  Dry-run. Do not copy, just print what would happen.
        --regex          Copy only the files that match this regular expression.
        --ssh_options    Use these options when copying. This is non-functional currently for some reason.
