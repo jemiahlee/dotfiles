@@ -19,7 +19,8 @@
        --modified_only  Copy only those files which are marked as 'modified' by git and not new or deleted.
        --print_only|-n  Dry-run. Do not copy, just print what would happen.
        --regex          Copy only the files that match this regular expression.
-       --ssh_options    Use these options when copying. This is non-functional currently for some reason.
+       --ssh_options    Use these options when copying.
+                            Defaults to ENV{GIT_SCP_SSH_OPTIONS}.
        --username       Use this username on remote machine when copying the files.
                             Defaults to ENV{GIT_SCP_HOSTNAME} or the current username.
        --verbose        Print extra information.
@@ -37,7 +38,7 @@ my $BLACKLIST = [];
 my $current_dir = `pwd`;
 chomp $current_dir;
 
-my($verbose, $interactive, $print_only, $regex, $modified_only);
+my($interactive, $modified_only, $print_only, $regex, $staged_only, $verbose);
 
 my $hostname = $ENV{GIT_SCP_HOSTNAME};
 my $username = $ENV{GIT_SCP_USERNAME} || $ENV{USER};
@@ -56,6 +57,7 @@ GetOptions(
            'print_only|n'  => \$print_only,
            'regex=s'       => \$regex,
            'ssh_options=s' => \$ssh_options,
+           'staged_only'   => \$staged_only,
            'username=s'    => \$username,
            'verbose'       => \$verbose
 );
@@ -81,18 +83,17 @@ my $remote_base_directory = qq{/home/$username};
 my $TRANSFER_TO_URL = qq{$hostname:} . join '/', $remote_base_directory, $base_directory;
 $TRANSFER_TO_URL = "$username\@$TRANSFER_TO_URL" if $username;
 
-open PROC_OUT, 'git status |' or die "Couldn't deal with 'git status': $!";
+open PROC_OUT, 'git status --short |' or die "Couldn't deal with 'git status': $!";
 
 # git may actually have the file in several states internally, but it will only
 # be in one state on the disk; only need to transfer each file once.
 my %transferred = ();
 
 while( <PROC_OUT> ){
-    next unless m{^#?\s+(new file|modified):\s+(\S+)};
-    next if $modified_only and $1 eq 'new file';
+    my($x, $y, $filename) = m{^(.)(.)\s*(\S+)$};
 
-    my $filename = $2;
-
+    next if $modified_only and $x ne 'M';
+    next if $staged_only and $x eq ' ';
     next if $transferred{$filename}++;
 
     if( $BLACKLIST ) {
@@ -117,7 +118,7 @@ while( <PROC_OUT> ){
 
     my $execute = qq{scp $ssh_options $filename $TRANSFER_TO_URL/$dirname};
 
-    print "Executing: $execute\n" if $verbose;
+    print "Executing: $execute\n" if $verbose or $print_only;
 
     if( $interactive ){
         my $input;
@@ -137,6 +138,6 @@ while( <PROC_OUT> ){
 
     if( not $print_only and $transfer_this_file ){
         print STDOUT "Transferring...\n" if $verbose;
-        system('scp', $filename, "$TRANSFER_TO_URL/$dirname");
+        system($execute);
     }
 }
