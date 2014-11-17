@@ -12,7 +12,6 @@
        --base           Base directory to copy files to on remote machine.
                             Defaults to the same path on remote machine as on this one.
        --blacklist      Do not copy files that match this regular expression.
-                            Will not work if your regex(es) contain commas.
        --help|-?        This help message.
        --hostname       Remote machine to copy files to.
                             Defaults to ENV{GIT_SCP_HOSTNAME} if available.
@@ -32,7 +31,7 @@ use Pod::Usage qw(pod2usage);
 use warnings;
 use strict;
 
-my @BLACKLIST = qw//;
+my $BLACKLIST = [];
 
 my $current_dir = `pwd`;
 chomp $current_dir;
@@ -48,15 +47,12 @@ my $ssh_options = $ENV{GIT_SCP_SSH_OPTIONS} || '';
 
 GetOptions(
            'base=s'        => \$base_directory,
-           'blacklist=s'   => sub {
-                                    my @patterns = split /,/, $_[1];
-                                    push @BLACKLIST, @patterns;
-                                  },
+           'blacklist=s@'  => \$BLACKLIST,
            'help|?'        => sub { pod2usage(); },
            'hostname=s'    => \$hostname,
            'interactive'   => \$interactive,
            'modified_only' => \$modified_only,
-           'print_only'    => \$print_only,
+           'print_only|n'  => \$print_only,
            'regex=s'       => \$regex,
            'ssh_options=s' => \$ssh_options,
            'username=s'    => \$username,
@@ -75,7 +71,7 @@ unless( $hostname ){
   exit 1;
 }
 
-my $BLACKLIST = join '|', @BLACKLIST;
+$BLACKLIST = join '|', @$BLACKLIST;
 if( $BLACKLIST ) {
     $BLACKLIST = qr/$BLACKLIST/;
 }
