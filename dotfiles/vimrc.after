@@ -51,6 +51,9 @@ let g:hardtime_default_on = 1
 " Clear the CTRL-P cache
 map <D-N> :CtrlPClearCache<CR>:CtrlP<CR>
 
+" Auto-save buffers when focus is lost
+:au FocusLost * silent! wa
+
 """"""""""""""""""""""""""""""""""""""""""""""""""""""
 " VIM user interface
 """"""""""""""""""""""""""""""""""""""""""""""""""""""
