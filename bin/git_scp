@@ -1,7 +1,33 @@
 #!/usr/bin/perl
 
+=head1 NAME
+
+    sample - Using GetOpt::Long and Pod::Usage
+
+=head1 SYNOPSIS
+
+    git_scp [options] [-r|--regex <regular expression>]
+
+     Options:
+       --base           Base directory to copy files to on remote machine.
+                            Defaults to the same path on remote machine as on this one.
+       --blacklist      Do not copy files that match this regular expression.
+                            Will not work if your regex(es) contain commas.
+       --help|-?        This help message.
+       --hostname       Remote machine to copy files to.
+                            Defaults to ENV{GIT_SCP_HOSTNAME} if available.
+       --interactive    Choose files to transfer interactively.
+       --print_only|-n  Dry-run. Do not copy, just print what would happen.
+       --regex          Copy only the files that match this regular expression.
+       --ssh_options    Use these options when copying. This is non-functional currently for some reason.
+       --username       Use this username on remote machine when copying the files.
+                            Defaults to ENV{GIT_SCP_HOSTNAME} or the current username.
+       --verbose        Print extra information.
+=cut
+
 use File::Basename qw/dirname/;
 use Getopt::Long;
+use Pod::Usage qw(pod2usage);
 
 use warnings;
 use strict;
@@ -26,6 +52,7 @@ GetOptions(
                                     my @patterns = split /,/, $_[1];
                                     push @BLACKLIST, @patterns;
                                   },
+           'help|?'        => sub { pod2usage(); },
            'hostname=s'    => \$hostname,
            'interactive'   => \$interactive,
            'modified_only' => \$modified_only,
