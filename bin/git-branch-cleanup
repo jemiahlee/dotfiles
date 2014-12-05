@@ -1,0 +1,92 @@
+#!/usr/bin/env perl
+
+=head1 NAME
+
+    git-branch-cleanup - remove local or remote dead branches
+
+=head1 SYNOPSIS
+
+    git-branch-cleanup [options] [remote ...]
+
+     Options:
+       --all            Delete all non-blacklisted branches, non-interactively.
+       --dry_run|-n     Do not execute removal commands, just print what would have been done.
+       --help|-?        This help message.
+       --interactive    Interactively approve the branch to be deleted.
+                           Turned on by default.
+       --remotes|-r     Do this on the selected remotes, which just defaults to origin.
+       --verbose        Print extra information.
+
+=cut
+
+
+use warnings;
+use strict;
+
+use Getopt::Long;
+use Pod::Usage qw/pod2usage/;
+
+our($do_remotes, $dry_run, $interactive, $verbose);
+$interactive = 1;
+
+GetOptions(
+           'all'         => sub { $interactive = 0; },
+           'dry_run|n'   => \$dry_run,
+           'help|?'      => sub { pod2usage(); },
+           'interactive' => \$interactive,
+           'remotes'     => \$do_remotes,
+           'verbose'     => \$verbose,
+);
+
+our @REMOTES = q{origin};
+if( @ARGV ){
+    @REMOTES = @ARGV;
+}
+
+our $REMOTES = join '|', map { "^$_/" } @REMOTES;
+$REMOTES = qr{$REMOTES};
+
+our @BLACKLIST = qw{master HEAD};
+our $BLACKLIST;
+if( @BLACKLIST ) {
+    if( $do_remotes ){
+        $BLACKLIST = join '|', map{ "\\S+/$_" } @BLACKLIST;
+    }
+    else {
+        $BLACKLIST = join '|', @BLACKLIST;
+    }
+    $BLACKLIST = qr{$BLACKLIST};
+}
+
+our $GIT_BRANCH_COMMAND = 'git branch';
+if( $do_remotes ){
+    $GIT_BRANCH_COMMAND = 'git branch -r';
+}
+
+open BRANCHES_FH, "$GIT_BRANCH_COMMAND |" or die "Couldn't open '$GIT_BRANCH_COMMAND': $!";
+
+my $branch;
+while( $branch = <BRANCHES_FH> ){
+    $branch =~ s/\A\s+|\s+\Z//g;
+
+    next if $branch =~ /^\s*\*/;
+    next if $do_remotes and $REMOTES and $branch !~ $REMOTES;
+    next if $BLACKLIST and $branch =~ $BLACKLIST;
+
+    if( $interactive ){
+        print "Delete branch '$branch'? [Y/n/q] ";
+        my $input = <STDIN>;
+        exit 0 if $input =~ /^\s*q/i;
+        next if $input =~ /^\s*n/i;
+    }
+
+    if( $do_remotes ){
+        my($remote, $branch_name) = $branch =~ m{(\S*)/(\S*)};
+        print "git push $remote :$branch_name\n" if $verbose or $dry_run;
+        system("git push $remote :$branch_name") unless $dry_run;
+    }
+    else {
+        print "git branch -D $branch" if $verbose or $dry_run;
+        system("git branch -D $branch") unless $dry_run;
+    }
+}
