@@ -10,11 +10,14 @@
 
      Options:
        --all            Delete all non-blacklisted branches, non-interactively.
+       --blacklist      Add the next string in the command-line to the blacklist.
+                            Contains 'master' and 'HEAD' no matter what.
        --dry_run|-n     Do not execute removal commands, just print what would have been done.
        --help|-?        This help message.
        --interactive    Interactively approve the branch to be deleted.
-                           Turned on by default.
-       --remotes|-r     Do this on the selected remotes, which just defaults to origin.
+                            Turned on by default.
+       --remotes|-r     Do this on the selected remotes.
+                            Defaults to origin.
        --verbose        Print extra information.
 
 =cut
@@ -26,40 +29,32 @@ use strict;
 use Getopt::Long;
 use Pod::Usage qw/pod2usage/;
 
+our $BLACKLIST = ['master', 'HEAD'];
+our $GIT_BRANCH_COMMAND = 'git branch';
+our @REMOTES = q{origin};
+our $REMOTES = qr{(?!)};
+
 our($do_remotes, $dry_run, $interactive, $verbose);
 $interactive = 1;
 
 GetOptions(
-           'all'         => sub { $interactive = 0; },
-           'dry_run|n'   => \$dry_run,
-           'help|?'      => sub { pod2usage(); },
-           'interactive' => \$interactive,
-           'remotes'     => \$do_remotes,
-           'verbose'     => \$verbose,
+           'all'           => sub { $interactive = 0; },
+           'blacklist=s@'  => \$BLACKLIST,
+           'dry_run|n'     => \$dry_run,
+           'help|?'        => sub { pod2usage(); },
+           'interactive'   => \$interactive,
+           'remotes'       => \$do_remotes,
+           'verbose'       => \$verbose,
 );
 
-our @REMOTES = q{origin};
 if( @ARGV ){
     @REMOTES = @ARGV;
 }
 
-our $REMOTES = join '|', map { "^$_/" } @REMOTES;
-$REMOTES = qr{$REMOTES};
+make_blacklist_regex();
 
-our @BLACKLIST = qw{master HEAD};
-our $BLACKLIST;
-if( @BLACKLIST ) {
-    if( $do_remotes ){
-        $BLACKLIST = join '|', map{ "\\S+/$_" } @BLACKLIST;
-    }
-    else {
-        $BLACKLIST = join '|', @BLACKLIST;
-    }
-    $BLACKLIST = qr{$BLACKLIST};
-}
-
-our $GIT_BRANCH_COMMAND = 'git branch';
 if( $do_remotes ){
+    make_remotes_regex();
     $GIT_BRANCH_COMMAND = 'git branch -r';
 }
 
@@ -69,6 +64,7 @@ my $branch;
 while( $branch = <BRANCHES_FH> ){
     $branch =~ s/\A\s+|\s+\Z//g;
 
+    print "Processing branch $branch\n" if $verbose;
     next if $branch =~ /^\s*\*/;
     next if $do_remotes and $REMOTES and $branch !~ $REMOTES;
     next if $BLACKLIST and $branch =~ $BLACKLIST;
@@ -89,4 +85,21 @@ while( $branch = <BRANCHES_FH> ){
         print "git branch -D $branch" if $verbose or $dry_run;
         system("git branch -D $branch") unless $dry_run;
     }
+}
+
+sub make_remotes_regex {
+    $REMOTES = join '|', map { "^$_/" } @REMOTES;
+    print "\$REMOTES is '$REMOTES'\n" if $verbose;
+    $REMOTES = qr{$REMOTES};
+}
+
+sub make_blacklist_regex {
+    if( $do_remotes ){
+        $BLACKLIST = join '|', map{ "\\S+/$_" } @$BLACKLIST;
+    }
+    else {
+        $BLACKLIST = join '|', @$BLACKLIST;
+    }
+    print "\$BLACKLIST is '$BLACKLIST'\n" if $verbose;
+    $BLACKLIST = qr{$BLACKLIST};
 }
