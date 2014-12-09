@@ -167,7 +167,6 @@ fi
 
 link_bash_profile_includes "$START_PWD"
 install_files "${START_PWD}"/bin "${HOME}"/bin
-install_files "${START_PWD}"/ssh "${HOME}/.ssh"
 install_files "${START_PWD}"/dotfiles "${HOME}" true
 install_fonts
 
