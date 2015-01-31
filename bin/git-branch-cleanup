@@ -31,7 +31,7 @@ use strict;
 use Getopt::Long;
 use Pod::Usage qw/pod2usage/;
 
-our $BLACKLIST = ['master', 'HEAD'];
+our $BLACKLIST = 'master|HEAD';
 our $GIT_BRANCH_COMMAND = 'git branch';
 our $MERGED_ONLY = '';
 our @REMOTES = q{origin};
@@ -42,11 +42,11 @@ $interactive = 1;
 
 GetOptions(
            'all'           => sub { $interactive = 0; },
-           'blacklist=s@'  => \$BLACKLIST,
+           'blacklist=s@'  => sub { $BLACKLIST .= "|$_" },
            'dry_run|n'     => \$dry_run,
            'help|?'        => sub { pod2usage(); },
            'interactive'   => \$interactive,
-           'merged_only'   => sub { $MERGED_ONLY = '--merged upstream/master' },
+           'merged_only'   => sub { $MERGED_ONLY = ' --merged upstream/master' },
            'regex=s'       => \$regex,
            'remotes'       => \$do_remotes,
            'verbose'       => \$verbose,
@@ -56,24 +56,34 @@ if( @ARGV ){
     @REMOTES = @ARGV;
 }
 
-make_blacklist_regex();
-
-if( $do_remotes ){
-    make_remotes_regex();
-    $GIT_BRANCH_COMMAND = 'git branch -r';
+my $remote_branches;
+if( $do_remotes ) {
+    $remote_branches = generate_remote_branches(\@REMOTES, $MERGED_ONLY, $verbose);
 }
 
-open BRANCHES_FH, "$GIT_BRANCH_COMMAND $MERGED_ONLY |" or die "Couldn't open '$GIT_BRANCH_COMMAND': $!";
+$BLACKLIST = qr{$BLACKLIST};
+
+my $git_branch_command = "git branch $MERGED_ONLY";
+open BRANCHES_FH, "$git_branch_command |" or die "Couldn't open '$git_branch_command': $!";
 
 my $branch;
 while( $branch = <BRANCHES_FH> ){
     $branch =~ s/\A\s+|\s+\Z//g;
 
     print "Processing branch $branch\n" if $verbose;
-    next if $branch =~ /^\s*\*/;
-    next if $do_remotes and $REMOTES and $branch !~ $REMOTES;
-    next if $BLACKLIST and $branch =~ $BLACKLIST;
-    next if $regex and $branch !~ m{$regex};
+
+    if( $branch =~ /^\s*\*/ ){
+        print "Skipping the current branch $branch\n" if $verbose;
+        next;
+    }
+    elsif( $BLACKLIST and $branch =~ $BLACKLIST ){
+        print "Skipping blacklisted branch: $branch\n" if $verbose;
+        next;
+    }
+    elsif( $regex and $branch !~ m{$regex} ){
+        print "Skipping regex miss: $branch\n" if $verbose;
+        next;
+    }
 
     if( $interactive ){
         print "Delete branch '$branch'? [Y/n/q] ";
@@ -82,30 +92,35 @@ while( $branch = <BRANCHES_FH> ){
         next if $input =~ /^\s*n/i;
     }
 
+    print "git branch -D $branch\n" if $verbose or $dry_run;
+    system("git branch -D $branch") unless $dry_run;
+
     if( $do_remotes ){
-        my($remote, $branch_name) = $branch =~ m{(\S*)/(\S*)};
-        print "git push $remote :$branch_name\n" if $verbose or $dry_run;
-        system("git push $remote :$branch_name") unless $dry_run;
-    }
-    else {
-        print "git branch -D $branch\n" if $verbose or $dry_run;
-        system("git branch -D $branch") unless $dry_run;
+        foreach my $remote (@{$remote_branches->{$branch}}){
+            print "git push $remote :$branch\n" if $verbose or $dry_run;
+            system("git push $remote :$branch") unless $dry_run;
+        }
     }
 }
 
-sub make_remotes_regex {
-    $REMOTES = join '|', map { "^$_/" } @REMOTES;
-    print "\$REMOTES is '$REMOTES'\n" if $verbose;
-    $REMOTES = qr{$REMOTES};
-}
+sub generate_remote_branches {
+    my($REMOTES, $MERGED_ONLY, $verbose) = @_;
+    my %remote_branches;
 
-sub make_blacklist_regex {
-    if( $do_remotes ){
-        $BLACKLIST = join '|', map{ "\\S+/$_" } @$BLACKLIST;
+    foreach my $remote (@$REMOTES) {
+        print "git fetch $remote\n" if $verbose;
+        `git fetch $remote`;
+
+        my $git_branch_command = "git branch -r $MERGED_ONLY";
+        open BRANCHES_FH, "$git_branch_command |" or die "Couldn't open '$git_branch_command': $!";
+        my $remote_branch;
+        while($remote_branch = <BRANCHES_FH>){
+            chomp $remote_branch;
+            my($branch_name) = $remote_branch =~ m{$remote/(\S+)};
+            push @{$remote_branches{$branch_name}}, $remote;
+        }
+        close BRANCHES_FH;
     }
-    else {
-        $BLACKLIST = join '|', @$BLACKLIST;
-    }
-    print "\$BLACKLIST is '$BLACKLIST'\n" if $verbose;
-    $BLACKLIST = qr{$BLACKLIST};
+
+    return \%remote_branches;
 }
