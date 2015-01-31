@@ -17,6 +17,7 @@
        --interactive    Interactively approve the branch to be deleted.
                             Turned on by default.
        --merged_only    Only delete branches that have been merged into upstream/master.
+       --regex <re>     Only delete branches that match this regular expression.
        --remotes|-r     Do this on the selected remotes.
                             Defaults to origin.
        --verbose        Print extra information.
@@ -36,7 +37,7 @@ our $MERGED_ONLY = '';
 our @REMOTES = q{origin};
 our $REMOTES = qr{(?!)};
 
-our($do_remotes, $dry_run, $interactive, $verbose);
+our($do_remotes, $dry_run, $interactive, $regex, $verbose);
 $interactive = 1;
 
 GetOptions(
@@ -46,6 +47,7 @@ GetOptions(
            'help|?'        => sub { pod2usage(); },
            'interactive'   => \$interactive,
            'merged_only'   => sub { $MERGED_ONLY = '--merged upstream/master' },
+           'regex=s'       => \$regex,
            'remotes'       => \$do_remotes,
            'verbose'       => \$verbose,
 );
@@ -71,6 +73,7 @@ while( $branch = <BRANCHES_FH> ){
     next if $branch =~ /^\s*\*/;
     next if $do_remotes and $REMOTES and $branch !~ $REMOTES;
     next if $BLACKLIST and $branch =~ $BLACKLIST;
+    next if $regex and $branch !~ m{$regex};
 
     if( $interactive ){
         print "Delete branch '$branch'? [Y/n/q] ";
