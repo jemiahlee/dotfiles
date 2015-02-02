@@ -37,7 +37,7 @@ our $MERGED_ONLY = '';
 our @REMOTES = q{origin};
 our $REMOTES = qr{(?!)};
 
-our($do_remotes, $dry_run, $interactive, $regex, $verbose);
+our($do_remotes, $dry_run, $interactive, $regex, $remotes_only, $verbose);
 $interactive = 1;
 
 GetOptions(
@@ -49,78 +49,93 @@ GetOptions(
            'merged_only'   => sub { $MERGED_ONLY = ' --merged upstream/master' },
            'regex=s'       => \$regex,
            'remotes'       => \$do_remotes,
+           'remotes_only'  => \$remotes_only,
            'verbose'       => \$verbose,
 );
 
+$BLACKLIST = qr{$BLACKLIST};
 if( @ARGV ){
     @REMOTES = @ARGV;
 }
 
-my $remote_branches;
-if( $do_remotes ) {
-    $remote_branches = generate_remote_branches(\@REMOTES, $MERGED_ONLY, $verbose);
+unless( $remotes_only ){
+    process_branches();
 }
 
-$BLACKLIST = qr{$BLACKLIST};
+our %REMOTES;
+if( $do_remotes ) {
+    foreach my $remote (@REMOTES){
+        print "git fetch $remote\n";
+        `git fetch $remote`;
+        $REMOTES{$remote}++;
+    }
 
-my $git_branch_command = "git branch $MERGED_ONLY";
-open BRANCHES_FH, "$git_branch_command |" or die "Couldn't open '$git_branch_command': $!";
+    process_branches('remote');
+}
 
-my $branch;
-while( $branch = <BRANCHES_FH> ){
-    $branch =~ s/\A\s+|\s+\Z//g;
+exit 0;
 
-    print "Processing branch $branch\n" if $verbose;
+
+sub process_branches {
+    my($doing_remote) = @_;
+
+    my $git_branch_command = 'git branch ' . $MERGED_ONLY;
+    if( $doing_remote ){
+        $git_branch_command = 'git branch -r ' . $MERGED_ONLY;
+    }
+
+    open BRANCHES_FH, "$git_branch_command |" or die "Couldn't open '$git_branch_command': $!";
+
+    my $branch;
+    while( $branch = <BRANCHES_FH> ){
+        $branch =~ s/\A\s+|\s+\Z//g;
+
+        if( $branch =~ m{^([^/]+)/(\S+)} ){
+            my($remote, $branch) = ($1, $2);
+            next unless $REMOTES{$remote};
+            process_branch($branch, $remote);
+        }
+        else {
+            process_branch($branch);
+        }
+    }
+    close BRANCHES_FH;
+}
+
+sub process_branch {
+    my($branch, $remote) = @_;
 
     if( $branch =~ /^\s*\*/ ){
         print "Skipping the current branch $branch\n" if $verbose;
-        next;
+        return;
     }
     elsif( $BLACKLIST and $branch =~ $BLACKLIST ){
         print "Skipping blacklisted branch: $branch\n" if $verbose;
-        next;
+        return;
     }
     elsif( $regex and $branch !~ m{$regex} ){
         print "Skipping regex miss: $branch\n" if $verbose;
-        next;
+        return;
     }
 
     if( $interactive ){
-        print "Delete branch '$branch'? [Y/n/q] ";
+        if( $remote ){
+            print "Delete branch '$remote/$branch'? [Y/n/q] ";
+        }
+        else {
+            print "Delete branch '$branch'? [Y/n/q] ";
+        }
         my $input = <STDIN>;
         exit 0 if $input =~ /^\s*q/i;
-        next if $input =~ /^\s*n/i;
+        return if $input =~ /^\s*n/i;
     }
 
-    print "git branch -D $branch\n" if $verbose or $dry_run;
-    system("git branch -D $branch") unless $dry_run;
-
-    if( $do_remotes ){
-        foreach my $remote (@{$remote_branches->{$branch}}){
-            print "git push $remote :$branch\n" if $verbose or $dry_run;
-            system("git push $remote :$branch") unless $dry_run;
-        }
+    if( $remote ){
+        print "git push $remote :$branch\n" if $verbose or $dry_run;
+        system("git push $remote :$branch") unless $dry_run;
     }
-}
-
-sub generate_remote_branches {
-    my($REMOTES, $MERGED_ONLY, $verbose) = @_;
-    my %remote_branches;
-
-    foreach my $remote (@$REMOTES) {
-        print "git fetch $remote\n" if $verbose;
-        `git fetch $remote`;
-
-        my $git_branch_command = "git branch -r $MERGED_ONLY";
-        open BRANCHES_FH, "$git_branch_command |" or die "Couldn't open '$git_branch_command': $!";
-        my $remote_branch;
-        while($remote_branch = <BRANCHES_FH>){
-            chomp $remote_branch;
-            my($branch_name) = $remote_branch =~ m{$remote/(\S+)};
-            push @{$remote_branches{$branch_name}}, $remote;
-        }
-        close BRANCHES_FH;
+    else {
+        print "git branch -D $branch\n" if $verbose or $dry_run;
+        system("git branch -D $branch") unless $dry_run;
     }
-
-    return \%remote_branches;
 }
