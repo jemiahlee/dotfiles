@@ -1,15 +1,3 @@
-#!/usr/bin/perl
+#!/bin/bash
 
-use warnings;
-use strict;
-
-my $status = `git status`;
-my %files = ();
-
-while( $status =~ m{modified:\s*([^\n]+)}g ) {
-    $files{$1} = 1;
-}
-
-foreach my $file (keys %files) {
-    print $file, "\n";
-}
+git status --porcelain | grep '^ M' | sed -e 's/^ M //'
