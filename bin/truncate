@@ -20,5 +20,5 @@ while( <> ) {
     }
 
     my $leftover = length() - $line_length - 1;
-    print substr($_, 0,$line_length), "..[$leftover more]\n";
+    print substr($_, 0, $line_length), "..[$leftover more]\n";
 }
