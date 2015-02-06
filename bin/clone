@@ -4,6 +4,6 @@ REPO_NAME=$1
 
 git clone git@github.com:jemiahlee/${REPO_NAME}
 cd ${REPO_NAME}
-git add upstream git@github.com:hearsaycorp/${REPO_NAME}
+git remote add upstream git@github.com:hearsaycorp/${REPO_NAME}
 git config user.email jeremiah.lee@hearsaycorp.com
 git fetch upstream
