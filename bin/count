@@ -1,0 +1,19 @@
+#!/usr/bin/perl
+
+use warnings;
+use strict;
+
+my($lower, $upper, $step) = @ARGV;
+
+unless( $lower and $upper ){
+    print "Need an upper and a lower bound!";
+    exit(1);
+}
+
+$step = 1 unless $step;
+
+while( $lower <= $upper ){
+    print "$lower ";
+    $lower += $step;
+}
+print "\b\n";
