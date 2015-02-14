@@ -94,7 +94,7 @@ my %transferred = ();
 while( <PROC_OUT> ){
     my($x, $y, $filename) = m{^(.)(.)\s*(\S+)$};
 
-    next if $modified_only and $x ne 'M';
+    next if $modified_only and $y ne 'M' and $x ne 'M';
     next if $staged_only and $x eq ' ';
     next if $transferred{$filename}++;
 
