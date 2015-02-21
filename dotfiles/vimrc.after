@@ -35,6 +35,7 @@ set magic
 " don't write out backup files
 set nobackup
 set nowb
+set noswapfile
 
 " No annoying sound on errors
 set noerrorbells
@@ -415,6 +416,7 @@ let g:pymode_lint_checkers = ['pyflakes', 'pep8']
 let g:pymode_lint_ignore="E501,E121,E125,E126,E128,C0111"
 let g:pymode_lint_error_symbol = '✗'
 let g:pymode_lint_info_symbol = '!'
+let g:pymode_options_max_line_length = 120
 
 au BufNewFile,BufRead *.jinja set syntax=htmljinja
 au BufNewFile,BufRead *.mako set ft=mako
@@ -430,7 +432,7 @@ au BufRead,BufNewFile *.js set filetype=javascript ts=4 sw=4 et
 " set foldmethod=indent   "fold based on indent
 " set foldnestmax=10      "deepest fold is 10 levels
 set nofoldenable        "dont fold by default
-" set foldlevel=1         "this is just what i use
+set foldlevel=1         "this is just what i use
 
 " make all operations work with the OS clipboard.
 "set clipboard=unnamed
@@ -438,7 +440,7 @@ set nofoldenable        "dont fold by default
 " toggle the folding of the current block
 " nnoremap <Space> za
 
-map <D-F> :Ack!
+map <D-F> :Ag!
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " Utility functions
