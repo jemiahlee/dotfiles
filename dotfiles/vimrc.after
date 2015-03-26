@@ -37,6 +37,8 @@ set nobackup
 set nowb
 set noswapfile
 
+colorscheme Tomorrow-Night
+
 " No annoying sound on errors
 set noerrorbells
 set novisualbell
@@ -412,11 +414,25 @@ autocmd BufEnter *.py set ai sw=4 ts=4 sta et fo=croql ft=python nosi
 
 let python_highlight_all = 1
 au FileType python syn keyword pythonDecorator True None False self
+" python-mode
+" see: https://github.com/vim-scripts/Python-mode-klen/blob/master/doc/pymode.txt
 let g:pymode_lint_checkers = ['pyflakes', 'pep8']
-let g:pymode_lint_ignore="E501,E121,E125,E126,E128,C0111"
+let g:pymode_lint_ignore="E121,E125,E126,E128,E501,W,E1101,E1103"
 let g:pymode_lint_error_symbol = '✗'
 let g:pymode_lint_info_symbol = '!'
 let g:pymode_options_max_line_length = 120
+let g:pymode_folding = 0
+let g:pymode_syntax_space_errors = 0
+let g:pymode_lint = 1
+"let g:pymode_lint_cwindow = 0
+"let g:pymode_lint_signs = 1
+let g:pymode_rope = 1
+let g:pymode_rope_goto_definition_cmd = 'e'  " e, new or vnew
+let g:pymode_rope_lookup_project = 0
+let g:pymode_rope_complete_on_dot = 0
+let g:pymode_rope_completion = 0
+let g:pymode_options_max_line_length = 119
+let g:pymode_options_colorcolumn = 1
 
 au BufNewFile,BufRead *.jinja set syntax=htmljinja
 au BufNewFile,BufRead *.mako set ft=mako
