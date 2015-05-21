@@ -9,7 +9,7 @@
 " General configuration
 """"""""""""""""""""""""""""""""""""""""""""""""""""""
 " Sets how many lines of history VIM has to remember
-set history=700
+set history=100
 
 " Enable filetype plugins
 filetype plugin on
@@ -130,13 +130,13 @@ cno $c e <C-\>eCurrentFileDir("e")<cr>
 cno $q <C-\>eDeleteTillSlash()<cr>
 
 " Bash like keys for the command line
-" cnoremap <C-A> <Home>
-" cnoremap <C-E> <End>
-" cnoremap <C-K> <C-U>
-" cnoremap <C-B> <Left>
-" cnoremap <C-F> <Right>
-" cnoremap <C-P> <Up>
-" cnoremap <C-N> <Down>
+cnoremap <C-A> <Home>
+cnoremap <C-E> <End>
+cnoremap <C-K> <C-U>
+cnoremap <C-B> <Left>
+cnoremap <C-F> <Right>
+cnoremap <C-P> <Up>
+cnoremap <C-N> <Down>
 
 " Sets the height of the command bar
 set cmdheight=1
@@ -179,8 +179,11 @@ imap <C-n> <down>
 imap <C-b> <left>
 imap <C-f> <right>
 imap <C-v> <PageDown>
+inoremap <C-t> <Esc>xhhpi
 inoremap <C-y> <C-\><C-O>p
 inoremap <C-k> <C-\><C-O>D
+inoremap <C-u> d0
+inoremap <C-x><C-s> <Esc>:w<CR>
 imap √ <PageUp>
 
 " Set utf8 as standard encoding and en_US as the standard language
@@ -297,7 +300,7 @@ set statusline=[%n]\ %*%<%f\ %h%m%r%{fugitive#statusline()}%=%-14.(%l,%c%V%)\ %P
 " Remap VIM 0 to first non-blank character
 " map 0 ^
 
-" Move a line of text using ALT+[jk] or Comamnd+[jk] on mac
+" Move a line of text using ALT+[jk] or Command+[jk] on mac
 nmap <M-j> mz:m+<cr>`z
 nmap <M-k> mz:m-2<cr>`z
 vmap <M-j> :m'>+<cr>`<my`>mzgv`yo`z
