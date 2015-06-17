@@ -1,0 +1,11 @@
+#!/usr/bin/env perl -n
+
+BEGIN {
+    use warnings;
+    use strict;
+
+    our $number_to_take = shift;
+}
+
+m{^(.{0,$number_to_take})};
+print $1, "\n";
