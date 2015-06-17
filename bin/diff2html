@@ -1,0 +1,122 @@
+#!/usr/bin/env perl
+
+require 5.6.0;
+use warnings;
+use strict;
+
+use File::Basename qw(basename);
+use Getopt::Long;
+use HTML::Entities qw(encode_entities);
+use List::Util qw(max);
+
+our( $line_numbers, $ignore_whitespace );
+GetOptions( 'ignore_whitespace|w|b' => \$ignore_whitespace, );
+
+my $title = encode_entities(join ' ', basename($0), @ARGV);
+
+print <<END ;
+<html>
+ <head>
+  <title>$title</title>
+  <link rel="stylesheet" media="screen" href="http://openfontlibrary.org/face/fantasque-sans-mono" rel="stylesheet" type="text/css"/>
+  <style>
+   body { font-family: 'FantasqueSansMonoRegular'; font-size: 14pt; }
+   .original { color: red;  font-weight: bold; }
+   .modified { color: green;   font-weight: bold; }
+   .added { color: cyan; font-weight: bold; }
+   .unmodified {}
+   .line-header { font-weight: bold; }
+   .bad-whitespace { background: red; color: white; }
+  </style>
+ </head>
+ <body>
+  <pre>
+END
+
+my %styles = (
+    '>'   => 'modified',
+    '+'   => 'modified',
+    '<'   => 'original',
+    '-'   => 'original',
+    ' '   => 'unmodified',
+    '---' => 'line-header',
+    '+++' => 'line-header',
+    '!'   => 'added',
+    '@@'  => 'line-header',
+);
+
+my $line_notation = join('|', map{ "\Q$_\E" } keys(%styles));
+my %line_numbers = ('a' => '', 'b' => '', 'format' => '');
+
+my $current_section = ' ';
+my $current_lines = '';
+while( <> ){
+    if( m{^$} ){
+        $current_lines .= annotate_line($_, $current_section);
+        next;
+    }
+
+    if( m{^($line_notation)} ){
+        my($this_line_section) = $1;
+
+        if( $this_line_section ne $current_section ){
+            print_section($current_section, $current_lines);
+            $current_lines = '';
+        }
+        $current_lines .= annotate_line($_, $this_line_section);
+        $current_section = $this_line_section;
+    }
+    else {
+        print "Line didn't match: $_";
+    }
+}
+print_section($current_section, $current_lines);
+
+print << 'EndHTML';
+  </pre>
+ </body>
+</html>
+EndHTML
+
+exit 0;
+
+
+sub print_section {
+    my($section, $lines) = @_;
+    print qq|<div class="$styles{$section}">$lines</div>|;
+}
+
+sub annotate_line {
+    my($line, $section_type) = @_;
+
+    $line =~ s{\t}{<span class="bad-whitespace"> &lt;TAB!&gt; </span>}g;
+    $line =~ s{(\s+)$}{<span class="bad-whitespace">$1</span>};
+
+    if( $section_type eq '@@' ){
+        $line =~ /^\@\@\s-(\d+),(\d+)\s+\+(\d+),(\d+)/;
+
+        $line_numbers{'a'} = $1;
+        my($end_line_a)    = $1 + $2;
+
+        $line_numbers{'b'} = $3;
+        my($end_line_b)    = $3 + $4;
+
+        my $max_length = max( length($end_line_a), length($end_line_b) );
+        $line_numbers{'format'} = "%${max_length}d: ";
+    }
+    elsif( $section_type eq '-' ){
+        $line = sprintf($line_numbers{'format'}, $line_numbers{'a'}) . $line;
+        $line_numbers{'a'}++;
+    }
+    elsif( $section_type eq '+' ){
+        $line = sprintf($line_numbers{'format'}, $line_numbers{'b'}) . $line;
+        $line_numbers{'b'}++;
+    }
+    elsif( $section_type eq ' ' ){
+        $line = sprintf($line_numbers{'format'}, $line_numbers{'b'}) . $line;
+        $line_numbers{'a'}++;
+        $line_numbers{'b'}++;
+    }
+
+    return $line;
+}
