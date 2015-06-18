@@ -64,7 +64,7 @@ function install_fonts {
 
   echo "Checking to see if we need to install the SourceCodePro TTF files..."
   FONTS_INSTALLED=0
-  LOCAL_FONT_DIRECTORY=fonts/SourceCodePro_FontsOnly-1.017/TTF
+  LOCAL_FONT_DIRECTORY=fonts
   SYSTEM_FONT_DIRECTORY=/System/Library/Fonts
 
   if ! [[ -d "${SYSTEM_FONT_DIRECTORY}" ]]; then
@@ -72,7 +72,7 @@ function install_fonts {
     return 1
   fi
 
-  for file in ${LOCAL_FONT_DIRECTORY}/*.ttf
+  for file in $(find ${LOCAL_FONT_DIRECTORY} -name *.ttf)
   do
     basename=`basename ${file}`
     if ! [[ -e "${SYSTEM_FONT_DIRECTORY}/${basename}" ]]; then
