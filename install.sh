@@ -118,8 +118,10 @@ function backup_vim_files {
 
 function pull_down_janus {
   STARTING_DIRECTORY=`pwd`
+  cd $HOME
+
   # assume Janus will always have janus directory
-  if ! [[ -e ".vim/janus" ]]; then
+  if ! [[ -e "${HOME}/.vim/janus" ]]; then
     # only go through Janus installation if it doesn't seem to be present.
     if [[ -e ".vim" && ! -L ".vim" ]]; then
       mv .vim .vim_bak
@@ -128,6 +130,8 @@ function pull_down_janus {
     fi
     echo "Cloning Janus (https://github.com/carlhuda/janus) into .vim"
     git clone -q git://github.com/carlhuda/janus.git ~/.vim
+  else
+    echo "Janus installation found, updating."
   fi
 
   # make sure Janus is up to date.
