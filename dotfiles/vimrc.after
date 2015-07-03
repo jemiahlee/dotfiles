@@ -37,7 +37,7 @@ set nobackup
 set nowb
 set noswapfile
 
-colorscheme Tomorrow-Night
+" colorscheme Tomorrow-Night
 
 " No annoying sound on errors
 set noerrorbells
@@ -120,14 +120,14 @@ end
 " => Command mode related
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " Smart mappings on the command line
-cno $h e ~/
-cno $d e ~/Desktop/
-cno $j e ./
-cno $c e <C-\>eCurrentFileDir("e")<cr>
+" cno $h e ~/
+" cno $d e ~/Desktop/
+" cno $j e ./
+" cno $c e <C-\>eCurrentFileDir("e")<cr>
 
 " $q is super useful when browsing on the command line
 " it deletes everything until the last slash
-cno $q <C-\>eDeleteTillSlash()<cr>
+" cno $q <C-\>eDeleteTillSlash()<cr>
 
 " Bash like keys for the command line
 cnoremap <C-A> <Home>
@@ -321,7 +321,10 @@ endif
 vnoremap <silent> gv :call VisualSelection('gv', '')<CR>
 
 " Open Ack and put the cursor in the right position
-map <leader>g :Ack!
+map <leader>g :Ag!
+
+" bind K to grep word under cursor
+nnoremap K :grep! "\b<C-R><C-W>\b"<CR>:cw<CR>
 
 " let g:agprg="<custom-ag-path-goes-here> --column"
 
@@ -366,7 +369,7 @@ command! Vs so ~/.vimrc.after
 """"""""""""""""""""""""""""""""""""""""""""""""""""""
 " file-formatting configuration
 """"""""""""""""""""""""""""""""""""""""""""""""""""""
-autocmd FileType * set tabstop=2|set shiftwidth=2|set expandtab
+autocmd FileType * set tabstop=4|set shiftwidth=2|set expandtab
 autocmd FileType python set tabstop=4|set shiftwidth=4|set expandtab
 autocmd FileType perl set tabstop=4|set shiftwidth=4|set expandtab
 autocmd FileType javascript set tabstop=4|set shiftwidth=4|set expandtab
@@ -516,3 +519,15 @@ endfunc
 func! CurrentFileDir(cmd)
     return a:cmd . " " . expand("%:p:h") . "/"
 endfunc
+
+" The Silver Searcher
+if executable('ag')
+  " Use ag over grep
+  set grepprg=ag\ --nogroup\ --nocolor
+
+  " Use ag in CtrlP for listing files. Lightning fast and respects .gitignore
+  let g:ctrlp_user_command = 'ag %s -l --nocolor -g ""'
+
+  " ag is fast enough that CtrlP doesn't need to cache
+  let g:ctrlp_use_caching = 0
+endif
