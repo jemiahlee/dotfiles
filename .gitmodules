@@ -7,3 +7,6 @@
 [submodule "submodules/vim_plugins/ag.vim"]
 	path = submodules/vim_plugins/ag.vim
 	url = git://github.com/rking/ag.vim
+[submodule "submodules/vim_plugins/python-syntax"]
+	path = submodules/vim_plugins/python-syntax
+	url = git@github.com:hdima/python-syntax.git
