@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+./run.sh manage.py dbshell --cluster=$1 --settings=settings.prod

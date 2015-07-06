@@ -1,0 +1,3 @@
+#/usr/bin/env bash
+
+./run.sh manage.py shell --organization=$1 --settings=settings.prod
