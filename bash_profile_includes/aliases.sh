@@ -18,3 +18,5 @@ alias golang="cd $HOME/gostuff/src/github.com/hearsaycorp/golang"
 alias ls="ls -p --color"
 alias vi='vi -u /usr/share/vim/vimrc'
 alias fanmgmt="cd $HOME/projects/HearsayLabs/fanmgmt"
+
+alias less=more
