@@ -6,7 +6,7 @@ use strict;
 my($lower, $upper, $step) = @ARGV;
 
 unless( $lower and $upper ){
-    print "Need an upper and a lower bound!";
+    print "Need an upper and a lower bound!\n";
     exit(1);
 }
 
