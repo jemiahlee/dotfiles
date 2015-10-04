@@ -180,7 +180,7 @@ imap <C-b> <left>
 imap <C-f> <right>
 imap <C-v> <PageDown>
 inoremap <C-t> <Esc>xhhpi
-inoremap <C-y> <C-\><C-O>p
+" inoremap <C-y> <C-\><C-O>p
 inoremap <C-k> <C-\><C-O>D
 inoremap <C-u> d0
 inoremap <C-x><C-s> <Esc>:w<CR>
