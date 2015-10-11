@@ -25,6 +25,17 @@
        --username       Use this username on remote machine when copying the files.
                             Defaults to ENV{GIT_SCP_HOSTNAME} or the current username.
        --verbose        Print extra information.
+
+=head1 NORMAL USAGE
+
+The purpose of this script is to copy any of the files that are currently modified or added to your
+local repository to a remote copy of the repository. This is to facilitate working locally in a
+cloud-dev environment.
+
+To set this script up, it will be useful for you to set two environment variables:
+
+    GIT_SCP_HOSTNAME
+
 =cut
 
 
@@ -54,7 +65,7 @@ GetOptions(
            'blacklist=s@'  => \$BLACKLIST,
            'help|?'        => sub { pod2usage(); },
            'hostname=s'    => \$hostname,
-           'interactive'   => \$interactive,
+           'interactive|i' => \$interactive,
            'modified_only' => \$modified_only,
            'print_only|n'  => \$print_only,
            'regex=s'       => \$regex,
