@@ -17,10 +17,13 @@
        --interactive    Interactively approve the branch to be deleted.
                             Turned on by default.
        --merged_only    Only delete branches that have been merged into upstream/master.
+                            Turned on by default.
        --regex <re>     Only delete branches that match this regular expression.
        --remotes|-r     Do this on the selected remotes.
                             Defaults to origin.
        --remotes_only   Don't process the local branches.
+       --unmerged       Allow it to delete unmerged branches.
+                            Turned off by default.
        --verbose        Print extra information.
 
 =cut
@@ -34,7 +37,7 @@ use Pod::Usage qw/pod2usage/;
 
 our $BLACKLIST = 'master|HEAD';
 our $GIT_BRANCH_COMMAND = 'git branch';
-our $MERGED_ONLY = '';
+our $MERGED_ONLY = ' --merged upstream/master';  # since this is filled in, only remove merged branches.
 our @REMOTES = q{origin};
 
 our($do_remotes, $dry_run, $interactive, $regex, $remotes_only, $verbose);
@@ -50,6 +53,7 @@ GetOptions(
            'regex=s'       => \$regex,
            'remotes'       => \$do_remotes,
            'remotes_only'  => sub { $remotes_only = 1; $do_remotes = 1; },
+           'unmerged'      => sub { $MERGED_ONLY = '' },
            'verbose'       => \$verbose,
 );
 
