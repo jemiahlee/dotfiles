@@ -62,6 +62,12 @@ function install_fonts {
     return 0
   fi
 
+  OS_VERSION=`uname -r`
+  if [[ "15.2.0" == "$OS_VERSION" ]]; then
+    echo "Version of OSX not compatible with copying these files. Please use FontBook instead."
+    return 0
+  fi
+
   echo "Checking to see if we need to install the SourceCodePro TTF files..."
   FONTS_INSTALLED=0
   LOCAL_FONT_DIRECTORY=fonts
