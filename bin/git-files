@@ -1,0 +1,76 @@
+#!/usr/bin/env perl
+
+=head1 NAME
+
+    git-files - print the list of files associated with a commit or current status
+
+=head1 SYNOPSIS
+
+    git-files [commit]
+
+     Options:
+       --modified_only  Print only files that have been modified, not added or deleted.
+       --oneline        Print files separated by spaces instead of newlines.
+       --cached|staged  Print only the files that have been "git add"ed.
+=cut
+
+
+use warnings;
+use strict;
+
+use Getopt::Long;
+use Pod::Usage qw/pod2usage/;
+
+our($modified_only, $oneline, $staged_only);
+
+GetOptions(
+           'modified_only' => \$modified_only,
+           'oneline'       => \$oneline,
+           'staged|cached' => \$staged_only,
+);
+
+my $commit = shift;
+
+if($commit){
+    do_git_show($commit);
+}
+else {
+    do_git_status(modified_only => $modified_only, staged_only => $staged_only);
+}
+
+
+sub do_git_status {
+    open PROC_OUT, "git status --short |" or die "Couldn't deal with 'git status': $!";
+    while( <PROC_OUT> ){
+        my($x, $y, $filename) = m{^(.)(.)\s*(\S+)$};
+
+        my $staged = $x ne ' ';
+        my $modified = $x eq 'M' || $y eq 'M';
+        my $added = $x eq 'A' || $y eq 'A';
+        my $deleted = $x eq 'D' || $y eq 'D';
+
+        next if $modified_only and not $modified;
+        next if $staged_only and not $staged;
+
+        print $filename;
+
+        print ' ' if $oneline;
+        print "\n" unless $oneline;
+    }
+    print "\n" if $oneline;
+}
+
+sub do_git_show {
+    my $commit = shift;
+    my $command = 'git show --pretty="format:" --name-only';
+
+    my $output = `$command $commit`;
+    if($oneline){
+        $output =~ s/\n/ /g;
+        $output =~ s/ $//;
+        print "$output\n";
+    }
+    else {
+        print $output;
+    }
+}
