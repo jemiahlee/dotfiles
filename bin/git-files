@@ -40,8 +40,11 @@ else {
 
 
 sub do_git_status {
+    my $files_in_modified_state = 0;
+
     open PROC_OUT, "git status --short |" or die "Couldn't deal with 'git status': $!";
     while( <PROC_OUT> ){
+        $files_in_modified_state = 1;
         my($x, $y, $filename) = m{^(.)(.)\s*(\S+)$};
 
         my $staged = $x ne ' ';
@@ -57,11 +60,17 @@ sub do_git_status {
         print ' ' if $oneline;
         print "\n" unless $oneline;
     }
-    print "\n" if $oneline;
+
+    if( not $files_in_modified_state ){
+        do_git_show();
+    }
+    elsif( $oneline ){
+        print "\n";
+    }
 }
 
 sub do_git_show {
-    my $commit = shift;
+    my $commit = shift || 'HEAD';
     my $command = 'git show --pretty="format:" --name-only';
 
     my $output = `$command $commit`;
