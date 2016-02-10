@@ -63,7 +63,7 @@ function install_fonts {
   fi
 
   OS_VERSION=`uname -r`
-  if [[ "15.2.0" == "$OS_VERSION" ]]; then
+  if [[ "$OS_VERSION" =~ 1[56]\.[0-9]* ]]; then
     echo "Version of OSX not compatible with copying these files. Please use FontBook instead."
     return 0
   fi
