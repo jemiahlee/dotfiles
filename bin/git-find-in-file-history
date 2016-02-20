@@ -1,7 +1,21 @@
 #!/usr/bin/perl
 
+=head1 NAME
+
+    git-find-in-file-history - Find all occurrences of a regex within all modifications of the file
+
+=head1 SYNOPSIS
+
+    git-find-in-file-history <filename> <regex_to_search_for>
+
+=cut
+
 use warnings;
 use strict;
+use Getopt::Long;
+use Pod::Usage qw/pod2usage/;
+
+GetOptions('help|?' => sub { pod2usage(); } );
 
 my $file = shift;
 my $regex = shift;
@@ -29,7 +43,7 @@ sub grep_in_output {
     my($sha, $diff) = @_;
 
     my @found;
-    while( $diff =~ m{^(.*?$regex.*?)$}mg ) {
+    while( $diff =~ m{^([+-].*?$regex.*?)$}mg ) {
         push @found, $1;
     }
 
