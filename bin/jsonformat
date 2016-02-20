@@ -1,0 +1,8 @@
+#!/bin/bash
+
+for file in $@
+do
+    python -mjson.tool $file > /tmp/$file.$$
+    cp /tmp/$file.$$ $file
+    rm /tmp/$file.$$
+done
