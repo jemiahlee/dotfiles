@@ -1,0 +1,41 @@
+#!/usr/bin/perl
+
+use warnings;
+use strict;
+
+my $file = shift;
+my $regex = shift;
+
+my $commits = `git log $file | grep '^commit '`;
+my @commits = reverse map {/commit (\S{40})/; $1} split(/\n/, $commits);
+my $found = 0;
+
+for(my $i = 0; $i < @commits; $i++) {
+    my $output;
+
+    if($i == 0) {
+        $output = `git show $commits[0] -- $file`;
+        grep_in_output($commits[0], $output);
+        next;
+    }
+
+    my $previous = $commits[$i-1];
+    my $current = $commits[$i];
+    my $diff = `git diff $previous..$current -- $file`;
+    grep_in_output($current, $diff);
+}
+
+sub grep_in_output {
+    my($sha, $diff) = @_;
+
+    my @found;
+    while( $diff =~ m{^(.*?$regex.*?)$}mg ) {
+        push @found, $1;
+    }
+
+    if(@found) {
+        print "\n" if $found++;
+        print `git log $sha -1 -- $file`;
+        print "\n", join("\n", @found), "\n";
+    }
+}
