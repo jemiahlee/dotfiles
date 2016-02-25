@@ -22,8 +22,12 @@ use Getopt::Long;
 use Pod::Usage qw/pod2usage/;
 
 our($modified_only, $oneline, $staged_only);
+our $REPO_ROOT = execute_and_chomp('git rev-parse --show-toplevel');
+our $CURRENT_DIR = execute_and_chomp('pwd');
+our $REPO_DIR_DIFF = path_subtract($CURRENT_DIR, $REPO_ROOT);
 
 GetOptions(
+           'help|?'        => sub { pod2usage() },
            'modified_only' => \$modified_only,
            'oneline'       => \$oneline,
            'staged|cached' => \$staged_only,
@@ -74,12 +78,28 @@ sub do_git_show {
     my $command = 'git show --pretty="format:" --name-only';
 
     my $output = `$command $commit`;
+    my @output = map {s{^$REPO_DIR_DIFF/?}{}; $_} split /\n/, $output;
+
     if($oneline){
-        $output =~ s/\n/ /g;
-        $output =~ s/ $//;
-        print "$output\n";
+        print "@output\n";
     }
     else {
-        print $output;
+        print join("\n", @output), "\n";
     }
+}
+
+sub path_subtract {
+    my($minuend, $subtrahend) = @_;
+
+    $minuend =~ s{^$subtrahend/?}{};
+    return $minuend;
+}
+
+sub execute_and_chomp {
+    my $exec = shift;
+
+    my $output = `$exec`;
+    chomp $output;
+
+    return $output;
 }
