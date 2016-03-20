@@ -9,9 +9,9 @@
     git-files [commit]
 
      Options:
+       --cached|staged  Print only the files that have been "git add"ed.
        --modified_only  Print only files that have been modified, not added or deleted.
        --oneline        Print files separated by spaces instead of newlines.
-       --cached|staged  Print only the files that have been "git add"ed.
 =cut
 
 
@@ -51,13 +51,15 @@ sub do_git_status {
         $files_in_modified_state = 1;
         my($x, $y, $filename) = m{^(.)(.)\s*(\S+)$};
 
-        my $staged = $x ne ' ';
+        my $staged = $x ne ' ' && $x ne 'U';
         my $modified = $x eq 'M' || $y eq 'M';
         my $added = $x eq 'A' || $y eq 'A';
         my $deleted = $x eq 'D' || $y eq 'D';
+        my $unmerged = $x eq 'U' && $y eq 'U';
 
         next if $modified_only and not $modified;
         next if $staged_only and not $staged;
+        next if $staged and not $staged_only;
 
         print $filename;
 
