@@ -64,7 +64,8 @@ function install_fonts {
 
   OS_VERSION=`uname -r`
   if [[ "$OS_VERSION" =~ 1[56]\.[0-9]* ]]; then
-    echo "Version of OSX not compatible with copying these files. Please use FontBook instead."
+    echo ''
+    echo "Version of OSX not compatible with copying font files. Please use FontBook instead."
     return 0
   fi
 
