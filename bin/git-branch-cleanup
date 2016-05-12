@@ -16,8 +16,9 @@
        --help|-?        This help message.
        --interactive    Interactively approve the branch to be deleted.
                             Turned on by default.
-       --merged_only    Only delete branches that have been merged into upstream/master.
-                            Turned on by default.
+       --merged [br]    Only delete branches that have been merged into upstream/master.
+                            Turned on by default. Optional argument to say which branch
+                            should be compared with.
        --regex <re>     Only delete branches that match this regular expression.
        --remotes|-r     Do this on the selected remotes.
                             Defaults to origin.
@@ -49,7 +50,7 @@ GetOptions(
            'dry_run|n'     => \$dry_run,
            'help|?'        => sub { pod2usage(); },
            'interactive'   => \$interactive,
-           'merged_only'   => sub { $MERGED_ONLY = ' --merged upstream/master' },
+           'merged:s'      => sub { my($opt_name, $branch) = @_; $MERGED_ONLY = ' --merged ' . ($branch || 'upstream/master') },
            'regex=s'       => \$regex,
            'remotes'       => \$do_remotes,
            'remotes_only'  => sub { $remotes_only = 1; $do_remotes = 1; },
