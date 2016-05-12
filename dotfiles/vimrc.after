@@ -188,6 +188,8 @@ imap √ <PageUp>
 imap ∫ b
 imap ƒ f
 
+imap <C-c> <ESC>O
+
 " Set utf8 as standard encoding and en_US as the standard language
 set encoding=utf8
 
@@ -325,8 +327,9 @@ vnoremap <silent> gv :call VisualSelection('gv', '')<CR>
 " Open Ack and put the cursor in the right position
 map <leader>g :Ag!
 
-" bind K to grep word under cursor
-nnoremap K :grep! "\b<C-R><C-W>\b"<CR>:cw<CR>
+" bind K to Ag word under cursor
+nnoremap K :Ag! "\b<C-R><C-W>\b"<CR>:cw<CR>
+nnoremap <Leader>s :%s/\<<C-r><C-w>>\>/
 
 " let g:agprg="<custom-ag-path-goes-here> --column"
 
