@@ -36,21 +36,26 @@ use strict;
 use Getopt::Long;
 use Pod::Usage qw/pod2usage/;
 
-our $BLACKLIST = '^(?:master|HEAD)$';
+our @BLACKLIST = qw/master HEAD/;
 our $GIT_BRANCH_COMMAND = 'git branch';
 our $MERGED_ONLY = ' --merged upstream/master';  # since this is filled in, only remove merged branches.
 our @REMOTES = q{origin};
 
-our($do_remotes, $dry_run, $interactive, $regex, $remotes_only, $verbose);
+our($comparison_branch, $do_remotes, $dry_run, $interactive, $regex, $remotes_only, $verbose);
+$comparison_branch = 'upstream/master';
 $interactive = 1;
 
 GetOptions(
            'all'           => sub { $interactive = 0; },
-           'blacklist=s@'  => sub { $BLACKLIST .= "|$_" },
+           'blacklist=s@'  => \@BLACKLIST,
            'dry_run|n'     => \$dry_run,
            'help|?'        => sub { pod2usage(); },
            'interactive'   => \$interactive,
-           'merged:s'      => sub { my($opt_name, $branch) = @_; $MERGED_ONLY = ' --merged ' . ($branch || 'upstream/master') },
+           'merged:s'      => sub {
+                                  my($opt_name, $branch) = @_;
+                                  $comparison_branch = $branch || $comparison_branch;
+                                  $MERGED_ONLY = qq{ --merged $comparison_branch};
+                              },
            'regex=s'       => \$regex,
            'remotes'       => \$do_remotes,
            'remotes_only'  => sub { $remotes_only = 1; $do_remotes = 1; },
@@ -62,6 +67,11 @@ if( $dry_run ){
     $interactive = 0;
 }
 
+if($comparison_branch =~ m{.*/(.*)}){
+    push @BLACKLIST, $1 unless $1 eq 'master';
+}
+
+our $BLACKLIST = '^(?:' . join('|', @BLACKLIST) . ')$';
 $BLACKLIST = qr{$BLACKLIST};
 if( @ARGV ){
     @REMOTES = @ARGV;
