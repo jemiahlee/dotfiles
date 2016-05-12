@@ -10,3 +10,12 @@
 [submodule "submodules/vim_plugins/python-syntax"]
 	path = submodules/vim_plugins/python-syntax
 	url = git@github.com:hdima/python-syntax.git
+[submodule "submodules/vim-javascript-syntax"]
+	path = submodules/vim_plugins/vim-javascript-syntax
+	url = git@github.com:jelera/vim-javascript-syntax.git
+[submodule "submodules/vim-javascript"]
+	path = submodules/vim_plugins/vim-javascript
+	url = git@github.com:pangloss/vim-javascript.git
+[submodule "submodules/vim_plugins/delimitMate"]
+	path = submodules/vim_plugins/delimitMate
+	url = git@github.com:Raimondi/delimitMate.git
