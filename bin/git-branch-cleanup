@@ -58,6 +58,10 @@ GetOptions(
            'verbose'       => \$verbose,
 );
 
+if( $dry_run ){
+    $interactive = 0;
+}
+
 $BLACKLIST = qr{$BLACKLIST};
 if( @ARGV ){
     @REMOTES = @ARGV;
@@ -135,6 +139,7 @@ sub process_branch {
         return if $input =~ /^\s*n/i;
     }
 
+    print "Would have run: " if $dry_run;
     if( $remote ){
         print "git push $remote :$branch\n" if $verbose or $dry_run;
         system("git push $remote :$branch") unless $dry_run;
