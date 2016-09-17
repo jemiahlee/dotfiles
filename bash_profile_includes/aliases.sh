@@ -10,7 +10,8 @@ alias gmu="git fetch upstream && git merge --ff-only upstream/master"
 alias gitprune="git remote prune origin"
 alias gst="git about && echo && git status"
 alias gfa="git fetch upstream && git fetch"
-alias ff="git fetch origin && git merge --ff-only origin/\$(current_git_branch_bare)"
+alias ff="git merge --ff-only origin/\$(current_git_branch_bare)"
+alias fff="git fetch origin && git merge --ff-only origin/\$(current_git_branch_bare)"
 
 alias ll="ls -lah"
 
