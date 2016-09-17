@@ -18,14 +18,14 @@
                                   Turned on by default.
        --matching_local_only  Only delete remote branches that match local branches.
        --merged [br]          Only delete branches that have been merged into upstream/master.
-                                  Turned on by default. Optional argument to say which branch
-                                  should be compared with.
+                                  Turned on by default.
+                                  Optional argument to say which branch should be compared with.
+                                  Compares with upstream/master by default.
        --regex <re>           Only delete branches that match this regular expression.
        --remotes|-r           Do this on the selected remotes.
                                   Defaults to origin.
        --remotes_only         Don't process the local branches.
        --unmerged             Allow it to delete unmerged branches.
-                                  Turned off by default.
        --verbose              Print extra information.
 
 =cut
@@ -41,23 +41,32 @@ our %ALREADY_FETCHED_REMOTES;
 our @BLACKLIST = qw/master HEAD develop/;
 our %WHITELIST;
 our $GIT_BRANCH_COMMAND = 'git branch';
-our $MERGED_ONLY = '--merged upstream/master';  # since this is filled in, only remove merged branches.
 our @REMOTES = q{origin};
 
-our($comparison_branch, $do_remotes, $dry_run, $interactive, $regex, $remotes_only, $verbose);
+our($do_remotes, $dry_run, $interactive, $regex, $remotes_only, $verbose);
+our $comparison_branch = 'upstream/master';
+our $MERGED_ONLY = qq{--merged $comparison_branch};
 our $matching_local = 0;
 $interactive = 1;
 
 GetOptions(
            'all'                  => sub { $interactive = 0; },
            'blacklist=s@'         => \@BLACKLIST,
-           'dry_run|n'            => \$dry_run,
-           'help|?'               => sub { pod2usage(); },
-           'interactive'          => \$interactive,
+           'dry_run|n'            => sub {
+                                         $dry_run = 1;
+                                         $interactive = 0;
+                                     },
+           'help|?'               => sub {
+                                         pod2usage();
+                                     },
+           'interactive'          => sub {
+                                         $interactive = 1 unless $dry_run;
+                                         print "Not using interactive mode, since --dry_run is active.\n" if $dry_run;
+                                     },
            'matching_local_only'  => \$matching_local,
            'merged:s'             => sub {
                                          my($opt_name, $branch) = @_;
-                                         $comparison_branch = $branch || 'upstream/master';
+                                         $comparison_branch = $branch || $DEFAULT_COMPARISON_BRANCH;
                                          $MERGED_ONLY = qq{--merged $comparison_branch};
                                      },
            'regex=s'              => \$regex,
@@ -67,21 +76,17 @@ GetOptions(
            'verbose'              => \$verbose,
 );
 
-if( $dry_run ){
-    $interactive = 0;
-}
-
-if($comparison_branch =~ m{(.*)/(.*)}){
+if( $MERGED_ONLY and $comparison_branch =~ m{(.*)/(.*)} ){
     print "git fetch $1\n";
     `git fetch $1`;
     $ALREADY_FETCHED_REMOTES{$1}++;
     push @BLACKLIST, $2 unless $2 eq 'master';
 }
-else {
+elsif( $comparison_branch ) {
     push @BLACKLIST, $comparison_branch;
 }
 
-if($matching_local) {
+if( $matching_local ) {
     my $output = `git branch`;
     my @whitelist = split /\s+/, $output;
     @WHITELIST{@whitelist} = (1) x @whitelist;
@@ -90,6 +95,7 @@ if($matching_local) {
 
 our $BLACKLIST = '^(?:' . join('|', map {"\Q$_\E"} @BLACKLIST) . ')$';
 $BLACKLIST = qr{$BLACKLIST};
+
 if( @ARGV ){
     @REMOTES = @ARGV;
 }
