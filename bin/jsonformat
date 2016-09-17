@@ -1,6 +1,11 @@
 #!/bin/bash
 
-for file in $@
+if [[ $# -eq 0 ]]; then
+  echo "You must provide at least one filename!"
+  exit 1
+fi
+
+for file in $*
 do
     python -mjson.tool $file > /tmp/$file.$$
     cp /tmp/$file.$$ $file
