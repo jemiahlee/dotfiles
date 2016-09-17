@@ -44,7 +44,8 @@ our $GIT_BRANCH_COMMAND = 'git branch';
 our @REMOTES = q{origin};
 
 our($do_remotes, $dry_run, $interactive, $regex, $remotes_only, $verbose);
-our $comparison_branch = 'upstream/master';
+our $DEFAULT_COMPARISON_BRANCH = 'upstream/master';
+our $comparison_branch = $DEFAULT_COMPARISON_BRANCH;
 our $MERGED_ONLY = qq{--merged $comparison_branch};
 our $matching_local = 0;
 $interactive = 1;
@@ -66,7 +67,7 @@ GetOptions(
            'matching_local_only'  => \$matching_local,
            'merged:s'             => sub {
                                          my($opt_name, $branch) = @_;
-                                         $comparison_branch = $branch || $DEFAULT_COMPARISON_BRANCH;
+                                         $comparison_branch ||= $branch;
                                          $MERGED_ONLY = qq{--merged $comparison_branch};
                                      },
            'regex=s'              => \$regex,
