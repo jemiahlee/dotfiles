@@ -108,7 +108,7 @@ set mat=2
 syntax enable
 
 "
-" map for resizing windows
+" map for resizing panes
 if bufwinnr(1)
   map + <C-W>+
   map - <C-W>-
@@ -137,6 +137,7 @@ cnoremap <C-B> <Left>
 cnoremap <C-F> <Right>
 cnoremap <C-P> <Up>
 cnoremap <C-N> <Down>
+cnoremap <C-d> <del>
 
 " Sets the height of the command bar
 set cmdheight=1

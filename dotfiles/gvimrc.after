@@ -9,10 +9,12 @@ set guioptions-=T
 set guioptions-=e
 set t_Co=256
 set guitablabel=%M\ %t
+set macligatures
 
 " Set font according to system
 if has("mac") || has("macunix")
-    set gfn=Source\ Code\ Pro:h14,Monaco:h14,Menlo:h15
+    set gfn=Hasklig:h14,Source\ Code\ Pro:h14,Monaco:h14,Menlo:h15
+    " set gfn=Fira\ Code:h15,Source\ Code\ Pro:h14,Monaco:h14,Menlo:h15
     " set gfn=Fantasque\ Sans\ Mono:h16,Source\ Code\ Pro:h14,Monaco:h14,Menlo:h15
 elseif has("win16") || has("win32")
     set gfn=Source\ Code\ Pro:h12,Bitstream\ Vera\ Sans\ Mono:h11
