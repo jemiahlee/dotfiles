@@ -41,14 +41,14 @@ our %ALREADY_FETCHED_REMOTES;
 our @BLACKLIST = qw/master HEAD develop/;
 our %WHITELIST;
 our $GIT_BRANCH_COMMAND = 'git branch';
-our @REMOTES = q{origin};
+our @REMOTES_TO_PROCESS = q{origin};
 
-our($do_remotes, $dry_run, $interactive, $regex, $remotes_only, $verbose);
+our($do_remotes, $dry_run, $regex, $remotes_only, $verbose);
 our $DEFAULT_COMPARISON_BRANCH = 'upstream/master';
 our $comparison_branch = $DEFAULT_COMPARISON_BRANCH;
 our $MERGED_ONLY = qq{--merged $comparison_branch};
+our $interactive = 1;
 our $matching_local = 0;
-$interactive = 1;
 
 GetOptions(
            'all'                  => sub { $interactive = 0; },
@@ -77,35 +77,19 @@ GetOptions(
            'verbose'              => \$verbose,
 );
 
-if( $MERGED_ONLY and $comparison_branch =~ m{(.*)/(.*)} ){
-    print "git fetch $1\n";
-    `git fetch $1`;
-    $ALREADY_FETCHED_REMOTES{$1}++;
-    push @BLACKLIST, $2 unless $2 eq 'master';
-}
-elsif( $comparison_branch ) {
-    push @BLACKLIST, $comparison_branch;
-}
+add_comparison_branch_to_blacklist();
+generate_whitelist_based_on_local_matches() if $matching_local;
 
-if( $matching_local ) {
-    my $output = `git branch`;
-    my @whitelist = split /\s+/, $output;
-    @WHITELIST{@whitelist} = (1) x @whitelist;
-    print join(',', keys(%WHITELIST)), "\n";
-}
-
-our $BLACKLIST = '^(?:' . join('|', map {"\Q$_\E"} @BLACKLIST) . ')$';
-$BLACKLIST = qr{$BLACKLIST};
+our $BLACKLIST = make_blacklist_regex();
 
 if( @ARGV ){
-    @REMOTES = @ARGV;
+    @REMOTES_TO_PROCESS = @ARGV;
 }
 
-our %REMOTES;
+our %REMOTES_TO_PROCESS;
+@REMOTES_TO_PROCESS{@REMOTES_TO_PROCESS} = (1) x @REMOTES_TO_PROCESS;
 if( $do_remotes ) {
-    foreach my $remote (@REMOTES){
-        $REMOTES{$remote}++;
-
+    foreach my $remote (keys %REMOTES_TO_PROCESS){
         next if $ALREADY_FETCHED_REMOTES{$remote};
 
         print "git fetch $remote\n";
@@ -131,7 +115,6 @@ sub process_branches {
     }
 
     print "Executing '$git_branch_command' to get list of branches to process\n" if $verbose;
-
     open BRANCHES_FH, "$git_branch_command |" or die "Couldn't open '$git_branch_command': $!";
 
     my $branch;
@@ -140,7 +123,7 @@ sub process_branches {
 
         if( $doing_remote and $branch =~ m{^([^/]+)/(\S+)} ){
             my($remote, $branch) = ($1, $2);
-            next unless $REMOTES{$remote};
+            next unless $REMOTES_TO_PROCESS{$remote};
             process_branch($branch, $remote);
         }
         else {
@@ -193,4 +176,28 @@ sub process_branch {
         print "git branch -D $branch\n" if $verbose or $dry_run;
         system("git branch -D $branch") unless $dry_run;
     }
+}
+
+sub add_comparison_branch_to_blacklist {
+    if( $MERGED_ONLY and $comparison_branch =~ m{(.*)/(.*)} ){
+        print "git fetch $1\n";
+        `git fetch $1`;
+        $ALREADY_FETCHED_REMOTES{$1}++;
+        push @BLACKLIST, $2 unless $2 eq 'master';
+    }
+    elsif( $comparison_branch ) {
+        push @BLACKLIST, $comparison_branch;
+    }
+}
+
+sub generate_whitelist_based_on_local_matches {
+    my $output = `git branch`;
+    my @whitelist = split /\s+/, $output;
+    @WHITELIST{@whitelist} = (1) x @whitelist;
+    print join(',', keys(%WHITELIST)), "\n";
+}
+
+sub make_blacklist_regex {
+    my $temp_bl = '^(?:' . join('|', map {"\Q$_\E"} @BLACKLIST) . ')$';
+    return qr{$temp_bl};
 }
