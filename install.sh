@@ -16,10 +16,21 @@ function safe_link {
   ln -sfv "${FROM_FILE}" "${TO_FILE}"
 }
 
-function create_var_for_this_directory {
-  THIS_DIRECTORY = `pwd`
+function setup_scm_breeze {
+  THIS_DIR=`pwd`
+  SCM_BREEZE_DIR="$THIS_DIR/submodules/scm_breeze"
+  SCM_BREEZE_INSTALL_DIR="$HOME/.scm_breeze"
 
-  echo "export DOTFILES_BASE_DIR=${THIS_DIRECTORY}" > bash_profile_includes/dotfiles_var.sh
+  if [[ ! -e "$HOME/.scm_breeze" ]]; then
+    echo "Installing scm_breeze: Symlinking $SCM_BREEZE_INSTALL_DIR to $SCM_BREEZE_DIR"
+    ln -fs "$SCM_BREEZE_DIR" "$SCM_BREEZE_INSTALL_DIR"
+    source "$SCM_BREEZE_DIR/lib/scm_breeze.sh"
+    echo "Installing scm_breeze: Creating .scmbrc"
+    _create_or_patch_scmbrc
+    echo "Installing scm_breeze: Completed."
+  else
+    echo "Installing scm_breeze: Extant symlink $SCM_BREEZE_INSTALL_DIR, skipping install."
+  fi
 }
 
 function install_files {
@@ -185,10 +196,10 @@ if [[ $1 != '--no-vim' ]]; then
   git submodule update
 fi
 
-create_var_for_this_directory
 link_bash_profile_includes "$START_PWD"
 install_files "${START_PWD}"/bin "${HOME}"/bin
 install_files "${START_PWD}"/dotfiles "${HOME}" true
+setup_scm_breeze
 install_fonts
 
 if [[ -n "${PRIVATE_FILE_PATH}" ]]; then
