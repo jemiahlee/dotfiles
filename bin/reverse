@@ -1,0 +1,9 @@
+#!/usr/bin/env perl
+
+my @lines;
+
+while (<>) {
+    unshift @lines, $_;
+}
+
+print @lines;
