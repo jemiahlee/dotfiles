@@ -1,5 +1,5 @@
 function current_git_branch {
-	echo `git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/[\1]/'`
+    echo `git branch --no-color 2> /dev/null | perl -n -e 'next unless /^\s*\*\s*(?:.\d+.\s*)?(.*)/; print "[$1]"; exit;'`
 }
 
 export CLICOLOR=1
