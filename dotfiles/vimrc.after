@@ -389,7 +389,7 @@ command! Vs so ~/.vimrc.after
 autocmd FileType * set tabstop=4|set shiftwidth=2|set expandtab
 autocmd FileType python set tabstop=4|set shiftwidth=4|set expandtab
 autocmd FileType perl set tabstop=4|set shiftwidth=4|set expandtab
-autocmd FileType javascript set tabstop=4|set shiftwidth=4|set expandtab
+autocmd FileType javascript set tabstop=2|set shiftwidth=2|set expandtab
 
 " format JSON using Python's json.tool module
 map <leader>js :%!python -m json.tool<CR>
@@ -406,7 +406,7 @@ let g:NERDSpaceDelims=1
 """"""""""""""""""""""""""""""""""""""""""""""""""""""
 " additional Ruby syntax highliting
 au BufRead,BufNewFile {Capfile,Gemfile,Gemfile.lock,Rakefile,Thorfile,config.ru,.caprc,.irbrc,irb_tempfile*} set ft=ruby
-au BufRead,BufNewFile *.py set filetype=ruby ts=2 sw=2
+au BufRead,BufNewFile *.rb set filetype=ruby ts=2 sw=2
 
 " convert Ruby 1.8 to 1.9 hash syntax
 map <D-H> :%s/:\([^ ]*\)\(\s*\)=>/\1:/gc<CR>
@@ -464,8 +464,8 @@ au BufNewFile,BufRead *.mako set ft=mako
 " Javascript configuration
 """"""""""""""""""""""""""""""""""""""""""""""""""""""
 " syntax highlighting for python
-au BufRead,BufNewFile *.js set filetype=javascript ts=4 sw=4 et
-
+au BufRead,BufNewFile *.js set filetype=javascript ts=2 sw=2 et
+au BufRead,BufNewFile *.jsx set filetype=javascript ts=2 sw=2 et
 
 " folding settings
 " set foldmethod=indent   "fold based on indent
