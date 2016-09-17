@@ -84,8 +84,8 @@ function install_fonts {
 
   OS_VERSION=`uname -r`
   if [[ "$OS_VERSION" =~ 1[56]\.[0-9]* ]]; then
-    echo ''
     echo "Version of OSX not compatible with copying font files. Please use FontBook instead."
+    echo "There is more information in the README.md in this repository."
     return 0
   fi
 
@@ -183,6 +183,9 @@ else
   START_PWD=`dirname $0`
 fi
 
+echo "First, ensuring submodules are up-to-date."
+git submodule update --recursive
+
 if [[ -d "${HOME}/Google Drive/dotfiles" ]]; then
   PRIVATE_FILE_PATH="${HOME}/Google Drive/dotfiles"
 fi
@@ -199,8 +202,12 @@ fi
 link_bash_profile_includes "$START_PWD"
 install_files "${START_PWD}"/bin "${HOME}"/bin
 install_files "${START_PWD}"/dotfiles "${HOME}" true
+
+echo
 setup_scm_breeze
+echo
 install_fonts
+echo
 
 if [[ -n "${PRIVATE_FILE_PATH}" ]]; then
   install_files "${PRIVATE_FILE_PATH}"/bin "${HOME}"/bin
