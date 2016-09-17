@@ -9,7 +9,7 @@ function safe_link {
   if [[ -e "${TO_FILE}" && ! -L "${TO_FILE}" ]]; then
     echo "Moving ${TO_FILE} to ${TO_FILE}_bak"
     mv "${TO_FILE}" "${TO_FILE}_bak"
-  else
+  elif [[ -e "${TO_FILE}" ]]; then
     echo "Removing symlink to ${FROM_FILE}"
     rm "${TO_FILE}"
   fi
