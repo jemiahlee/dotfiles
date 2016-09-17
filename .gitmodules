@@ -19,3 +19,6 @@
 [submodule "submodules/vim_plugins/delimitMate"]
 	path = submodules/vim_plugins/delimitMate
 	url = git@github.com:Raimondi/delimitMate.git
+[submodule "submodules/scm_breeze"]
+	path = submodules/scm_breeze
+	url = git@github.com:scmbreeze/scm_breeze.git
