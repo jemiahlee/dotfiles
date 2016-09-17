@@ -27,5 +27,3 @@ alias ..........="cd ../../../../../../../../.."
 
 alias ls="ls -p --color"
 alias vi='vi -u /usr/share/vim/vimrc'
-
-alias more='less -F'
