@@ -47,6 +47,7 @@ set tm=500
 
 nmap s <Plug>(easymotion-s2)
 nmap t <Plug>(easymotion-t2)
+nmap <leader>f <Plug>(easymotion-s)
 
 " turn on hardtime for all files.
 let g:hardtime_default_on = 1
@@ -66,6 +67,8 @@ set so=8
 
 " Sets a marker in the window at 120 characters from the left.
 set colorcolumn=120
+
+set cursorline
 
 " Turn on the WiLd menu
 set wildmenu
@@ -115,6 +118,10 @@ if bufwinnr(1)
   map ( <C-W><
   map ) <C-W>>
 end
+
+" Number of columns from the left or right of the window to start
+" scrolling
+set sidescrolloff=10
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " => Command mode related
@@ -221,6 +228,10 @@ vmap <leader>s :s/
 " scroll the viewport faster
 nnoremap <C-e> 10<C-e>
 nnoremap <C-y> 10<C-y>
+
+nnoremap <C-y> <esc>zt
+nnoremap <C-u> <esc>zz
+nnoremap <C-i> <esc>zb
 
 " Map <Space> to / (search) and Ctrl-<Space> to ? (backwards search)
 "map <space> /
@@ -436,14 +447,14 @@ let g:pymode_options_max_line_length = 120
 let g:pymode_folding = 0
 let g:pymode_syntax_space_errors = 0
 let g:pymode_lint = 1
-"let g:pymode_lint_cwindow = 0
-"let g:pymode_lint_signs = 1
+" let g:pymode_lint_cwindow = 0
+" let g:pymode_lint_signs = 1
 let g:pymode_rope = 1
 let g:pymode_rope_goto_definition_cmd = 'e'  " e, new or vnew
 let g:pymode_rope_lookup_project = 0
 let g:pymode_rope_complete_on_dot = 0
 let g:pymode_rope_completion = 0
-let g:pymode_options_max_line_length = 119
+" let g:pymode_options_max_line_length = 119
 let g:pymode_options_colorcolumn = 1
 
 au BufNewFile,BufRead *.jinja set syntax=htmljinja
