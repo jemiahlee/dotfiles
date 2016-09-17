@@ -18,13 +18,13 @@ function safe_link {
 
 function setup_scm_breeze {
   THIS_DIR=`pwd`
-  SCM_BREEZE_DIR="$THIS_DIR/submodules/scm_breeze"
+  scmbDir="$THIS_DIR/submodules/scm_breeze"
   SCM_BREEZE_INSTALL_DIR="$HOME/.scm_breeze"
 
   if [[ ! -e "$HOME/.scm_breeze" ]]; then
-    echo "Installing scm_breeze: Symlinking $SCM_BREEZE_INSTALL_DIR to $SCM_BREEZE_DIR"
-    ln -fs "$SCM_BREEZE_DIR" "$SCM_BREEZE_INSTALL_DIR"
-    source "$SCM_BREEZE_DIR/lib/scm_breeze.sh"
+    echo "Installing scm_breeze: Symlinking $SCM_BREEZE_INSTALL_DIR to $scmbDir"
+    ln -fs "$scmbDir" "$SCM_BREEZE_INSTALL_DIR"
+    source "$scmbDir/lib/scm_breeze.sh"
     echo "Installing scm_breeze: Creating .scmbrc"
     _create_or_patch_scmbrc
     echo "Installing scm_breeze: Completed."
