@@ -37,6 +37,7 @@ use strict;
 use Getopt::Long;
 use Pod::Usage qw/pod2usage/;
 
+our %ALREADY_FETCHED_REMOTES;
 our @BLACKLIST = qw/master HEAD develop/;
 our %WHITELIST;
 our $GIT_BRANCH_COMMAND = 'git branch';
@@ -45,7 +46,6 @@ our @REMOTES = q{origin};
 
 our($comparison_branch, $do_remotes, $dry_run, $interactive, $regex, $remotes_only, $verbose);
 our $matching_local = 0;
-$comparison_branch = 'upstream/master';
 $interactive = 1;
 
 GetOptions(
@@ -57,7 +57,7 @@ GetOptions(
            'matching_local_only'  => \$matching_local,
            'merged:s'             => sub {
                                          my($opt_name, $branch) = @_;
-                                         $comparison_branch = $branch || $comparison_branch;
+                                         $comparison_branch = $branch || 'upstream/master';
                                          $MERGED_ONLY = qq{--merged $comparison_branch};
                                      },
            'regex=s'              => \$regex,
@@ -71,8 +71,11 @@ if( $dry_run ){
     $interactive = 0;
 }
 
-if($comparison_branch =~ m{.*/(.*)}){
-    push @BLACKLIST, $1 unless $1 eq 'master';
+if($comparison_branch =~ m{(.*)/(.*)}){
+    print "git fetch $1\n";
+    `git fetch $1`;
+    $ALREADY_FETCHED_REMOTES{$1}++;
+    push @BLACKLIST, $2 unless $2 eq 'master';
 }
 else {
     push @BLACKLIST, $comparison_branch;
@@ -91,19 +94,22 @@ if( @ARGV ){
     @REMOTES = @ARGV;
 }
 
-unless( $remotes_only ){
-    process_branches();
-}
-
 our %REMOTES;
 if( $do_remotes ) {
     foreach my $remote (@REMOTES){
+        $REMOTES{$remote}++;
+
+        next if $ALREADY_FETCHED_REMOTES{$remote};
+
         print "git fetch $remote\n";
         `git fetch $remote`;
-        $REMOTES{$remote}++;
     }
 
     process_branches('doing_remote: true');
+}
+
+unless( $remotes_only ){
+    process_branches();
 }
 
 exit 0;
