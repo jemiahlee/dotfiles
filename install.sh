@@ -16,6 +16,12 @@ function safe_link {
   ln -sfv "${FROM_FILE}" "${TO_FILE}"
 }
 
+function create_var_for_this_directory {
+  THIS_DIRECTORY = `pwd`
+
+  echo "export DOTFILES_BASE_DIR=${THIS_DIRECTORY}" > bash_profile_includes/dotfiles_var.sh
+}
+
 function install_files {
   FROM_DIR=$1
   TO_DIR=$2
@@ -179,6 +185,7 @@ if [[ $1 != '--no-vim' ]]; then
   git submodule update
 fi
 
+create_var_for_this_directory
 link_bash_profile_includes "$START_PWD"
 install_files "${START_PWD}"/bin "${HOME}"/bin
 install_files "${START_PWD}"/dotfiles "${HOME}" true
