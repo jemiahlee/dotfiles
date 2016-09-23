@@ -273,6 +273,7 @@ map <D-]> :tabnext<cr>
 
 " show open buffers
 map <D-e> :CtrlPBuffer<CR>
+map <leader>e :CtrlPBuffer<CR>
 
 " Opens a new tab with the current buffer's path
 " Super useful when editing files in the same directory
