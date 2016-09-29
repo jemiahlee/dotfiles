@@ -11,3 +11,9 @@ npm install --save-dev mocha
 npm install --save-dev chai
 
 perl -i -p -e 's/"test": "echo \\"Error: no test specified\\" && exit 1"/"build": "babel src -d lib",\n    "test": "mocha --compilers js:babel-register"/;' package.json
+
+cat > .babelrc <<BABELRC
+{
+  "presets": ["es2015"]
+}
+BABELRC
