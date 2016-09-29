@@ -1,0 +1,13 @@
+#!/bin/bash
+
+npm init -y
+npm install babel
+npm install babel-cli
+npm install lodash
+npm install babel-preset-es2015
+npm install babel-register
+npm install immutable
+npm install --save-dev mocha
+npm install --save-dev chai
+
+perl -i -p -e 's/"test": "echo \\"Error: no test specified\\" && exit 1"/"build": "babel src -d lib",\n    "test": "mocha --compilers js:babel-register"/;' package.json
