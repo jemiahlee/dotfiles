@@ -41,7 +41,8 @@ our %ALREADY_FETCHED_REMOTES;
 our @BLACKLIST = qw/master HEAD develop/;
 our %WHITELIST;
 our $GIT_BRANCH_COMMAND = 'git branch';
-our @REMOTES_TO_PROCESS = q{origin};
+our $DEFAULT_REMOTE = 'origin';
+our @REMOTES_TO_PROCESS = ($DEFAULT_REMOTE);
 
 our($do_remotes, $dry_run, $regex, $remotes_only, $verbose);
 our $DEFAULT_COMPARISON_BRANCH = 'upstream/master';
@@ -67,11 +68,19 @@ GetOptions(
            'matching_local_only'  => \$matching_local,
            'merged:s'             => sub {
                                          my($opt_name, $branch) = @_;
-                                         $comparison_branch ||= $branch;
-                                         $MERGED_ONLY = qq{--merged $comparison_branch};
+                                         if($branch) {
+                                             $comparison_branch = $branch;
+                                             $MERGED_ONLY = qq{--merged $comparison_branch};
+                                         }
                                      },
            'regex=s'              => \$regex,
-           'remotes'              => \$do_remotes,
+           'remotes:s'            => sub {
+                                       $do_remotes = 1;
+                                       my($opt_name, $remote) = @_;
+                                       if($remote and $remote ne 'origin') {
+                                           push @REMOTES_TO_PROCESS, $remote;
+                                       }
+                                     },
            'remotes_only'         => sub { $remotes_only = 1; $do_remotes = 1; },
            'unmerged'             => sub { $MERGED_ONLY = '' },
            'verbose'              => \$verbose,
@@ -86,6 +95,7 @@ if( @ARGV ){
     @REMOTES_TO_PROCESS = @ARGV;
 }
 
+print "Processing remote branches..\n" if $verbose;
 our %REMOTES_TO_PROCESS;
 @REMOTES_TO_PROCESS{@REMOTES_TO_PROCESS} = (1) x @REMOTES_TO_PROCESS;
 if( $do_remotes ) {
@@ -100,6 +110,7 @@ if( $do_remotes ) {
 }
 
 unless( $remotes_only ){
+    print "Processing local branches..\n" if $verbose;
     process_branches();
 }
 
