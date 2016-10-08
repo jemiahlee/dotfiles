@@ -203,14 +203,14 @@ link_bash_profile_includes "$START_PWD"
 install_files "${START_PWD}"/bin "${HOME}"/bin
 install_files "${START_PWD}"/dotfiles "${HOME}" true
 
-echo
-setup_scm_breeze
-echo
-install_fonts
-echo
-
 if [[ -n "${PRIVATE_FILE_PATH}" ]]; then
   install_files "${PRIVATE_FILE_PATH}"/bin "${HOME}"/bin
   install_files "${PRIVATE_FILE_PATH}"/ssh "${HOME}/.ssh"
   install_files "${PRIVATE_FILE_PATH}"/dotfiles "${HOME}" true
 fi
+
+echo
+setup_scm_breeze
+echo
+install_fonts
+echo
