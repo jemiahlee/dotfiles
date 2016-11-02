@@ -42,3 +42,10 @@ fonts, you will have to go into *Font Book* to manually import them:
 Click on the plus, and choose the folder, and it should import them
 correctly. Personally, I've been using Hasklig since it is Source Code
 Pro + some ligatures.
+
+### VIM Configuration
+
+The current version uses !(https://github.com/junegunn/vim-plug)[vim-plug]
+to manage VIM plugins. During installation, it will briefly open VIM
+to run the plugin installation process. If you'd like to edit the list
+of plugins, they are at the bottom of the `.vimrc` file.

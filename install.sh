@@ -118,8 +118,7 @@ function link_bash_profile_includes {
     return 1
   fi
 
-  STARTING_DIRECTORY=`pwd`
-  cd "$HOME"
+  pushd "$HOME"
 
   if [[ -e ".bash_profile_includes" && ! -L ".bash_profile_includes" ]]; then
     echo "${HOME}/.bash_profile_includes already exists and is not symlink\'ed. Not modifying."
@@ -131,16 +130,23 @@ function link_bash_profile_includes {
     ln -sfv "${START_PWD}/bash_profile_includes" .bash_profile_includes
   fi
 
-  cd "${STARTING_DIRECTORY}"
-
+  popd
 }
 
 function backup_vim_files {
-  if [[ -e ".vimrc" && ! -L ".vimrc" ]]; then
-    mv .vimrc .vimrc_bak
-  elif [[ -L ".vimrc" ]]; then
-    rm .vimrc
+  pushd "${HOME}" > /dev/null
+
+  # if [[ -e ".vimrc" && ! -L ".vimrc" ]]; then
+  #   mv .vimrc .vimrc_bak
+  # elif [[ -L ".vimrc" ]]; then
+  #   rm .vimrc
+  # fi
+
+  if [[ -e ".vim" && -e ".vim/janus" ]]; then
+    mv .vim .vim_bak
   fi
+
+  popd > /dev/null
 }
 
 function pull_down_janus {
@@ -184,19 +190,11 @@ else
 fi
 
 echo "First, ensuring submodules are up-to-date."
+git submodule init
 git submodule update --recursive
 
 if [[ -d "${HOME}/Google Drive/dotfiles" ]]; then
   PRIVATE_FILE_PATH="${HOME}/Google Drive/dotfiles"
-fi
-
-if [[ $1 != '--no-vim' ]]; then
-  backup_vim_files
-  pull_down_janus
-
-  echo "Fetching submodules..."
-  git submodule init
-  git submodule update
 fi
 
 link_bash_profile_includes "$START_PWD"
@@ -214,3 +212,18 @@ setup_scm_breeze
 echo
 install_fonts
 echo
+
+if [[ $1 != '--no-vim' ]]; then
+  echo "Running VIM file installation."
+  echo "Backing up old VIM files as necessary."
+  backup_vim_files
+  #  pull_down_janus
+
+  if [[ ! -d "${HOME}"/.vim/autoload ]]; then
+    mkdir -p ~/.vim/autoload
+  fi
+  safe_link "${START_PWD}/submodules/vim-plug/plug.vim" "${HOME}/.vim/autoload/plug.vim"
+
+  echo "Installing VIM plugins via vim-plug"
+  vim -s vim_startup_commands
+fi

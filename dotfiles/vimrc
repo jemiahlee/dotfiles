@@ -179,16 +179,15 @@ map <D-L> gg=G``
 map <leader>= gg=G``
 
 " map some emacs-like command in insert-mode
-imap <C-a> <home>
-imap <C-d> <del>
-imap <C-e> <end>
-imap <C-p> <up>
-imap <C-n> <down>
-imap <C-b> <left>
-imap <C-f> <right>
-imap <C-v> <PageDown>
+inoremap <C-a> <home>
+inoremap <C-d> <del>
+inoremap <C-e> <end>
+inoremap <C-p> <up>
+inoremap <C-n> <down>
+inoremap <C-b> <left>
+inoremap <C-f> <right>
+inoremap <C-v> <PageDown>
 inoremap <C-t> <Esc>xhhpi
-" inoremap <C-y> <C-\><C-O>p
 inoremap <C-k> <C-\><C-O>D
 inoremap <C-u> d0
 inoremap <C-x><C-s> <Esc>:w<CR>
@@ -198,6 +197,7 @@ imap ƒ f
 
 imap <C-c> <ESC>O
 
+" inoremap <C-y> <C-\><C-O>p
 " Set utf8 as standard encoding and en_US as the standard language
 set encoding=utf8
 
@@ -380,9 +380,9 @@ let g:syntastic_warning_symbol = '!'
 " au BufWritePre ~/.vimrc.after :%s/^"\s*$/\n/e
 
 " open .vimrc.after
-command! V tabe ~/.vimrc.after
+command! V tabe ~/.vimrc
 " update .vimrc.after file
-command! Vs so ~/.vimrc.after
+command! Vs so ~/.vimrc
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""
 " file-formatting configuration
@@ -549,3 +549,37 @@ if executable('ag')
   " ag is fast enough that CtrlP doesn't need to cache
   let g:ctrlp_use_caching = 0
 endif
+
+" For YouCompleteMe
+" let g:ycm_autoclose_preview_window_after_completion=1
+" map <leader>g  :YcmCompleter GoToDefinitionElseDeclaration<CR>
+
+let g:plug_url_format = 'git@github.com:%s.git'
+call plug#begin('~/.vim/plugged')
+Plug 'Raimondi/delimitMate'
+" Plug 'Valloric/YouCompleteMe'
+Plug 'altercation/vim-colors-solarized'
+Plug 'easymotion/vim-easymotion'
+Plug 'hdima/python-syntax'
+Plug 'jeetsukumaran/vim-buffergator'
+Plug 'jelera/vim-javascript-syntax'
+Plug 'jnurmine/Zenburn'
+Plug 'justinmk/vim-sneak'
+Plug 'kien/ctrlp.vim'
+Plug 'klen/python-mode'
+Plug 'ntpeters/vim-better-whitespace'
+Plug 'pangloss/vim-javascript'
+Plug 'rking/ag.vim'
+Plug 'scrooloose/nerdtree'
+" Plug 'takac/vim-hardtime'
+Plug 'tpope/vim-commentary'
+Plug 'tpope/vim-fugitive'
+Plug 'tpope/vim-haml'
+Plug 'tpope/vim-liquid'
+Plug 'tpope/vim-markdown'
+Plug 'tpope/vim-rails' ", { 'for': 'ruby' } check "vim --startuptime" to see how long this takes.
+Plug 'tpope/vim-surround'
+Plug 'vim-airline/vim-airline'
+Plug 'vim-scripts/JavaScript-Indent'
+call plug#end()
+unlet g:plug_url_format

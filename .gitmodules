@@ -1,24 +1,6 @@
-[submodule "submodules/vim_plugins/vim-hardtime"]
-	path = submodules/vim_plugins/vim-hardtime
-	url = git://github.com/takac/vim-hardtime
-[submodule "submodules/vim_plugins/python-mode"]
-	path = submodules/vim_plugins/python-mode
-	url = git://github.com/klen/python-mode
-[submodule "submodules/vim_plugins/ag.vim"]
-	path = submodules/vim_plugins/ag.vim
-	url = git://github.com/rking/ag.vim
-[submodule "submodules/vim_plugins/python-syntax"]
-	path = submodules/vim_plugins/python-syntax
-	url = git@github.com:hdima/python-syntax.git
-[submodule "submodules/vim-javascript-syntax"]
-	path = submodules/vim_plugins/vim-javascript-syntax
-	url = git@github.com:jelera/vim-javascript-syntax.git
-[submodule "submodules/vim-javascript"]
-	path = submodules/vim_plugins/vim-javascript
-	url = git@github.com:pangloss/vim-javascript.git
-[submodule "submodules/vim_plugins/delimitMate"]
-	path = submodules/vim_plugins/delimitMate
-	url = git@github.com:Raimondi/delimitMate.git
 [submodule "submodules/scm_breeze"]
 	path = submodules/scm_breeze
 	url = git@github.com:scmbreeze/scm_breeze.git
+[submodule "submodules/vim-plug"]
+	path = submodules/vim-plug
+	url = https://github.com/junegunn/vim-plug
