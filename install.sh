@@ -136,50 +136,11 @@ function link_bash_profile_includes {
 function backup_vim_files {
   pushd "${HOME}" > /dev/null
 
-  # if [[ -e ".vimrc" && ! -L ".vimrc" ]]; then
-  #   mv .vimrc .vimrc_bak
-  # elif [[ -L ".vimrc" ]]; then
-  #   rm .vimrc
-  # fi
-
   if [[ -e ".vim" && -e ".vim/janus" ]]; then
     mv .vim .vim_bak
   fi
 
   popd > /dev/null
-}
-
-function pull_down_janus {
-  STARTING_DIRECTORY=`pwd`
-  cd $HOME
-
-  # assume Janus will always have janus directory
-  if ! [[ -e "${HOME}/.vim/janus" ]]; then
-    # only go through Janus installation if it doesn't seem to be present.
-    if [[ -e ".vim" && ! -L ".vim" ]]; then
-      mv .vim .vim_bak
-    elif [[ -L ".vim" ]]; then
-      rm .vim
-    fi
-    echo "Cloning Janus (https://github.com/carlhuda/janus) into .vim"
-    git clone -q git://github.com/carlhuda/janus.git ~/.vim
-  else
-    echo "Janus installation found, updating."
-  fi
-
-  # make sure Janus is up to date.
-  cd $HOME/.vim
-  rake
-  cd ..
-
-  if [[ -e ".janus" && ! -L ".janus" ]]; then
-    mv .janus .janus_bak
-  elif [[ -L ".janus" ]]; then
-    rm .janus
-  fi
-  ln -sfv ${START_PWD}/submodules/vim_plugins .janus
-
-  cd $STARTING_DIRECTORY
 }
 
 ########## MAIN ###########
@@ -217,7 +178,6 @@ if [[ $1 != '--no-vim' ]]; then
   echo "Running VIM file installation."
   echo "Backing up old VIM files as necessary."
   backup_vim_files
-  #  pull_down_janus
 
   if [[ ! -d "${HOME}"/.vim/autoload ]]; then
     mkdir -p ~/.vim/autoload
