@@ -1,11 +1,4 @@
 """"""""""""""""""""""""""""""""""""""""""""""""""""""
-" VIM Configuration for Jeremiah Lee
-"
-" This configuration file is for use with Janus,
-" as well as the
-""""""""""""""""""""""""""""""""""""""""""""""""""""""
-
-""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " General configuration
 """"""""""""""""""""""""""""""""""""""""""""""""""""""
 " Sets how many lines of history VIM has to remember
@@ -61,6 +54,9 @@ map <D-N> :CtrlPClearCache<CR>:CtrlP<CR>
 """"""""""""""""""""""""""""""""""""""""""""""""""""""
 " VIM user interface
 """"""""""""""""""""""""""""""""""""""""""""""""""""""
+" Show line numbers
+set number
+
 " Sets the number of lines above the bottom or below
 " the top that the scrolling of the file starts
 set so=8
@@ -108,7 +104,7 @@ set showmatch
 set mat=2
 
 " Enable syntax highlighting
-syntax enable
+syntax on
 
 "
 " map for resizing panes
@@ -284,7 +280,8 @@ map <leader>cd :cd %:p:h<cr>:pwd<cr>
 
 " Specify the behavior when switching between buffers
 try
-  set switchbuf=useopen,usetab,newtab
+  set switchbuf=useopen
+  " set switchbuf=useopen,usetab,newtab
   set stal=2
 catch
 endtry
@@ -380,7 +377,7 @@ let g:syntastic_warning_symbol = '!'
 " au BufWritePre ~/.vimrc.after :%s/^"\s*$/\n/e
 
 " open .vimrc.after
-command! V tabe ~/.vimrc
+command! V e ~/.vimrc
 " update .vimrc.after file
 command! Vs so ~/.vimrc
 
@@ -400,7 +397,12 @@ map <leader>xf :%!xmllint --format<CR>
 
 au BufRead,BufNewFile {bash*,.bash*} set ft=sh
 
-let g:NERDSpaceDelims=1
+""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" NERDTree Config
+""""""""""""""""""""""""""""""""""""""""""""""""""""""
+let NERDSpaceDelims = 1
+let NERDTreeQuitOnOpen = 0
+let NERDTreeShowHidden = 1
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""
 " Ruby/Rails configuration
@@ -558,6 +560,7 @@ let g:plug_url_format = 'git@github.com:%s.git'
 call plug#begin('~/.vim/plugged')
 Plug 'Raimondi/delimitMate'
 " Plug 'Valloric/YouCompleteMe'
+Plug 'airblade/vim-gitgutter'
 Plug 'altercation/vim-colors-solarized'
 Plug 'easymotion/vim-easymotion'
 Plug 'hdima/python-syntax'
@@ -583,3 +586,7 @@ Plug 'vim-airline/vim-airline'
 Plug 'vim-scripts/JavaScript-Indent'
 call plug#end()
 unlet g:plug_url_format
+
+" if exists(':PlugInstall')
+set diffopt=vertical
+" endif
