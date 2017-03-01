@@ -295,7 +295,11 @@ autocmd BufReadPost *
 " Remember info about open buffers on close
 set viminfo^=%
 
-nmap \ :NERDTreeToggle<CR>
+""""""""""""""""""""""""""""""
+" Buffer-related
+""""""""""""""""""""""""""""""
+nmap <D-t> :CtrlP<CR>
+
 """"""""""""""""""""""""""""""
 " => Status line
 """"""""""""""""""""""""""""""
@@ -327,6 +331,19 @@ if has("mac") || has("macunix")
   vmap <D-k> <M-k>
 endif
 
+" find merge conflict markers
+nmap <silent> <leader>fc <ESC>/\v^[<=>]{7}( .*\|$)<CR>
+
+" Underline the current line with '='
+nmap <silent> <leader>ul :t.<CR>Vr=
+
+" upper/lower word
+nmap <leader>u mQviwU`Q
+nmap <leader>l mQviwu`Q
+
+" upper/lower first char of word
+nmap <leader>U mQgewvU`Q
+nmap <leader>L mQgewvu`Q
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " => Ack searching and cope displaying
 "    requires ack.vim - it's much better than vimgrep/grep
@@ -400,9 +417,11 @@ au BufRead,BufNewFile {bash*,.bash*} set ft=sh
 """"""""""""""""""""""""""""""""""""""""""""""""""""""
 " NERDTree Config
 """"""""""""""""""""""""""""""""""""""""""""""""""""""
+nmap \ :NERDTreeToggle<CR>
 let NERDSpaceDelims = 1
 let NERDTreeQuitOnOpen = 0
 let NERDTreeShowHidden = 1
+let NERDTreeIgnore=['\.pyc$', '\~$']
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""
 " Ruby/Rails configuration
