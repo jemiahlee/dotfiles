@@ -54,7 +54,7 @@ our $matching_local = 0;
 GetOptions(
            'all'                  => sub { $interactive = 0; },
            'blacklist=s@'         => \@BLACKLIST,
-           'dry_run|n'            => sub {
+           'dry_run|dry-run|n'    => sub {
                                          $dry_run = 1;
                                          $interactive = 0;
                                      },
