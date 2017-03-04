@@ -10,5 +10,5 @@ shift
 
 for file in $*
 do
-  perl -i -p -e 'print qq{#!'"${EXEC}"'\n\n} if $. == 1' $file
+  perl -i -p -e 'print qq{#!/usr/bin/env '"${EXEC}"'\n\n} if $. == 1' $file
 done
