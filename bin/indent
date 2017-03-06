@@ -1,0 +1,49 @@
+#!/usr/bin/env perl -i
+
+use warnings;
+use strict;
+
+use Getopt::Long;
+
+our $WIDTH = 4;
+
+GetOptions(
+    'width' => \$WIDTH,
+);
+
+our $indent_depth = 0;
+our $current_ws_depth = 0;
+our $current_file;
+
+while(<>){
+    $current_file = $ARGV unless $current_file;
+
+    if($current_file ne $ARGV){
+        reset();
+    }
+
+    next if s{^\s*(?=\n)}{};
+
+    next unless m{^(\s+)\S};
+
+    my $ws = $1;
+    my $ws_length = length($ws);
+
+    if($ws_length > $current_ws_depth){
+        $indent_depth++;
+    }
+    elsif($ws_length < $current_ws_depth){
+        $indent_depth--;
+    }
+
+    $current_ws_depth = $ws_length;
+    s{^(\s+)}{' ' x ($WIDTH * $indent_depth)}e;
+} continue {
+    print;
+}
+
+sub reset {
+    $current_file = $ARGV;
+    $indent_depth = 0;
+    $current_ws_depth = 0;
+}
