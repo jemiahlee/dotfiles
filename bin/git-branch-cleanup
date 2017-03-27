@@ -50,7 +50,7 @@ our @REMOTES_TO_PROCESS = ($DEFAULT_REMOTE);
 our($do_remotes, $dry_run, $older_than, $regex, $remotes_only, $verbose);
 our $DEFAULT_COMPARISON_BRANCH = 'master';
 our $comparison_branch = $DEFAULT_COMPARISON_BRANCH;
-our $MERGED_ONLY = qq{--merged $comparison_branch};
+our $MERGED_ONLY = qq{ --merged $comparison_branch};
 our $interactive = 1;
 our $matching_local = 0;
 
@@ -74,7 +74,7 @@ GetOptions(
                                             my($opt_name, $branch) = @_;
                                             if($branch) {
                                                 $comparison_branch = $branch;
-                                                $MERGED_ONLY = qq{--merged $comparison_branch};
+                                                $MERGED_ONLY = qq{ --merged $comparison_branch};
                                             }
                                         },
            'older_than|older-than=s' => \$older_than,
@@ -125,9 +125,9 @@ exit 0;
 sub process_branches {
     my($doing_remote) = @_;
 
-    my $git_branch_command = 'git branch ' . $MERGED_ONLY;
+    my $git_branch_command = 'git branch' . $MERGED_ONLY;
     if( $doing_remote ){
-        $git_branch_command = 'git branch -r ' . $MERGED_ONLY;
+        $git_branch_command = 'git branch -r' . $MERGED_ONLY;
     }
 
     print "Executing '$git_branch_command' to get list of branches to process\n" if $verbose;
@@ -152,7 +152,8 @@ sub process_branches {
 sub process_branch {
     my($branch, $remote) = @_;
 
-    print "Processing branch $branch\n" if $verbose;
+    print "Processing branch $remote/$branch\n" if $remote and $verbose;
+    print "Processing branch $branch\n" if not $remote and $verbose;
 
     if( $branch =~ /^\s*\*/ ){
         print "Skipping the current branch $branch\n" if $verbose;
@@ -175,7 +176,7 @@ sub process_branch {
             print "Skipping $remote/$branch as it has commits newer than $older_than\n" if $verbose;
             return;
         }
-        elsif( has_commits_newer_than($branch, $older_than) ) {
+        elsif( not $remote and has_commits_newer_than($branch, $older_than) ) {
             print "Skipping $branch as it has commits newer than $older_than\n" if $verbose;
             return;
         }
@@ -231,6 +232,7 @@ sub make_blacklist_regex {
 sub has_commits_newer_than {
     my($branch_name, $older_than) = @_;
 
+    print "Checking age of branch $branch_name\n" if $verbose;
     my $git_output = `git log --oneline --since $older_than $branch_name`;
     return $git_output ? 1 : 0;
 }
