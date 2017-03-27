@@ -21,6 +21,9 @@
                                   Turned on by default.
                                   Optional argument to say which branch should be compared with.
                                   Compares with upstream/master by default.
+       --older_than           Find the branches that don't have any commit since this date. Uses
+                              "git --since" to figure that out, any date format that works with
+                              "git --since" will work. (ie, "1.month", "2.weeks")
        --regex <re>           Only delete branches that match this regular expression.
        --remotes|-r           Do this on the selected remotes.
                                   Defaults to origin.
@@ -44,46 +47,48 @@ our $GIT_BRANCH_COMMAND = 'git branch';
 our $DEFAULT_REMOTE = 'origin';
 our @REMOTES_TO_PROCESS = ($DEFAULT_REMOTE);
 
-our($do_remotes, $dry_run, $regex, $remotes_only, $verbose);
-our $DEFAULT_COMPARISON_BRANCH = 'upstream/master';
+our($do_remotes, $dry_run, $older_than, $regex, $remotes_only, $verbose);
+our $DEFAULT_COMPARISON_BRANCH = 'master';
 our $comparison_branch = $DEFAULT_COMPARISON_BRANCH;
 our $MERGED_ONLY = qq{--merged $comparison_branch};
 our $interactive = 1;
 our $matching_local = 0;
 
 GetOptions(
-           'all'                  => sub { $interactive = 0; },
-           'blacklist=s@'         => \@BLACKLIST,
-           'dry_run|dry-run|n'    => sub {
-                                         $dry_run = 1;
-                                         $interactive = 0;
-                                     },
-           'help|?'               => sub {
-                                         pod2usage();
-                                     },
-           'interactive'          => sub {
-                                         $interactive = 1 unless $dry_run;
-                                         print "Not using interactive mode, since --dry_run is active.\n" if $dry_run;
-                                     },
-           'matching_local_only'  => \$matching_local,
-           'merged:s'             => sub {
-                                         my($opt_name, $branch) = @_;
-                                         if($branch) {
-                                             $comparison_branch = $branch;
-                                             $MERGED_ONLY = qq{--merged $comparison_branch};
-                                         }
-                                     },
-           'regex=s'              => \$regex,
-           'remotes:s'            => sub {
-                                       $do_remotes = 1;
-                                       my($opt_name, $remote) = @_;
-                                       if($remote and $remote ne 'origin') {
-                                           push @REMOTES_TO_PROCESS, $remote;
-                                       }
-                                     },
-           'remotes_only'         => sub { $remotes_only = 1; $do_remotes = 1; },
-           'unmerged'             => sub { $MERGED_ONLY = '' },
-           'verbose'              => \$verbose,
+           'all'                     => sub { $interactive = 0; },
+           'blacklist=s@'            => \@BLACKLIST,
+           'dry_run|dry-run|n'       => sub {
+                                            $dry_run = 1;
+                                            $interactive = 0;
+                                        },
+           'help|?'                  => sub {
+                                            pod2usage();
+                                        },
+           'interactive'             => sub {
+                                            $interactive = 1 unless $dry_run;
+                                            print "Not using interactive mode, since --dry_run is active.\n"
+                                              if $dry_run;
+                                        },
+           'matching_local_only'     => \$matching_local,
+           'merged:s'                => sub {
+                                            my($opt_name, $branch) = @_;
+                                            if($branch) {
+                                                $comparison_branch = $branch;
+                                                $MERGED_ONLY = qq{--merged $comparison_branch};
+                                            }
+                                        },
+           'older_than|older-than=s' => \$older_than,
+           'regex=s'                 => \$regex,
+           'remotes:s'               => sub {
+                                          $do_remotes = 1;
+                                          my($opt_name, $remote) = @_;
+                                          if($remote and $remote ne 'origin') {
+                                              push @REMOTES_TO_PROCESS, $remote;
+                                          }
+                                        },
+           'remotes_only'            => sub { $remotes_only = 1; $do_remotes = 1; },
+           'unmerged'                => sub { $MERGED_ONLY = '' },
+           'verbose'                 => \$verbose,
 );
 
 add_comparison_branch_to_blacklist();
@@ -165,6 +170,16 @@ sub process_branch {
         print "Skipping $branch as it is not in the whitelist\n" if $verbose;
         return;
     }
+    elsif( $older_than ) {
+        if( $remote and has_commits_newer_than("$remote/$branch", $older_than) ) {
+            print "Skipping $remote/$branch as it has commits newer than $older_than\n" if $verbose;
+            return;
+        }
+        elsif( has_commits_newer_than($branch, $older_than) ) {
+            print "Skipping $branch as it has commits newer than $older_than\n" if $verbose;
+            return;
+        }
+    }
 
     if( $interactive ){
         if( $remote ){
@@ -211,4 +226,11 @@ sub generate_whitelist_based_on_local_matches {
 sub make_blacklist_regex {
     my $temp_bl = '^(?:' . join('|', map {"\Q$_\E"} @BLACKLIST) . ')$';
     return qr{$temp_bl};
+}
+
+sub has_commits_newer_than {
+    my($branch_name, $older_than) = @_;
+
+    my $git_output = `git log --oneline --since $older_than $branch_name`;
+    return $git_output ? 1 : 0;
 }
