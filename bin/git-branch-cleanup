@@ -79,7 +79,7 @@ GetOptions(
                                         },
            'older_than|older-than=s' => \$older_than,
            'regex=s'                 => \$regex,
-           'remotes:s'               => sub {
+           'remote:s'                => sub {
                                           $do_remotes = 1;
                                           my($opt_name, $remote) = @_;
                                           if($remote and $remote ne 'origin') {
