@@ -5,11 +5,12 @@ function current_git_branch {
       dirty=`git status --short`
 
       RED='\033[0;31m'
+      GREEN='\033[0;32m'
       WHITE='\033[0;37m'
       NC='\033[0m'
 
       if [[ -z $dirty ]]; then
-        echo -e "${WHITE}${branchname} "
+        echo -e "${GREEN}${branchname} "
       else
         echo -e "${RED}${branchname} "
       fi
