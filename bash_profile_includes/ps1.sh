@@ -10,9 +10,9 @@ function current_git_branch {
       NC='\033[0m'
 
       if [[ -z $dirty ]]; then
-        echo -e "${GREEN}${branchname} "
+        echo -e "${GREEN}${branchname}"
       else
-        echo -e "${RED}${branchname} "
+        echo -e "${RED}${branchname}"
       fi
     fi
 
