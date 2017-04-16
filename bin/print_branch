@@ -1,0 +1,25 @@
+#!/usr/bin/env perl
+
+$_ = `git status`;
+
+our($branch) = m{On branch ([\w-]+)}i;
+
+our $modified = m{not staged for commit};
+if( $modified ){
+  print q{\033[0;31m[} . $branch . q{]\033[0m};  # red
+  exit;
+}
+
+our $untracked = m{Untracked};
+if( $untracked){
+  print q{\033[0;33m[} . $branch . q{]\033[0m};  # yellow
+  exit;
+}
+
+our $modified = m{Changes to be committed};  # white
+if( $modified ){
+  print q{\033[1;37m[} . $branch . q{]\033[0m};
+  exit;
+}
+
+print q{\033[0;32m[} . $branch . q{]\033[0m};
