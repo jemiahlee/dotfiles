@@ -1,8 +1,10 @@
 #!/usr/bin/env perl
 
-$_ = `git status`;
+$_ = `git status 2>/dev/null`;
 
 our($branch) = m{On branch ([\w-]+)}i;
+
+do { print ''; exit } unless $branch;
 
 our $modified = m{not staged for commit};
 if( $modified ){
