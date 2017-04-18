@@ -15,6 +15,8 @@ alias ff="git merge --ff-only origin/\$(current_git_branch_bare)"
 alias fff="git fetch origin && git merge --ff-only origin/\$(current_git_branch_bare)"
 alias ffu="git merge --ff-only upstream/\$(current_git_branch_bare)"
 alias fffu="git fetch upstream && git merge --ff-only upstream/\$(current_git_branch_bare)"
+alias fu="git fetch upstream"
+alias fo="git fetch origin"
 
 alias ll="ls -lah"
 
