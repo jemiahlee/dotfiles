@@ -6,22 +6,21 @@ our($branch) = m{On branch ([\w-]+)}i;
 
 do { print ''; exit } unless $branch;
 
+print "[$branch]";
+
 our $modified = m{not staged for commit};
 if( $modified ){
-  print q{\033[0;31m[} . $branch . q{]\033[0m};  # red
-  exit;
+  exit 1; # red
 }
 
 our $untracked = m{Untracked};
 if( $untracked){
-  print q{\033[0;33m[} . $branch . q{]\033[0m};  # yellow
-  exit;
+  exit 2; # yellow
 }
 
-our $modified = m{Changes to be committed};  # white
+our $modified = m{Changes to be committed};
 if( $modified ){
-  print q{\033[1;37m[} . $branch . q{]\033[0m};
-  exit;
+  exit 3; # white
 }
 
-print q{\033[0;32m[} . $branch . q{]\033[0m};
+exit 0; # green
