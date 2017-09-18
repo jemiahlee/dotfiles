@@ -51,3 +51,4 @@ let g:insert_mode_background_color='#FFFFFF'
 " autosave when focus is lost
 au focuslost * silent! :wa
 
+macmenu File.New\ Tab key=<nop>

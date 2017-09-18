@@ -257,7 +257,7 @@ map <leader>ba :1,1000 bd!<cr>
 " Useful mappings for managing tabs
 map <leader>tn :tabnew<cr>
 map <leader>to :tabonly<cr>
-map <leader>tc :tabclose<cr>
+noremap <leader>tc :tabclose<cr>
 map <leader>tm :tabmove
 map <leader>t<leader> :tabnext<cr>
 map <leader>tp :tabprevious<cr>
@@ -298,7 +298,8 @@ set viminfo^=%
 """"""""""""""""""""""""""""""
 " Buffer-related
 """"""""""""""""""""""""""""""
-nmap <D-t> :CtrlP<CR>
+map <D-t> :CtrlP<CR>
+imap <D-t> <esc>:CtrlP<CR>
 
 """"""""""""""""""""""""""""""
 " => Status line
@@ -443,6 +444,8 @@ command! SymStr %s/:\([^ ]*\)\(\s*\)/'\1'/gc
 " ctags with rails load path
 " map <leader>t :!rails runner 'puts $LOAD_PATH.join(" ")' \| xargs /usr/local/bin/ctags -R public/javascripts<CR>
 " map <leader>T :!rails runner 'puts $LOAD_PATH.join(" ")' \| xargs rdoc -f tags<CR>
+
+au BufRead,BufNewFile *.java set filetype=java ts=4 sw=4 et
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""
 " Go configuration
@@ -605,6 +608,8 @@ Plug 'vim-airline/vim-airline'
 Plug 'vim-scripts/JavaScript-Indent'
 call plug#end()
 unlet g:plug_url_format
+
+let g:pymode_rope = 0
 
 " if exists(':PlugInstall')
 set diffopt=vertical
