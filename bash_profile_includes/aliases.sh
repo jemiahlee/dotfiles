@@ -6,7 +6,9 @@ alias ag='ag --ignore \*.json'
 
 alias g=git
 alias gpr="git pull --rebase"
+alias gmo="git fetch origin && git merge --ff-only origin/master"
 alias gmu="git fetch upstream && git merge --ff-only upstream/master"
+alias gro="git fetch origin && git rebase origin/master"
 alias gru="git fetch upstream && git rebase upstream/master"
 alias gitprune="git remote prune origin"
 alias gst="git about && echo && git status"
