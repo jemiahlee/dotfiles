@@ -35,6 +35,7 @@ cloud-dev environment.
 To set this script up, it will be useful for you to set two environment variables:
 
     GIT_SCP_HOSTNAME
+    GIT_SCP_USERNAME
 
 =cut
 
