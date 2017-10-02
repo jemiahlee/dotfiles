@@ -1,0 +1,5 @@
+autodetach on
+
+defscrollback 5000
+
+startup_message off
