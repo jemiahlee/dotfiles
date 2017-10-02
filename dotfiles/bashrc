@@ -1,4 +1,1 @@
-# all configuration should really be in .bash_profile_includes
-OS=`uname -s`
-source ~/.bash_profile_includes/${OS}/paths.sh
-if [[ -d ~/miniconda/bin ]]; then export PATH=~/miniconda/bin:/Users/jdl/.rvm/gems/ruby-1.9.3-p194/bin:/Users/jdl/.rvm/gems/ruby-1.9.3-p194@global/bin:/Users/jdl/.rvm/rubies/ruby-1.9.3-p194/bin:/Users/jdl/.rvm/bin:/Users/jdl/bin:/usr/local/opt/coreutils/libexec/gnubin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/Users/jdl/.bash_profile_includes/bin:/sbin:/bin:/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/usr/texbin:/Users/jdl/.rvm/bin; fi
+source ~/.bash_profile
