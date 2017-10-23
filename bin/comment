@@ -1,0 +1,29 @@
+#!/usr/bin/env perl
+
+use warnings;
+use strict;
+
+use Getopt::Long;
+
+our $language = 'c';
+GetOptions('language=s' => \$language);
+
+while (<>) {
+  s{^\s*(#|//|/\*|\*/|\*)[ \t]*}{};
+  if ($language eq 'c') {
+    print '// ', $_;
+  }
+  elsif ($language eq 'c++') {
+    if ($. eq 1) {
+      print '/* ', "\n";
+    }
+    print ' * ', $_;
+  }
+  elsif ($language eq 'script') {
+    print '# ', $_;
+  }
+}
+
+if ($language eq 'c++') {
+  print ' */', "\n";
+}
