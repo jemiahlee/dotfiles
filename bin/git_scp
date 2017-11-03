@@ -8,6 +8,14 @@
 
     git_scp [options] [regex]
 
+    Script which transfers files from this computer to a remote computer based on settings.
+
+    If STDIN is given, most of the command-line options are ignored. Each of the files
+    is transferred.
+
+    If STDIN is not given, the script will look at the output from a `git status` and
+    will transfer anything in there, based on the command-line options.
+
      Options:
        --base           Base directory to copy files to on remote machine.
                             Defaults to the same path on remote machine as on this one.
@@ -39,8 +47,8 @@ To set this script up, it will be useful for you to set two environment variable
 
 =cut
 
-
-use File::Basename qw/dirname/;
+use Cwd qw/getcwd/;
+use File::Basename qw/basename dirname/;
 use Getopt::Long;
 use Pod::Usage qw/pod2usage/;
 
@@ -54,26 +62,28 @@ chomp $current_dir;
 
 my($interactive, $modified_only, $print_only, $regex, $staged_only, $verbose);
 
+my %transferred;
+
 my $hostname = $ENV{GIT_SCP_HOSTNAME};
 my $username = $ENV{GIT_SCP_USERNAME} || $ENV{USER};
 my $ssh_options = $ENV{GIT_SCP_SSH_OPTIONS} || '';
+my $reading_from_stdin = 0;
 
 # assume mirrored directory setups
 (my $base_directory) = $current_dir =~ m{$ENV{HOME}/(.*)};
-
 GetOptions(
-           'base=s'        => \$base_directory,
-           'blacklist=s@'  => \$BLACKLIST,
-           'help|?'        => sub { pod2usage(); },
-           'hostname=s'    => \$hostname,
-           'interactive|i' => \$interactive,
-           'modified_only' => \$modified_only,
-           'print_only|n'  => \$print_only,
-           'regex=s'       => \$regex,
-           'ssh_options=s' => \$ssh_options,
-           'staged_only'   => \$staged_only,
-           'username=s'    => \$username,
-           'verbose'       => \$verbose
+    'base=s'        => \$base_directory,
+    'blacklist=s@'  => \$BLACKLIST,
+    'help|?'        => sub { pod2usage(); },
+    'hostname=s'    => \$hostname,
+    'interactive|i' => \$interactive,
+    'modified_only' => \$modified_only,
+    'print_only|n'  => \$print_only,
+    'regex=s'       => \$regex,
+    'ssh_options=s' => \$ssh_options,
+    'staged_only'   => \$staged_only,
+    'username=s'    => \$username,
+    'verbose'       => \$verbose
 );
 
 # make sure all printing happens when we're interactive.
@@ -84,8 +94,8 @@ if( @ARGV and not $regex ){
 }
 
 unless( $hostname ){
-  print STDERR "You must give this script a --hostname!\n";
-  exit 1;
+    print STDERR "You must give this script a --hostname!\n";
+    exit 1;
 }
 
 $BLACKLIST = join '|', @$BLACKLIST;
@@ -97,35 +107,63 @@ my $remote_base_directory = qq{/home/$username};
 my $TRANSFER_TO_URL = qq{$hostname:} . join '/', $remote_base_directory, $base_directory;
 $TRANSFER_TO_URL = "$username\@$TRANSFER_TO_URL" if $username;
 
-open PROC_OUT, 'git status --short |' or die "Couldn't deal with 'git status': $!";
+if( defined $regex ) {
+    my $cwd = getcwd();
+    $regex =~ s{^$cwd\/}{};
+    $regex = qr/\Q$regex\E/;
+}
 
-# git may actually have the file in several states internally, but it will only
-# be in one state on the disk; only need to transfer each file once.
-my %transferred = ();
+if( not -t STDIN ) {
+    $reading_from_stdin = 1;
+    while(<>) {
+        chomp;
+        transfer_file_flow($_);
+    }
+}
+else {
+    open PROC_OUT, 'git status --short |' or die "Couldn't deal with 'git status': $!";
 
-while( <PROC_OUT> ){
-    my($x, $y, $filename) = m{^(.)(.)\s*(\S+)$};
+    while( <PROC_OUT> ){
+        my($x, $y, $filename) = m{^(.)(.)\s*(\S+)$};
 
-    next if $modified_only and $y ne 'M' and $x ne 'M';
-    next if $staged_only and $x eq ' ';
-    next if $transferred{$filename}++;
+        next if $modified_only and $y ne 'M' and $x ne 'M';
+        next if $staged_only and $x eq ' ';
 
-    if( $BLACKLIST ) {
-        next if $filename =~ $BLACKLIST;
+        transfer_file_flow($filename);
+    }
+}
+
+sub file_is_blacklisted {
+    my $filename = shift;
+
+    return 0 if not $BLACKLIST;
+    return $filename =~ $BLACKLIST;
+}
+
+sub file_is_whitelisted {
+    my $filename = shift;
+
+    return 1 if not defined $regex;
+
+    print STDERR "Attempting to match /$regex/ against $filename..." if $verbose;
+    unless( $filename =~ /$regex/ ) {
+        print STDERR "did NOT match!\n" if $verbose;
+        return 0;
     }
 
-    if( defined $regex ) {
-        print STDERR "Attempting to match /$regex/ against $filename..." if $verbose;
-        unless($filename =~ /$regex/) {
-            print STDERR "did NOT match!\n" if $verbose;
-            next;
-        }
-        print STDERR "matched!\n" if $verbose;
-    }
+    print STDERR "matched!\n" if $verbose;
+    return 1;
+}
 
+sub transfer_file_flow {
+    my $filename = shift;
     my $transfer_this_file = 1;
 
     $filename =~ s{\\}{/}g;
+
+    next if $transferred{$filename}++;
+    next if file_is_blacklisted($filename);
+    next unless file_is_whitelisted($filename);
 
     my $dirname = dirname($filename);
     $dirname = '' if $dirname eq '.';
@@ -134,7 +172,7 @@ while( <PROC_OUT> ){
 
     print "Executing: $execute\n" if $verbose or $print_only;
 
-    if( $interactive ){
+    if( not $reading_from_stdin and $interactive ){
         my $input;
         print STDOUT "\nWould you like me to execute this command (y/N)? ";
         $input = <STDIN>;
@@ -150,8 +188,8 @@ while( <PROC_OUT> ){
         print STDOUT "\n"; #just some extra output whitespace
     }
 
-    if( not $print_only and $transfer_this_file ){
-        print STDOUT "Transferring...\n" if $verbose;
+    if ( not $print_only and $transfer_this_file ) {
+        print STDOUT "$filename => $TRANSFER_TO_URL/$dirname\n";
         system($execute);
     }
 }
