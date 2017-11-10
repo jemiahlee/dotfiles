@@ -161,9 +161,9 @@ sub transfer_file_flow {
 
     $filename =~ s{\\}{/}g;
 
-    next if $transferred{$filename}++;
-    next if file_is_blacklisted($filename);
-    next unless file_is_whitelisted($filename);
+    return if $transferred{$filename}++;
+    return if file_is_blacklisted($filename);
+    return unless file_is_whitelisted($filename);
 
     my $dirname = dirname($filename);
     $dirname = '' if $dirname eq '.';
