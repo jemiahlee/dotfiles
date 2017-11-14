@@ -1,0 +1,39 @@
+#!/usr/bin/perl
+
+use warnings;
+
+$do_rename = 0;
+
+($basename = $0) =~ s#.*/##;
+
+print qq|Usage: $basename [--move] <files to move>| and exit unless @ARGV;
+
+if ($ARGV[0] eq "--move") {
+  $do_rename = 1;
+}
+
+foreach (@ARGV){
+
+  next unless /(?:mp3|ogg|flac|wav)$/;
+
+  next unless ($artist, $album, $track) = /^(.*?)-(.*?)-(\d{2}-.*)$/;
+
+  foreach my $temp ($album, $artist, $track){
+    $temp =~ s/^ +| +$//g;
+    $temp =~ s/ +/ /g;
+    $temp =~ s/ /_/g;
+    $temp =~ s#\.(?!mp3|ogg|flac|wav)$|[^\w.-]##g;
+  }
+
+  unless (-d "$artist/$album") {
+    print "Would make dir $artist/$album\n";
+    system "mkdir -p $artist/$album" if $do_rename;
+  }
+
+  print "move $_ to $artist/$album/$track\n";
+
+  if ( $do_rename ) {
+    rename $_, "$artist/$album/$track" or warn "$!";
+  }
+
+}

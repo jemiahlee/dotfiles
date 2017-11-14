@@ -1,0 +1,16 @@
+#!/usr/bin/perl
+
+foreach (@ARGV){
+  next unless -f;
+  $filename = $_;
+  s/\s+/_/g;
+  s/_+/_/g;
+  s/_\./\./g;
+  s/_-_/-/g;
+  s/(^|_|\b)(\w)/$1\u$2/g;
+  s/\.([A-Z])(\w+)$/\.\l$1$2/;
+  s/([^A-Za-z])([IiVv]+)([^A-Za-z])/$1\U$2\E$3/g;
+  s/'([DTSM]|Ll|Re|Ve)_/'\l$1_/g;
+  print "$filename => $_\n";
+  rename $filename, $_;
+}
