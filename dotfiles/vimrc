@@ -489,6 +489,7 @@ au BufNewFile,BufRead *.mako set ft=mako
 " Javascript configuration
 """"""""""""""""""""""""""""""""""""""""""""""""""""""
 " syntax highlighting for python
+au BufRead,BufNewFile *.ts set filetype=javascript ts=2 sw=2 et
 au BufRead,BufNewFile *.js set filetype=javascript ts=2 sw=2 et
 au BufRead,BufNewFile *.jsx set filetype=javascript ts=2 sw=2 et
 
@@ -584,6 +585,7 @@ Plug 'Raimondi/delimitMate'
 " Plug 'Valloric/YouCompleteMe'
 Plug 'airblade/vim-gitgutter'
 Plug 'altercation/vim-colors-solarized'
+Plug 'claco/jasmine.vim'
 Plug 'easymotion/vim-easymotion'
 Plug 'hdima/python-syntax'
 Plug 'jeetsukumaran/vim-buffergator'
@@ -592,10 +594,12 @@ Plug 'jnurmine/Zenburn'
 Plug 'justinmk/vim-sneak'
 Plug 'kien/ctrlp.vim'
 Plug 'klen/python-mode'
+Plug 'othree/javascript-libraries-syntax.vim'
 Plug 'ntpeters/vim-better-whitespace'
 Plug 'pangloss/vim-javascript'
 Plug 'rking/ag.vim'
 Plug 'scrooloose/nerdtree'
+Plug 'scrooloose/syntastic'
 " Plug 'takac/vim-hardtime'
 Plug 'tpope/vim-commentary'
 Plug 'tpope/vim-fugitive'
