@@ -80,7 +80,8 @@ sub do_git_show {
     my $command = 'git show --pretty="format:" --name-only';
 
     my $output = `$command $commit`;
-    my @output = map {s{^$REPO_DIR_DIFF/?}{}; $_} split /\n/, $output;
+    my @output = map {s{^$REPO_DIR_DIFF/?}{}; $_} split /\n+/, $output;
+    @output = list_uniq(@output);
 
     if($oneline){
         print "@output\n";
@@ -104,4 +105,14 @@ sub execute_and_chomp {
     chomp $output;
 
     return $output;
+}
+
+sub list_uniq {
+    my %seen;
+
+    foreach my $item (@_) {
+        $seen{$item}++;
+    }
+
+    return keys(%seen);
 }
