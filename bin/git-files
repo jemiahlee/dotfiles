@@ -46,6 +46,8 @@ else {
 sub do_git_status {
     my $files_in_modified_state = 0;
 
+    my @files;
+
     open PROC_OUT, "git status --short |" or die "Couldn't deal with 'git status': $!";
     while( <PROC_OUT> ){
         $files_in_modified_state = 1;
@@ -59,19 +61,21 @@ sub do_git_status {
 
         next if $modified_only and not $modified;
         next if $staged_only and not $staged;
-        next if $staged and not $staged_only;
 
-        print $filename;
+        if( $oneline ){
+            push @files, $filename;
+        }
+        else {
+            print $filename, "\n";
+        }
 
-        print ' ' if $oneline;
-        print "\n" unless $oneline;
     }
 
     if( not $files_in_modified_state ){
         do_git_show();
     }
     elsif( $oneline ){
-        print "\n";
+        print "@files\n";
     }
 }
 
