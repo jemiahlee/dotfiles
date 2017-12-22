@@ -1,13 +1,13 @@
 #!/bin/bash
 
 npm init -y
-npm install --save babel
 npm install --save babel-cli
 npm install --save lodash
 npm install --save babel-preset-es2015
 npm install --save babel-preset-react
 npm install --save babel-register
 npm install --save immutable
+npm install --save react
 npm install --save-dev mocha
 npm install --save-dev chai
 
