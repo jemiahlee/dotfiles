@@ -82,33 +82,9 @@ function install_fonts {
     return 0
   fi
 
-  OS_VERSION=`uname -r`
-  if [[ "$OS_VERSION" =~ 1[56789]\.[0-9]* ]]; then
-    echo "Version of OSX not compatible with copying font files. Please use FontBook instead."
-    echo "There is more information in the README.md in this repository."
-    return 0
-  fi
-
-  echo "Checking to see if we need to install the SourceCodePro TTF files..."
-  FONTS_INSTALLED=0
-  LOCAL_FONT_DIRECTORY=fonts
-  SYSTEM_FONT_DIRECTORY=/System/Library/Fonts
-
-  if ! [[ -d "${SYSTEM_FONT_DIRECTORY}" ]]; then
-    echo "System font directory does not exist. Skipping font installation."
-    return 1
-  fi
-
-  for file in $(find ${LOCAL_FONT_DIRECTORY} -name *.ttf)
-  do
-    basename=`basename ${file}`
-    if ! [[ -e "${SYSTEM_FONT_DIRECTORY}/${basename}" ]]; then
-      FONTS_INSTALLED=$((FONTS_INSTALLED + 1))
-      sudo cp "$file" "${SYSTEM_FONT_DIRECTORY}/${basename}"
-    fi
-  done
-
-  echo "Installed ${FONTS_INSTALLED} fonts."
+  echo "If you'd like programmer fonts, please use FontBook to install from the /fonts dir."
+  echo "There is more information in the README.md in this repository."
+  return 0
 }
 
 function link_bash_profile_includes {
