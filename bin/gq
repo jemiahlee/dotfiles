@@ -1,0 +1,15 @@
+#!/usr/bin/env perl
+
+use warnings;
+use strict;
+
+my $MACHINE_TYPE = shift;
+exit 0 unless $MACHINE_TYPE;
+
+my $output = `gironde query sterling`;
+
+while ($output =~ m{^Host "([^"]+)" trusts}mg){
+  my $host = $1;
+  next unless $host =~ m{$MACHINE_TYPE};
+  print $host, "\n";
+}
