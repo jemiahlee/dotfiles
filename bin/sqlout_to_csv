@@ -1,0 +1,11 @@
+#!/usr/bin/env perl
+
+use warnings;
+use strict;
+
+while ( <> ){
+  next unless m{^\|};
+  s{^\|\s*|\s+\|\s*$}{}g;
+  my @fields = split /\s+\|\s+/, $_;
+  print join(',', @fields), "\n";
+}
