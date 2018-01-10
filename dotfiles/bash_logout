@@ -1,0 +1,5 @@
+WHO=`who | wc -l`
+
+if [[ "$WHO" == "2" ]]; then
+  rm -f $HOME/.agent-env
+fi
