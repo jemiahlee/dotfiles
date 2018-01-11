@@ -7,5 +7,6 @@ while ( <> ){
   next unless m{^\|};
   s{^\|\s*|\s+\|\s*$}{}g;
   my @fields = split /\s+\|\s+/, $_;
+  @fields = map { $_ = qq{"$_"} if $_ =~ /,/; $_ } @fields;
   print join(',', @fields), "\n";
 }
