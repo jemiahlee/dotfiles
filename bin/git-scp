@@ -129,7 +129,7 @@ else {
         next if $modified_only and $y ne 'M' and $x ne 'M';
         next if $staged_only and $x eq ' ';
 
-        transfer_file_flow($filename);
+        transfer_file_flow(filename => $filename, delete => $y eq 'D');
     }
 }
 
@@ -156,8 +156,9 @@ sub file_is_whitelisted {
 }
 
 sub transfer_file_flow {
-    my $filename = shift;
-    my $transfer_this_file = 1;
+    my %options = @_;
+    my $filename = delete $options{filename} or die 'No filename provided for transfer!';
+    my $deletion = delete $options{delete} ;
 
     $filename =~ s{\\}{/}g;
 
@@ -168,28 +169,34 @@ sub transfer_file_flow {
     my $dirname = dirname($filename);
     $dirname = '' if $dirname eq '.';
 
-    my $execute = qq{scp $ssh_options $filename $TRANSFER_TO_URL/$dirname};
+    my $execute;
+    if ( $deletion ) {
+        $execute = qq{ssh $ssh_options $hostname $remote_base_directory/$filename};
+    }
+    else {
+        $execute = qq{scp $ssh_options $filename $TRANSFER_TO_URL/$dirname};
+    }
 
     print "Executing: $execute\n" if $verbose or $print_only;
 
-    if( not $reading_from_stdin and $interactive ){
+    if ( not $reading_from_stdin and $interactive ){
         my $input;
         print STDOUT "\nWould you like me to execute this command (y/N)? ";
         $input = <STDIN>;
 
-        if( $input =~ m{^a}i ){ #allow an abort
-            last;
+        if( $input =~ m{^[an]}i ){ #allow an abort
+            return;
         }
-
-        unless( $input =~ m{^y}i ){
-            $transfer_this_file = 0;
-        }
-
-        print STDOUT "\n"; #just some extra output whitespace
     }
 
-    if ( not $print_only and $transfer_this_file ) {
+    if ( $deletion ) {
+        print STDOUT "DELETING $hostname:$remote_base_directory/$filename\n";
+    }
+    else {
         print STDOUT "$filename => $TRANSFER_TO_URL/$dirname\n";
+    }
+
+    if ( not $print_only ) {
         system($execute);
     }
 }
