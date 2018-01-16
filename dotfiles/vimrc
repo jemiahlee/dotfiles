@@ -611,6 +611,7 @@ Plug 'tpope/vim-rails' ", { 'for': 'ruby' } check "vim --startuptime" to see how
 Plug 'tpope/vim-surround'
 Plug 'vim-airline/vim-airline'
 Plug 'vim-scripts/JavaScript-Indent'
+Plug 'Xuyuanp/nerdtree-git-plugin'
 call plug#end()
 unlet g:plug_url_format
 
