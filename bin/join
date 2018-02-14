@@ -1,12 +1,28 @@
-#!/usr/bin/perl 
+#!/usr/bin/perl
 
 use strict;
 use warnings;
 
-unless( @ARGV > 2 ){
+my $reading_from_stdin = 0;
+if( not -t STDIN ) {
+    $reading_from_stdin = 1;
+}
+
+unless( $reading_from_stdin or @ARGV > 2 ){
   print STDERR "This command doesn't really make sense for fewer than 3 args. Try again.\n";
   exit 1;
 }
 
-my $delimiter = shift;
-print join($delimiter, @ARGV), "\n";
+my $delimiter = shift || ',';
+
+if( $reading_from_stdin ){
+    while(<>){
+        print $delimiter unless $. == 1;
+        chomp;
+        print;
+    }
+    print "\n";
+}
+else {
+    print join($delimiter, @ARGV), "\n";
+}
