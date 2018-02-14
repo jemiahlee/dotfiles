@@ -117,7 +117,7 @@ if( not -t STDIN ) {
     $reading_from_stdin = 1;
     while(<>) {
         chomp;
-        transfer_file_flow($_);
+        transfer_file_flow(filename => $_);
     }
 }
 else {
@@ -157,6 +157,7 @@ sub file_is_whitelisted {
 
 sub transfer_file_flow {
     my %options = @_;
+
     my $filename = delete $options{filename} or die 'No filename provided for transfer!';
     my $deletion = delete $options{delete} ;
 
