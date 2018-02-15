@@ -1,0 +1,9 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+
+while(<>) {
+    s{^[[:punct:]\s]*|[[:punct:]\s]*$}{}g;
+    print "$_\n";
+}
