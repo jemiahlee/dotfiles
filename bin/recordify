@@ -1,0 +1,38 @@
+#!/usr/bin/env perl
+
+use warnings;
+use strict;
+
+use Getopt::Long;
+
+my $delimiter = ',';
+my $verbose = 0;
+
+GetOptions(
+    'delimiter=s' => \$delimiter,
+    'verbose'     => \$verbose,
+);
+
+
+my $record_count = 0;
+my @headers;
+
+while(<>){
+    s{\s+$}{};  # totally just because the file that I wrote this script for
+                # had UTF-8 whitespace characters at the EOL
+
+    my @record_fields = split /$delimiter/;
+
+    if( $record_count++ == 0 ) {
+        @headers = @record_fields;
+        next;
+    }
+
+    print '-' x 3, "\n" unless $record_count < 3;
+
+    foreach my $index (0..$#headers) {
+        print "$headers[$index]: $record_fields[$index]\n";
+    }
+}
+
+print "$record_count records processed.\n" if $verbose;
