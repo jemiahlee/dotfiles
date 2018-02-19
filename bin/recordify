@@ -6,10 +6,12 @@ use strict;
 use Getopt::Long;
 
 my $delimiter = ',';
+my $execute = 0;
 my $verbose = 0;
 
 GetOptions(
     'delimiter=s' => \$delimiter,
+    'execute=s'   => \$execute,
     'verbose'     => \$verbose,
 );
 
@@ -18,8 +20,10 @@ my $record_count = 0;
 my @headers;
 
 while(<>){
-    s{\s+$}{};  # totally just because the file that I wrote this script for
-                # had UTF-8 whitespace characters at the EOL
+    next if m{^$};
+
+    s{\s+$}{};  # using this instead of chomp because the file that I wrote
+                # this script for had UTF-8 whitespace characters at the EOL
 
     my @record_fields = split /$delimiter/;
 
@@ -28,10 +32,18 @@ while(<>){
         next;
     }
 
-    print '-' x 3, "\n" unless $record_count < 3;
+    local %_;
+    @_{@headers} = @record_fields;
 
-    foreach my $index (0..$#headers) {
-        print "$headers[$index]: $record_fields[$index]\n";
+    if( $execute ) {
+        eval $execute;
+    }
+    else {
+        print '-' x 3, "\n" unless $record_count < 3;
+
+        foreach my $index (0..$#headers) {
+            print "$headers[$index]: $record_fields[$index]\n";
+        }
     }
 }
 
