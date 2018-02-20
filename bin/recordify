@@ -1,9 +1,32 @@
 #!/usr/bin/env perl
 
+=head1 NAME
+
+    recordify - convert CSV into a one-line-per-column output
+
+=head1 SYNOPSIS
+
+    recordify
+
+     Options:
+       --delimiter      Provide delimiter in the file. A comma is the default.
+       --execute        Provide Perl code that operates on %_ where the keys
+                        are the keys in the header, which will be evaluated
+                        each line.
+       --verbose        Print files separated by spaces instead of newlines.
+
+    One note about this script's behavior: it is not intelligent about embedded
+    delimiters in the CSV. You may need to pre-process the CSV if it contains
+    them.
+
+=cut
+
+
 use warnings;
 use strict;
 
 use Getopt::Long;
+use Pod::Usage qw/pod2usage/;
 
 my $delimiter = ',';
 my $execute = 0;
@@ -12,9 +35,9 @@ my $verbose = 0;
 GetOptions(
     'delimiter=s' => \$delimiter,
     'execute=s'   => \$execute,
+    'help|?'      => sub { pod2usage() },
     'verbose'     => \$verbose,
 );
-
 
 my $record_count = 0;
 my @headers;
