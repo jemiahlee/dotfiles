@@ -1,19 +1,45 @@
 #!/usr/bin/perl
 
-use strict;
+=head1 NAME
+
+    join - join a list of strings into a single string
+
+=head1 SYNOPSIS
+
+    join [options] [arg1 arg2 ...]
+    join [options] < <filename>
+
+    This script will generate a single string from command-line arguments or
+    lines of STDIN.
+
+     Options:
+       --delimiter      Provide delimiter to use. A comma is the default.
+
+=cut
+
+
 use warnings;
+use strict;
+
+use Getopt::Long;
+use Pod::Usage qw/pod2usage/;
+
+my $delimiter = ',';
+
+GetOptions(
+    'delimiter=s' => \$delimiter,
+    'help|?' => sub { pod2usage(); },
+);
 
 my $reading_from_stdin = 0;
 if( not -t STDIN ) {
     $reading_from_stdin = 1;
 }
 
-unless( $reading_from_stdin or @ARGV > 2 ){
+unless( $reading_from_stdin or @ARGV >= 2 ){
   print STDERR "This command doesn't really make sense for fewer than 3 args. Try again.\n";
   exit 1;
 }
-
-my $delimiter = shift || ',';
 
 if( $reading_from_stdin ){
     while(<>){
