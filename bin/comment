@@ -1,29 +1,87 @@
 #!/usr/bin/env perl
 
+=head1 NAME
+
+    comment - make/switch a code comment style
+
+=head1 SYNOPSIS
+
+    comment [--language <language>] <filename>
+
+    Reads from a file or STDIN. Switch comment characters for an entire code stream.
+
+    Options:
+        --language    Language to switch comments to. Currently supports:
+                      bash
+                      c
+                      javascript
+                      python
+                      perl
+                      ruby
+                      script (generic name for #-style comment)
+                      sql
+                      vim
+
+=cut
+
+
 use warnings;
 use strict;
 
 use Getopt::Long;
+use Pod::Usage qw/pod2usage/;
 
-our $language = 'c';
-GetOptions('language=s' => \$language);
+my $language = 'c';
 
-while (<>) {
-  s{^\s*(#|//|/\*|\*/|\*)[ \t]*}{};
-  if ($language eq 'c') {
-    print '// ', $_;
-  }
-  elsif ($language eq 'c++') {
-    if ($. eq 1) {
-      print '/* ', "\n";
+my %language_comment = (
+    bash       => '#',
+    c          => '//',
+    javascript => '//',
+    python     => '#',
+    perl       => '#',
+    ruby       => '#',
+    script     => '#',
+    sql        => '--',
+    vim        => '"',
+);
+
+GetOptions(
+    'language=s'  => \$language,
+    'help|?'      => sub { pod2usage(); },
+);
+
+unless ($language_comment{$language}) {
+    print STDERR "Language not supported: $language\n";
+    exit 1;
+}
+
+while ( <> ) {
+    s{^(\s*)(#|//|/\*|\*/|\*)[ \t]*}{};
+    next unless $_;
+
+    print $1;
+
+    if ($language eq 'c++') {
+        if ($. eq 1) {
+            print '/* ', "\n";
+        }
+        print ' * ', $_;
     }
-    print ' * ', $_;
-  }
-  elsif ($language eq 'script') {
-    print '# ', $_;
-  }
+    else {
+        print "$language_comment{$language} $_";
+    }
 }
 
 if ($language eq 'c++') {
-  print ' */', "\n";
+    print ' */', "\n";
+}
+
+sub find_all_comment_chars {
+    my %chars;
+
+    foreach my $language (keys %language_comment) {
+        $chars{$language_comment{$language}}++;
+    }
+
+    return keys %chars;
 }
