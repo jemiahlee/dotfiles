@@ -92,6 +92,11 @@ sub get_fields {
 
     my @fields = split /$delimiter/, $line;
 
+    foreach my $field (@fields) {
+        if ($field eq $FAKE_FIELD) {
+            $field = shift @replacements;
+        }
+    }
 
     return @fields;
 }
