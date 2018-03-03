@@ -27,6 +27,8 @@
 =cut
 
 
+use open ':std', ':encoding(UTF-8)';
+
 use warnings;
 use strict;
 
@@ -34,13 +36,15 @@ use Getopt::Long;
 use Pod::Usage qw/pod2usage/;
 
 my $delimiter = ',';
-my $execute = 0;
-my $verbose = 0;
+my $execute;
+my $verbose;
+my $no_header_line;
 
 GetOptions(
     'delimiter=s' => \$delimiter,
     'execute=s'   => \$execute,
     'help|?'      => sub { pod2usage() },
+    'no-header'   => \$no_header_line,
     'verbose'     => \$verbose,
 );
 
@@ -50,15 +54,18 @@ my @headers;
 while(<>){
     next if m{^$};
 
+    s{\x{FEFF}}{};
     s{\s+$}{};  # using this instead of chomp because the file that I wrote
                 # this script for had UTF-8 whitespace characters at the EOL
 
     my @record_fields = get_fields($delimiter, $_);
 
-    if( $record_count++ == 0 ) {
+    if( $record_count++ == 0 and not $no_header_line ) {
         @headers = @record_fields;
         next;
     }
+
+    die "Wrong number of fields!: $_" if @headers and scalar(@record_fields) != scalar(@headers);
 
     local %_;
     @_{@headers} = @record_fields;
@@ -86,7 +93,7 @@ sub get_fields {
     my $FAKE_FIELD = '#!FIELDFIELDFIELD!#';
 
     my @replacements;
-    while( $line =~ s{,("[^"]*"),}{,$FAKE_FIELD,} ){
+    while( $line =~ s{("[^"]*"(?!"))}{$FAKE_FIELD} ){
         push @replacements, $1;
     }
 
@@ -96,6 +103,7 @@ sub get_fields {
         if ($field eq $FAKE_FIELD) {
             $field = shift @replacements;
         }
+        $field =~ s/^"|"$//g;
     }
 
     return @fields;
