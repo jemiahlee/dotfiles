@@ -1,0 +1,8 @@
+#!/usr/bin/perl -n
+
+chomp;
+$sum += $_;
+
+END {
+    print "Sum: $sum\n";
+}
