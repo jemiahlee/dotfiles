@@ -11,11 +11,17 @@
     This script will output a CSV in a one-line-per-column format, or allow
     you to write Perl code to evaluate for each line.
 
+    It will look at whether the first line's fields have any lower- or
+    uppercase letters; if it does not, it will assume that it is not a
+    header line.
+
      Options:
        --delimiter      Provide delimiter in the file. A comma is the default.
        --execute        Provide Perl code that operates on %_ where the keys
                         are the keys in the header, which will be evaluated
                         each line. (@_ is also available, awk-style)
+       --no-headers     Force the first line to be treated as a data line
+                        instead of a header line
        --verbose        Print files separated by spaces instead of newlines.
 
     One note about this script's behavior: it is not particularly intelligent
@@ -60,16 +66,23 @@ while(<>){
 
     my @record_fields = get_fields($delimiter, $_);
 
-    if( $record_count++ == 0 and not $no_header_line ) {
+    if( $record_count++ == 0 and
+        not $no_header_line and
+        scalar(@record_fields) == scalar(grep /[a-zA-Z]/, @record_fields) ) {
+
         @headers = @record_fields;
         next;
     }
 
-    die "Wrong number of fields!: $_" if @headers and scalar(@record_fields) != scalar(@headers);
-
     local %_;
-    @_{@headers} = @record_fields;
     local @_;
+
+    if( @headers ) {
+        die "Wrong number of fields!: $_" if scalar(@record_fields) != scalar(@headers);
+        @_{@headers} = @record_fields;
+    }
+
+
     @_ = @record_fields;
 
     if( $execute ) {
