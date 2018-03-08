@@ -31,24 +31,14 @@ GetOptions(
     'help|?' => sub { pod2usage(); },
 );
 
-my $reading_from_stdin = 0;
-if( not -t STDIN ) {
-    $reading_from_stdin = 1;
+if( @ARGV ){
+    print join($delimiter, @ARGV), "\n";
 }
-
-unless( $reading_from_stdin or @ARGV >= 2 ){
-  print STDERR "This command doesn't really make sense for fewer than 3 args. Try again.\n";
-  exit 1;
-}
-
-if( $reading_from_stdin ){
+else {
     while(<>){
         print $delimiter unless $. == 1;
         chomp;
         print;
     }
     print "\n";
-}
-else {
-    print join($delimiter, @ARGV), "\n";
 }
