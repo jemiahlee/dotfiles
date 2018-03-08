@@ -1,8 +1,37 @@
-#!/usr/bin/perl -n
+#!/usr/bin/env perl
 
-chomp;
-$sum += $_;
+=head1 NAME
 
-END {
-    print "Sum: $sum\n";
+    sum - sum a list of values to a number amount
+
+=head1 SYNOPSIS
+
+    sum < <filename>
+    sum <num1> <num2> [<num3>...]
+
+    This script will generate a single value by summing the amounts
+    provided.
+
+=cut
+
+
+use strict;
+use warnings;
+
+use Getopt::Long;
+use Pod::Usage qw/pod2usage/;
+
+GetOptions(
+    'help|?' => sub { pod2usage(); },
+);
+
+my $sum = 0;
+
+if( @ARGV ){
+    map { $sum += $_ } @ARGV;
 }
+else {
+    $sum += $_ while <>;
+}
+
+print $sum, "\n";
