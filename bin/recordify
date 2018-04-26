@@ -16,13 +16,15 @@
     header line.
 
      Options:
-       --delimiter      Provide delimiter in the file. A comma is the default.
-       --execute        Provide Perl code that operates on %_ where the keys
-                        are the keys in the header, which will be evaluated
-                        each line. (@_ is also available, awk-style)
-       --no-headers     Force the first line to be treated as a data line
-                        instead of a header line
-       --verbose        Print files separated by spaces instead of newlines.
+       --delimiter         Provide delimiter in the file. A comma is the default.
+       --execute           Provide Perl code that operates on %_ where the keys
+                           are the keys in the header, which will be evaluated
+                           each line. (@_ is also available, awk-style)
+       --keep-headers      Print the header line out before any output. This is
+                           useful if you are just filtering the CSV somehow.
+       --no-headers        Force the first line to be treated as a data line
+                           instead of a header line.
+       --verbose           Print files separated by spaces instead of newlines.
 
     One note about this script's behavior: it is not particularly intelligent
     about embedded delimiters in the CSV. It looks only for quoted portions of
@@ -45,13 +47,15 @@ my $delimiter = ',';
 my $execute;
 my $verbose;
 my $no_header_line;
+my $keep_header_line;
 
 GetOptions(
-    'delimiter=s' => \$delimiter,
-    'execute=s'   => \$execute,
-    'help|?'      => sub { pod2usage() },
-    'no-headers'  => \$no_header_line,
-    'verbose'     => \$verbose,
+    'delimiter=s'       => \$delimiter,
+    'execute=s'         => \$execute,
+    'help|?'            => sub { pod2usage() },
+    'keep-headers'      => \$keep_header_line,
+    'no-headers'        => \$no_header_line,
+    'verbose'           => \$verbose,
 );
 
 my $record_count = 0;
@@ -74,6 +78,11 @@ while(<>){
             $field_count == scalar(grep /[a-zA-Z]/, @record_fields) ) {
 
             @headers = @record_fields;
+
+            if( $keep_header_line ) {
+                print "$_\n";
+            }
+
             next;
         }
         else {
