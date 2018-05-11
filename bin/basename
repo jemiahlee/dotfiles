@@ -7,16 +7,33 @@ use Getopt::Long;
 my $depth = 1;
 GetOptions( 'depth=s' => \$depth );
 
-my $pathname = join(' ', @ARGV);
-
-$pathname =~ m{.*((/(.*)){$depth})$};
-
-my $total_match = $1;
-if(defined($total_match)) {
-    $total_match =~ s{^/|/.*$}{}g;
-    print $total_match, "\n";
+if( not -t STDIN ) {
+    while(<>){
+        chomp;
+        print process_filename($_, $depth), "\n";
+    }
 }
 else {
-    print STDERR "--depth argument exceeded actual depth!]\n";
-    exit 1;
+   foreach my $filename (@ARGV) {
+        print process_filename($filename, $depth), "\n";
+   }
+}
+
+sub process_filename {
+    my($filename, $depth) = @_;
+
+    if( $filename !~ m{/} ) {
+        return $filename;
+    }
+
+    $filename =~ m{.*((/(.*)){$depth})$};
+    my $total_match = $1;
+    if( defined($total_match) ) {
+        $total_match =~ s{^/|/.*$}{}g;
+        return $total_match;
+    }
+    else {
+        print STDERR "--depth exceeded actual depth!\n";
+        return $filename;
+    }
 }
