@@ -161,5 +161,5 @@ if [[ $1 != '--no-vim' ]]; then
   safe_link "${START_PWD}/submodules/vim-plug/plug.vim" "${HOME}/.vim/autoload/plug.vim"
 
   echo "Installing VIM plugins via vim-plug"
-  vim -s vim_startup_commands
+  vim -s "${START_PWD}/install/vim_startup_commands"
 fi
