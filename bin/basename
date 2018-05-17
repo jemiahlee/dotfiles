@@ -7,16 +7,16 @@ use Getopt::Long;
 my $depth = 1;
 GetOptions( 'depth=s' => \$depth );
 
-if( not -t STDIN ) {
+if( @ARGV ) {
+   foreach my $filename (@ARGV) {
+        print process_filename($filename, $depth), "\n";
+   }
+}
+else {
     while(<>){
         chomp;
         print process_filename($_, $depth), "\n";
     }
-}
-else {
-   foreach my $filename (@ARGV) {
-        print process_filename($filename, $depth), "\n";
-   }
 }
 
 sub process_filename {
