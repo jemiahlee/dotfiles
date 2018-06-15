@@ -24,6 +24,8 @@
                            useful if you are just filtering the CSV somehow.
        --no-headers        Force the first line to be treated as a data line
                            instead of a header line.
+       --order             Instead of printing by record, just sort the file by
+                           the field specified. Automatically turns on --keep.
        --verbose           Print files separated by spaces instead of newlines.
 
     One note about this script's behavior: it is not particularly intelligent
@@ -48,6 +50,7 @@ my $execute;
 my $verbose;
 my $no_header_line;
 my $keep_header_line;
+my $order_field;
 
 GetOptions(
     'delimiter=s'       => \$delimiter,
@@ -55,13 +58,18 @@ GetOptions(
     'help|?'            => sub { pod2usage() },
     'keep-headers'      => \$keep_header_line,
     'no-headers'        => \$no_header_line,
+    'order=s'           => \$order_field,
     'verbose'           => \$verbose,
 );
+
+$keep_header_line = 1 if $order_field;
 
 my $record_count = 0;
 my @headers;
 my $field_count;
+my %ordered_data;
 
+LINE:
 while(<>){
     next if m{^$};
 
@@ -79,11 +87,15 @@ while(<>){
 
             @headers = @record_fields;
 
-            if( $keep_header_line ) {
-                print "$_\n";
+            if( $order_field and !grep {$order_field eq $_} @headers ){
+                die "Order field '$order_field' not found in headers!";
             }
 
-            next;
+            if( $keep_header_line ) {
+                print $_, "\n";
+            }
+
+            next LINE;
         }
         else {
             @headers = map { "field$_" } 1..$field_count;
@@ -101,7 +113,10 @@ while(<>){
 
     @_ = @record_fields;
 
-    if( $execute ) {
+    if( $order_field ) {
+        push @{$ordered_data{$_{$order_field}}}, $_;
+    }
+    elsif( $execute ) {
         eval $execute;
     }
     else {
@@ -109,6 +124,14 @@ while(<>){
 
         foreach my $index (0..$#headers) {
             print "$headers[$index]: $record_fields[$index]\n";
+        }
+    }
+}
+
+if( $order_field ){
+    foreach my $key (sort %ordered_data){
+        foreach my $value (@{$ordered_data{$key}}){
+            print $value, "\n";
         }
     }
 }
