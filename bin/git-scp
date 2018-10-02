@@ -67,7 +67,7 @@ my %transferred;
 my $hostname = $ENV{GIT_SCP_HOSTNAME};
 my $username = $ENV{GIT_SCP_USERNAME} || $ENV{USER};
 my $ssh_options = $ENV{GIT_SCP_SSH_OPTIONS} || '';
-my $reading_from_stdin = 0;
+my $filenames_given = 0;
 
 # assume mirrored directory setups
 (my $base_directory) = $current_dir =~ m{$ENV{HOME}/(.*)};
@@ -89,7 +89,7 @@ GetOptions(
 # make sure all printing happens when we're interactive.
 $verbose = 1 if $interactive;
 
-if( @ARGV and not $regex ){
+if( @ARGV and not $regex and not -e $ARGV[0] ){
     $regex = shift;
 }
 
@@ -114,10 +114,18 @@ if( defined $regex ) {
 }
 
 if( not -t STDIN ) {
-    $reading_from_stdin = 1;
+    print "Processing filenames from STDIN\n" if $verbose;
+    $filenames_given = 1;
     while(<>) {
         chomp;
         transfer_file_flow(filename => $_);
+    }
+}
+elsif ( @ARGV ) {
+    print "Processing filenames from the command line\n" if $verbose;
+    $filenames_given = 1;
+    foreach my $filename (@ARGV) {
+        transfer_file_flow(filename => $filename);
     }
 }
 else {
@@ -147,11 +155,11 @@ sub file_is_whitelisted {
 
     print STDERR "Attempting to match /$regex/ against $filename..." if $verbose;
     unless( $filename =~ /$regex/ ) {
-        print STDERR "did NOT match!\n" if $verbose;
+        print " did NOT match!\n" if $verbose;
         return 0;
     }
 
-    print STDERR "matched!\n" if $verbose;
+    print "matched!\n" if $verbose;
     return 1;
 }
 
@@ -161,6 +169,7 @@ sub transfer_file_flow {
     my $filename = delete $options{filename} or die 'No filename provided for transfer!';
     my $deletion = delete $options{delete} ;
 
+    print "Processing filename {$filename}\n" if $verbose;
     $filename =~ s{\\}{/}g;
 
     return if $transferred{$filename}++;
@@ -180,9 +189,9 @@ sub transfer_file_flow {
 
     print "Executing: $execute\n" if $verbose or $print_only;
 
-    if ( not $reading_from_stdin and $interactive ){
+    if ( not $filenames_given and $interactive ){
         my $input;
-        print STDOUT "\nWould you like me to execute this command (y/N)? ";
+        print "\nWould you like me to execute this command (y/N)? ";
         $input = <STDIN>;
 
         if( $input =~ m{^[an]}i ){ #allow an abort
@@ -191,10 +200,10 @@ sub transfer_file_flow {
     }
 
     if ( $deletion ) {
-        print STDOUT "DELETING $hostname:$remote_base_directory/$filename\n";
+        print "DELETING $hostname:$remote_base_directory/$filename\n";
     }
     else {
-        print STDOUT "$filename => $TRANSFER_TO_URL/$dirname\n";
+        print "$filename => $TRANSFER_TO_URL/$dirname\n";
     }
 
     if ( not $print_only ) {
