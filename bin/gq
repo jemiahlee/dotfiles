@@ -6,7 +6,7 @@ use strict;
 my $MACHINE_TYPE = shift;
 exit 0 unless $MACHINE_TYPE;
 
-my $output = `gironde query sterling`;
+my $output = `gironde query $MACHINE_TYPE`;
 
 while ($output =~ m{^Host "([^"]+)" trusts}mg){
   my $host = $1;
