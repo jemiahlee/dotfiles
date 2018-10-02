@@ -51,6 +51,7 @@ my $verbose;
 my $no_header_line;
 my $keep_header_line;
 my $order_field;
+my $sum_field;
 
 GetOptions(
     'delimiter=s'       => \$delimiter,
@@ -59,10 +60,12 @@ GetOptions(
     'keep-headers'      => \$keep_header_line,
     'no-headers'        => \$no_header_line,
     'order=s'           => \$order_field,
+    'sum=s'             => \$sum_field,
     'verbose'           => \$verbose,
 );
 
 $keep_header_line = 1 if $order_field;
+my $sum if $sum_field;
 
 my $record_count = 0;
 my @headers;
@@ -113,7 +116,10 @@ while(<>){
 
     @_ = @record_fields;
 
-    if( $order_field ) {
+    if( $sum_field ){
+        $sum += $_{$sum_field};
+    }
+    elsif( $order_field ) {
         push @{$ordered_data{$_{$order_field}}}, $_;
     }
     elsif( $execute ) {
@@ -128,7 +134,10 @@ while(<>){
     }
 }
 
-if( $order_field ){
+if( $sum_field ){
+    print "Total: $sum\n";
+}
+elsif( $order_field ){
     foreach my $key (sort %ordered_data){
         foreach my $value (@{$ordered_data{$key}}){
             print $value, "\n";
