@@ -1,9 +1,32 @@
 #!/usr/bin/perl
 
+=head1 NAME
+
+    skip - don't print certain lines
+
+=head1 SYNOPSIS
+
+    skip [-n <number of lines to skip>]
+
+    This script will output its STDIN, skipping the number of lines providee
+    as an argument, defaulting to 1.
+
+=cut
+
+
 use warnings;
 use strict;
 
-my $number_to_skip = shift || 1;
+use Getopt::Long;
+use Pod::Usage qw/pod2usage/;
+
+my $number_to_skip = 1;
+
+GetOptions(
+    'help|?' => sub { pod2usage(); },
+    'number' => \$number_to_skip,
+);
+
 while(<>) {
     next if $number_to_skip-- > 0;
     print;
