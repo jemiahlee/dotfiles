@@ -26,6 +26,11 @@
                            instead of a header line.
        --order             Instead of printing by record, just sort the file by
                            the field specified. Automatically turns on --keep.
+       --sum               Sum a particular column, the column name should be given
+                           as an argument to this option.
+       --template          Process the filename given as the template using a simple
+                           handlebar-style template. The template will be rendered
+                           once per record.
        --verbose           Print files separated by spaces instead of newlines.
 
     One note about this script's behavior: it is not particularly intelligent
@@ -47,11 +52,12 @@ use Pod::Usage qw/pod2usage/;
 
 my $delimiter = ',';
 my $execute;
-my $verbose;
-my $no_header_line;
 my $keep_header_line;
+my $no_header_line;
 my $order_field;
 my $sum_field;
+my $template;
+my $verbose;
 
 GetOptions(
     'delimiter=s'       => \$delimiter,
@@ -61,6 +67,7 @@ GetOptions(
     'no-headers'        => \$no_header_line,
     'order=s'           => \$order_field,
     'sum=s'             => \$sum_field,
+    'template=s'        => \$template,
     'verbose'           => \$verbose,
 );
 
@@ -71,6 +78,15 @@ my $record_count = 0;
 my @headers;
 my $field_count;
 my %ordered_data;
+my $template_content;
+
+if( $template ) {
+    local $/;
+    undef $/;
+    open my $fh, '<', $template or die "Couldn't open $template $!";
+    $template_content = <$fh>;
+    close $fh;
+}
 
 LINE:
 while(<>){
@@ -121,6 +137,14 @@ while(<>){
     }
     elsif( $order_field ) {
         push @{$ordered_data{$_{$order_field}}}, $_;
+    }
+    elsif( $template ) {
+        no strict 'refs';
+        print '-' x 3, "\n" unless $record_count < 2;
+        my $template = $template_content;
+        $template =~ s/\{\{(.*?)\}\}/$_{$1}/g;
+        $template =~ s/(?<!\n)\z/\n/;
+        print $template;
     }
     elsif( $execute ) {
         eval $execute;
