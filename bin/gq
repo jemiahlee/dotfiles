@@ -8,7 +8,7 @@ exit 0 unless $MACHINE_TYPE;
 
 my $output = `gironde query $MACHINE_TYPE`;
 
-while ($output =~ m{^Host "([^"]+)" trusts}mg){
+while ($output =~ m{^Host "([^"]+)" }mg){
   my $host = $1;
   next unless $host =~ m{$MACHINE_TYPE};
   print $host, "\n";
