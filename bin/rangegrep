@@ -16,7 +16,7 @@ my $start_regex = shift;
 my $end_regex = shift;
 
 unless( $start_regex and $end_regex and @ARGV ) {
-    print STDERR "Usage: $0 [--recursive] <start_regex> <end_regex> <filename|dirname>";
+    print STDERR "Usage: $0 [--recursive] <start_regex> <end_regex> <filename|dirname>\n";
     exit 1;
 }
 
