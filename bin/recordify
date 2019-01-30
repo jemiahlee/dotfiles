@@ -178,7 +178,7 @@ sub get_fields {
     my $FAKE_FIELD = '#!FIELDFIELDFIELD!#';
 
     my @replacements;
-    while( $line =~ s{("[^"]*"(?!"))}{$FAKE_FIELD} ){
+    while( $line =~ s{("(?!").*"(?!"))}{$FAKE_FIELD} ){
         push @replacements, $1;
     }
 
