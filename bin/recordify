@@ -76,6 +76,7 @@ my $sum if $sum_field;
 
 my $record_count = 0;
 my @headers;
+my $header_count;
 my $field_count;
 my %ordered_data;
 my $template_content;
@@ -105,6 +106,7 @@ while(<>){
             $field_count == scalar(grep /[a-zA-Z]/, @record_fields) ) {
 
             @headers = @record_fields;
+            $header_count = scalar(@headers);
 
             if( $order_field and !grep {$order_field eq $_} @headers ){
                 die "Order field '$order_field' not found in headers!";
@@ -126,7 +128,10 @@ while(<>){
     local @_;
 
     if( @headers ) {
-        die "Wrong number of fields!: $_" if scalar(@record_fields) != scalar(@headers);
+        if (@record_fields != $header_count) {
+            die "Wrong number of fields! (got " .  scalar(@record_fields) .
+                ", expected $header_count):\n" . join("\n", @record_fields);
+        }
         @_{@headers} = @record_fields;
     }
 
