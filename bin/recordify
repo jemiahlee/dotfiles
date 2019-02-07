@@ -183,7 +183,8 @@ sub get_fields {
     my $FAKE_FIELD = '#!FIELDFIELDFIELD!#';
 
     my @replacements;
-    while( $line =~ s{("(?!").*"(?!"))}{$FAKE_FIELD} ){
+    while( $line =~ s{("(?!")([^"]+"|[^"]+)*"(?!""))\B}{$FAKE_FIELD,} ){
+        # while( $line =~ s{((?<!")"(?!")(?:[^"]*"")*?"(?!"),)}{$FAKE_FIELD,} ){
         push @replacements, $1;
     }
 
@@ -193,7 +194,7 @@ sub get_fields {
         if ($field eq $FAKE_FIELD) {
             $field = shift @replacements;
         }
-        $field =~ s/^"|"$//g;
+        # $field =~ s/^"|"$//g;
     }
 
     return @fields;
