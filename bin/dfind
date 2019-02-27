@@ -1,0 +1,16 @@
+#!/usr/bin/env perl
+
+use warnings;
+use strict;
+
+my $type = shift;
+do {print STDERR "Usage: $0 <type>\n"; exit 0} unless $type;
+
+open my $dockerps, '-|', 'sudo docker ps' or die "Couldn't open docker command: $!";
+
+while(<$dockerps>) {
+    chomp;
+    my @fields = split /\s{2,}/;
+    next unless $fields[5] =~ /$type/;
+    print $fields[5], "\n";
+}
