@@ -424,6 +424,10 @@ let NERDTreeQuitOnOpen = 0
 let NERDTreeShowHidden = 1
 let NERDTreeIgnore=['\.pyc$', '\~$']
 
+" allow NerdTree to open the current file's directory.
+nmap <leader>n :NERDTreeFind<CR>
+nmap <leader>m :NERDTreeToggle<CR>
+
 """"""""""""""""""""""""""""""""""""""""""""""""""""""
 " Ruby/Rails configuration
 """"""""""""""""""""""""""""""""""""""""""""""""""""""
