@@ -4,12 +4,11 @@ use warnings;
 use strict;
 
 my $MACHINE_TYPE = shift;
-exit 0 unless $MACHINE_TYPE;
+do {print STDERR "Usage: $0 <machine-name>\n"; exit 0} unless $MACHINE_TYPE;
 
 my $output = `gironde query $MACHINE_TYPE`;
 
 while ($output =~ m{^Host "([^"]+)" }mg){
   my $host = $1;
-  next unless $host =~ m{$MACHINE_TYPE};
   print $host, "\n";
 }
