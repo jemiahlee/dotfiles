@@ -1,0 +1,27 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+
+use Getopt::Long;
+
+my $raid_level = 5;
+
+GetOptions(
+           'level=i' => \$raid_level,
+);
+
+$_ = <>;
+chomp;
+
+my @letters = split //;
+foreach my $iteration (0..$raid_level) {
+    my $index = 0 + $iteration;
+    while($index < @letters) {
+        print $letters[$index];
+        $index += $raid_level;
+    }
+    print "\n";
+}
+
+print "\n";
