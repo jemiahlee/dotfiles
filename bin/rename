@@ -4,7 +4,7 @@ use Getopt::Std;
 
 #use warnings;
 
-getopts('evpgr');
+getopts('evpgrn');
 
 my $pattern = shift;
 my $replacement = shift;
@@ -31,7 +31,7 @@ foreach my $filename (@ARGV){
     $newname =~ s#$pattern#$replacement#o;
   }
 
-  print "Moving $filename to $newname\n" if $opt_v or $opt_p;
-  rename $filename, $newname unless $opt_p;
+  print "Moving $filename to $newname\n" if $opt_v or $opt_p or $opt_n;
+  rename $filename, $newname unless $opt_p or $opt_n;
 
 }
