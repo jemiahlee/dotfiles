@@ -7,6 +7,8 @@ foreach (@ARGV){
   s/_+/_/g;
   s/_\./\./g;
   s/_-_/-/g;
+  s/\(U\)//g;
+  s/\[!\]//g;
   s/['()\[\]]//g;
   s/'//g;
   s/&/_and_/g;
@@ -15,6 +17,7 @@ foreach (@ARGV){
   s/\.([A-Z])(\w+)$/\.\l$1$2/;
   s/'([DTSM]|Ll|Re|Ve)_/'\l$1_/g;
   s/_{2,}/_/g;
+  s/_\././;
   print "$filename => $_\n";
   rename $filename, $_;
 }
