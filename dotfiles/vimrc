@@ -300,6 +300,7 @@ set viminfo^=%
 """"""""""""""""""""""""""""""
 map <D-t> :CtrlP<CR>
 imap <D-t> <esc>:CtrlP<CR>
+let g:buffergator_autodismiss_on_select=0
 
 """"""""""""""""""""""""""""""
 " => Status line
