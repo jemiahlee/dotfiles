@@ -16,6 +16,7 @@
     header line.
 
      Options:
+       --column            Give a number or field name, print only this column.
        --delimiter         Provide delimiter in the file. A comma is the default.
        --execute           Provide Perl code that operates on %_ where the keys
                            are the keys in the header, which will be evaluated
@@ -50,6 +51,7 @@ use strict;
 use Getopt::Long;
 use Pod::Usage qw/pod2usage/;
 
+my $column_to_print;
 my $delimiter = ',';
 my $execute;
 my $keep_header_line;
@@ -60,6 +62,7 @@ my $template;
 my $verbose;
 
 GetOptions(
+    'column-to-print=s' => \$column_to_print,
     'delimiter=s'       => \$delimiter,
     'execute=s'         => \$execute,
     'help|?'            => sub { pod2usage() },
@@ -73,6 +76,18 @@ GetOptions(
 
 $keep_header_line = 1 if $order_field;
 my $sum if $sum_field;
+
+if (1 < scalar(grep {defined} ($column_to_print, $order_field, $execute, $template))) {
+    die 'Incompatible command-line switches';
+}
+
+if ($column_to_print and $column_to_print =~ m{^\d+$}) {
+    $column_to_print = "field$column_to_print";
+}
+
+if ($order_field and $order_field =~ m{^\d+$}) {
+    $order_field = "field$order_field";
+}
 
 my $record_count = 0;
 my @headers;
@@ -106,11 +121,10 @@ while(<>){
 
             @headers = @record_fields;
 
-            if( $order_field and !grep {$order_field eq $_} @headers ){
-                die "Order field '$order_field' not found in headers!";
+            if ($column_to_print and $keep_header_line) {
+                print $column_to_print, "\n";
             }
-
-            if( $keep_header_line ) {
+            elsif ($keep_header_line) {
                 print $_, "\n";
             }
 
@@ -119,6 +133,15 @@ while(<>){
         else {
             @headers = map { "field$_" } 1..$field_count;
         }
+
+    }
+
+    if( $order_field and !grep {$order_field eq $_} @headers ){
+        die "Order field '$order_field' not found in headers!";
+    }
+
+    if ($column_to_print and !grep {$column_to_print eq $_} @headers) {
+        die "Column to print '$column_to_print' not found in headers!";
     }
 
     $record_count++;
@@ -132,7 +155,10 @@ while(<>){
 
     @_ = @record_fields;
 
-    if( $sum_field ){
+    if ($column_to_print) {
+        print $_{$column_to_print}, "\n";
+    }
+    elsif( $sum_field ){
         $sum += $_{$sum_field};
     }
     elsif( $order_field ) {
