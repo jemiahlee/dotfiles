@@ -81,13 +81,7 @@ if (1 < scalar(grep {defined} ($column_to_print, $order_field, $execute, $templa
     die 'Incompatible command-line switches';
 }
 
-if ($column_to_print and $column_to_print =~ m{^\d+$}) {
-    $column_to_print = "field$column_to_print";
-}
 
-if ($order_field and $order_field =~ m{^\d+$}) {
-    $order_field = "field$order_field";
-}
 
 my $record_count = 0;
 my @headers;
@@ -113,6 +107,7 @@ while(<>){
 
     my @record_fields = get_fields($delimiter, $_);
 
+    my $skip_line;
     unless( @headers ){
         $field_count = scalar(@record_fields);
 
@@ -128,12 +123,21 @@ while(<>){
                 print $_, "\n";
             }
 
-            next LINE;
+            $skip_line = 1;
         }
         else {
             @headers = map { "field$_" } 1..$field_count;
         }
 
+        if ($column_to_print and $column_to_print =~ m{^\d+$}) {
+            $column_to_print = $headers[$column_to_print-1];
+        }
+
+        if ($order_field and $order_field =~ m{^\d+$}) {
+            $order_field = $headers[$order_field-1];
+        }
+
+        next LINE if $skip_line;
     }
 
     if( $order_field and !grep {$order_field eq $_} @headers ){
@@ -196,6 +200,11 @@ elsif( $order_field ){
 }
 
 print "$record_count records processed.\n" if $verbose;
+
+
+sub setup_order_line {
+
+}
 
 
 sub get_fields {

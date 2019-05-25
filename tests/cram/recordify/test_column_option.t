@@ -6,5 +6,5 @@
   value2
   r2value2
   $ $BIN/recordify --column 2 $TESTDIR/test_with_headers.csv
-  Column to print 'field2' not found in headers! at /Users/jeremiahlee/projects/dotfiles/bin/recordify line 144, <> line 2.
-  [25]
+  value2
+  r2value2
