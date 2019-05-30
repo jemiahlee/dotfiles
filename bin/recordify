@@ -51,6 +51,7 @@ use strict;
 use Getopt::Long;
 use Pod::Usage qw/pod2usage/;
 
+my $column_for_operation;
 my $column_to_print;
 my $delimiter = ',';
 my $execute;
@@ -62,14 +63,23 @@ my $template;
 my $verbose;
 
 GetOptions(
-    'column-to-print=s' => \$column_to_print,
+    'column-to-print=s' => sub {
+                               $column_to_print = $_[1];
+                               $column_for_operation = $_[1];
+                           },
     'delimiter=s'       => \$delimiter,
     'execute=s'         => \$execute,
     'help|?'            => sub { pod2usage() },
     'keep-headers'      => \$keep_header_line,
     'no-headers'        => \$no_header_line,
-    'order=s'           => \$order_field,
-    'sum=s'             => \$sum_field,
+    'order=s'           => sub {
+                               $order_field = $_[1];
+                               $column_for_operation = $_[1];
+                           },
+    'sum=s'             => sub {
+                               $sum_field = $_[1];
+                               $column_for_operation = $_[1];
+                           },
     'template=s'        => \$template,
     'verbose'           => \$verbose,
 );
@@ -80,8 +90,6 @@ my $sum if $sum_field;
 if (1 < scalar(grep {defined} ($column_to_print, $order_field, $sum_field, $execute, $template))) {
     die 'Incompatible command-line switches';
 }
-
-
 
 my $record_count = 0;
 my @headers;
@@ -122,24 +130,13 @@ while(<>){
             @headers = map { "field$_" } 1..$field_count;
         }
 
-        if ($column_to_print and $column_to_print =~ m{^\d+$}) {
-            $column_to_print = $headers[$column_to_print-1];
-        }
-
-        if ($order_field and $order_field =~ m{^\d+$}) {
-            $order_field = $headers[$order_field-1];
-        }
-
-        if ($sum_field and $sum_field =~ m{^\d+$}) {
-            $sum_field = $headers[$sum_field-1];
+        if ($column_for_operation and $column_for_operation =~ m{^\d+$}) {
+            $column_for_operation = $headers[$column_for_operation-1];
         }
 
         if ($headers_were_present) {
-            if ($column_to_print and $keep_header_line) {
-                print $column_to_print, "\n";
-            }
-            elsif ($sum_field and $keep_header_line) {
-                print $sum_field, "\n";
+            if (($sum_field or $column_to_print) and $keep_header_line) {
+                print $column_for_operation, "\n";
             }
             elsif ($keep_header_line) {
                 print $_, "\n";
@@ -149,16 +146,8 @@ while(<>){
         }
     }
 
-    if( $order_field and !grep {$order_field eq $_} @headers ){
-        die "Order field '$order_field' not found in headers!";
-    }
-
-    if ($column_to_print and !grep {$column_to_print eq $_} @headers) {
-        die "Column to print '$column_to_print' not found in headers!";
-    }
-
-    if ($sum_field and !grep {$sum_field eq $_} @headers) {
-        die "Column to sum '$sum_field' not found in headers!";
+    if( $column_for_operation and !grep {$column_for_operation eq $_} @headers ){
+        die "Field '$column_for_operation' not found in headers!";
     }
 
     $record_count++;
@@ -173,13 +162,13 @@ while(<>){
     @_ = @record_fields;
 
     if ($column_to_print) {
-        print $_{$column_to_print}, "\n";
+        print $_{$column_for_operation}, "\n";
     }
     elsif( $sum_field ){
-        $sum += $_{$sum_field};
+        $sum += $_{$column_for_operation};
     }
     elsif( $order_field ) {
-        push @{$ordered_data{$_{$order_field}}}, $_;
+        push @{$ordered_data{$_{$column_for_operation}}}, $_;
     }
     elsif( $template ) {
         no strict 'refs';
