@@ -77,7 +77,7 @@ GetOptions(
 $keep_header_line = 1 if $order_field;
 my $sum if $sum_field;
 
-if (1 < scalar(grep {defined} ($column_to_print, $order_field, $execute, $template))) {
+if (1 < scalar(grep {defined} ($column_to_print, $order_field, $sum_field, $execute, $template))) {
     die 'Incompatible command-line switches';
 }
 
@@ -107,7 +107,7 @@ while(<>){
 
     my @record_fields = get_fields($delimiter, $_);
 
-    my $skip_line;
+    my $headers_were_present;
     unless( @headers ){
         $field_count = scalar(@record_fields);
 
@@ -116,14 +116,7 @@ while(<>){
 
             @headers = @record_fields;
 
-            if ($column_to_print and $keep_header_line) {
-                print $column_to_print, "\n";
-            }
-            elsif ($keep_header_line) {
-                print $_, "\n";
-            }
-
-            $skip_line = 1;
+           $headers_were_present = 1;
         }
         else {
             @headers = map { "field$_" } 1..$field_count;
@@ -137,7 +130,23 @@ while(<>){
             $order_field = $headers[$order_field-1];
         }
 
-        next LINE if $skip_line;
+        if ($sum_field and $sum_field =~ m{^\d+$}) {
+            $sum_field = $headers[$sum_field-1];
+        }
+
+        if ($headers_were_present) {
+            if ($column_to_print and $keep_header_line) {
+                print $column_to_print, "\n";
+            }
+            elsif ($sum_field and $keep_header_line) {
+                print $column_to_print, "\n";
+            }
+            elsif ($keep_header_line) {
+                print $_, "\n";
+            }
+
+            next LINE;
+        }
     }
 
     if( $order_field and !grep {$order_field eq $_} @headers ){
@@ -146,6 +155,10 @@ while(<>){
 
     if ($column_to_print and !grep {$column_to_print eq $_} @headers) {
         die "Column to print '$column_to_print' not found in headers!";
+    }
+
+    if ($sum_field and !grep {$sum_field eq $_} @headers) {
+        die "Column to sum '$sum_field' not found in headers!";
     }
 
     $record_count++;
