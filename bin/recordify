@@ -116,7 +116,7 @@ while(<>){
 
             @headers = @record_fields;
 
-           $headers_were_present = 1;
+            $headers_were_present = 1;
         }
         else {
             @headers = map { "field$_" } 1..$field_count;
@@ -139,7 +139,7 @@ while(<>){
                 print $column_to_print, "\n";
             }
             elsif ($sum_field and $keep_header_line) {
-                print $column_to_print, "\n";
+                print $sum_field, "\n";
             }
             elsif ($keep_header_line) {
                 print $_, "\n";
@@ -202,7 +202,7 @@ while(<>){
 }
 
 if( $sum_field ){
-    print "Total: $sum\n";
+    print "$sum\n";
 }
 elsif( $order_field ){
     foreach my $key (sort %ordered_data){
