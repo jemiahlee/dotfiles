@@ -6,15 +6,16 @@ use strict;
 use Getopt::Long;
 
 my($verbose, $line_length);
-$line_length = 60;
+$line_length = 79;
 
 GetOptions(
-           'line_length=i' => \$line_length,
+           'line_length|length=i' => \$line_length,
            'verbose' => \$verbose,
           );
 
-while( <> ) {
-    if(length() < $line_length) {
+while (<>) {
+
+    if (length() < $line_length) {
         print;
         next;
     }
