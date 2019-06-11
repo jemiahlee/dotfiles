@@ -67,7 +67,6 @@ my %transferred;
 my $hostname = $ENV{GIT_SCP_HOSTNAME};
 my $username = $ENV{GIT_SCP_USERNAME} || $ENV{USER};
 my $ssh_options = $ENV{GIT_SCP_SSH_OPTIONS} || '';
-my $filenames_given = 0;
 
 # assume mirrored directory setups
 (my $base_directory) = $current_dir =~ m{$ENV{HOME}/(.*)};
@@ -115,17 +114,15 @@ if( defined $regex ) {
 
 if( not -t STDIN ) {
     print "Processing filenames from STDIN\n" if $verbose;
-    $filenames_given = 1;
     while(<>) {
         chomp;
-        transfer_file_flow(filename => $_);
+        transfer_file(filename => $_, filename_as_argument => 1);
     }
 }
 elsif ( @ARGV ) {
     print "Processing filenames from the command line\n" if $verbose;
-    $filenames_given = 1;
     foreach my $filename (@ARGV) {
-        transfer_file_flow(filename => $filename);
+        transfer_file(filename => $filename, filename_as_argument => 1);
     }
 }
 else {
@@ -137,7 +134,7 @@ else {
         next if $modified_only and $y ne 'M' and $x ne 'M';
         next if $staged_only and $x eq ' ';
 
-        transfer_file_flow(filename => $filename, delete => $y eq 'D');
+        transfer_file(filename => $filename, delete => ($x eq 'D' or $y eq 'D'));
     }
 }
 
@@ -163,11 +160,13 @@ sub file_is_whitelisted {
     return 1;
 }
 
-sub transfer_file_flow {
+sub transfer_file {
     my %options = @_;
 
-    my $filename = delete $options{filename} or die 'No filename provided for transfer!';
-    my $deletion = delete $options{delete} ;
+    my $filename  = delete $options{filename} or die 'No filename provided for transfer!';
+
+    my $filename_as_argument = delete $options{filename_as_argument};
+    my $deletion             = delete $options{delete};
 
     print "Processing filename {$filename}\n" if $verbose;
     $filename =~ s{\\}{/}g;
@@ -181,7 +180,7 @@ sub transfer_file_flow {
 
     my $execute;
     if ( $deletion ) {
-        $execute = qq{ssh $ssh_options $hostname $remote_base_directory/$filename};
+        $execute = qq{ssh $ssh_options $hostname rm $TRANSFER_TO_URL/$filename};
     }
     else {
         $execute = qq{scp $ssh_options $filename $TRANSFER_TO_URL/$dirname};
@@ -189,24 +188,24 @@ sub transfer_file_flow {
 
     print "Executing: $execute\n" if $verbose or $print_only;
 
-    if ( not $filenames_given and $interactive ){
+    if ( not $filename_as_argument and $interactive ){
         my $input;
         print "\nWould you like me to execute this command (y/N)? ";
         $input = <STDIN>;
 
-        if( $input =~ m{^[an]}i ){ #allow an abort
+        if ($input !~ m{^y}i){
             return;
         }
     }
 
-    if ( $deletion ) {
+    if ($deletion) {
         print "DELETING $hostname:$remote_base_directory/$filename\n";
     }
     else {
         print "$filename => $TRANSFER_TO_URL/$dirname\n";
     }
 
-    if ( not $print_only ) {
+    if (not $print_only) {
         system($execute);
     }
 }
