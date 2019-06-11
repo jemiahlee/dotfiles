@@ -155,7 +155,11 @@ while(<>){
     local @_;
 
     if( @headers ) {
-        die "Wrong number of fields!: $_" if scalar(@record_fields) != scalar(@headers);
+        my $expected = scalar(@headers);
+        my $received = scalar(@record_fields);
+        if ($expected != $received) {
+           die "Wrong number of fields!, expected $expected but received $received: $_";
+        }
         @_{@headers} = @record_fields;
     }
 
