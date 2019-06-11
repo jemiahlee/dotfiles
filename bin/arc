@@ -1,0 +1,9 @@
+#!/bin/bash
+
+START=`date`
+echo "Starting arc command at ${START}"
+
+$HOME/projects/arcanist/bin/arc $*
+
+END=`date`
+echo "arc command finished at ${END}"
