@@ -6,8 +6,13 @@
   ---
   field1: value1
   field2: value2
-  field3: 100
+  field3: 11.0
   field4: value4
+  ---
+  field1: r100value1
+  field2: r100value2
+  field3: 1123.00
+  field4: r100value4
   ---
   field1: r3value1
   field2: r3value2

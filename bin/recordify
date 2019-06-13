@@ -58,6 +58,7 @@ my $execute;
 my $keep_header_line;
 my $no_header_line;
 my $order_field;
+my $order_field_numeric_count = 0;
 my $sum_field;
 my $template;
 my $verbose;
@@ -72,7 +73,7 @@ GetOptions(
     'help|?'            => sub { pod2usage() },
     'keep-headers'      => \$keep_header_line,
     'no-headers'        => \$no_header_line,
-    'order=s'           => sub {
+    'order|sort=s'      => sub {
                                $order_field = $_[1];
                                $column_for_operation = $_[1];
                            },
@@ -173,6 +174,7 @@ while(<>){
     }
     elsif( $order_field ) {
         push @{$ordered_data{$_{$column_for_operation}}}, $_;
+        $order_field_numeric_count++ if $_{$column_for_operation} =~ /^\d+\.?\d*$/;
     }
     elsif( $template ) {
         no strict 'refs';
@@ -198,19 +200,23 @@ if( $sum_field ){
     print "$sum\n";
 }
 elsif( $order_field ){
-    foreach my $key (sort %ordered_data){
-        foreach my $value (@{$ordered_data{$key}}){
-            print $value, "\n";
+    if ($order_field_numeric_count > ($record_count/2)) {
+        foreach my $key (sort {$a <=> $b} keys %ordered_data){
+            foreach my $value (@{$ordered_data{$key}}){
+                print $value, "\n";
+            }
+        }
+    }
+    else {
+        foreach my $key (sort keys %ordered_data){
+            foreach my $value (@{$ordered_data{$key}}){
+                print $value, "\n";
+            }
         }
     }
 }
 
 print "$record_count records processed.\n" if $verbose;
-
-
-sub setup_order_line {
-
-}
 
 
 sub get_fields {
