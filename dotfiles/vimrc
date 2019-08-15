@@ -407,6 +407,8 @@ autocmd FileType * set tabstop=4|set shiftwidth=2|set expandtab
 autocmd FileType python set tabstop=4|set shiftwidth=4|set expandtab
 autocmd FileType perl set tabstop=4|set shiftwidth=4|set expandtab
 autocmd FileType javascript set tabstop=2|set shiftwidth=2|set expandtab
+autocmd FileType text set wrap|set tw=75
+au BufRead,BufNewFile *.txt set filetype=text
 
 " format JSON using Python's json.tool module
 map <leader>js :%!python -m json.tool<CR>
@@ -493,7 +495,7 @@ au BufNewFile,BufRead *.mako set ft=mako
 """"""""""""""""""""""""""""""""""""""""""""""""""""""
 " Javascript configuration
 """"""""""""""""""""""""""""""""""""""""""""""""""""""
-" syntax highlighting for python
+" syntax highlighting for javascript
 au BufRead,BufNewFile *.ts set filetype=javascript ts=2 sw=2 et
 au BufRead,BufNewFile *.js set filetype=javascript ts=2 sw=2 et
 au BufRead,BufNewFile *.jsx set filetype=javascript ts=2 sw=2 et
