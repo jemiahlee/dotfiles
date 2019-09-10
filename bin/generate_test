@@ -1,0 +1,56 @@
+#!/usr/bin/perl
+
+use warnings;
+use strict;
+
+use Getopt::Long;
+
+my $type = 'perl';
+
+GetOptions(
+    'perl'   => sub { $type = 'perl' },
+    'python' => sub { $type = 'python' },
+);
+
+if ($type eq 'perl') {
+    print <<EOPERL;
+#!/usr/bin/perl
+
+use warnings;
+use strict;
+
+sub test {
+    my() = @_;
+}
+
+test();
+EOPERL
+}
+elsif ($type eq 'python') {
+    print <<EOPYTHON;
+#!/usr/bin/python
+
+import re;
+import unittest
+
+
+class Tester(unittest.TestCase):
+    def test_zero_moves(self):
+        self.assertEqual(minimumChocolateMoves(5, [2, 1, 2, 1, 2]), 0)
+
+    def test_too_few(self):
+        self.assertEqual(minimumChocolateMoves(5, [2, 1, 1, 1, 2]), -1)
+
+    def test_even_case(self):
+        self.assertEqual(minimumChocolateMoves(6, [6, 8, 3, 1, 1, 4]), 2)
+
+    def test_odd_case(self):
+        self.assertEqual(minimumChocolateMoves(5, [2, 8, 2, 3, 2]), -1)
+
+    def test_two_odd_wrong_with_minimums(self):
+        self.assertEqual(minimumChocolateMoves(5, [2, 2, 2, 2, 2]), 1)
+
+if __name__ == '__main__':
+    unittest.main()
+EOPYTHON
+}
