@@ -28,7 +28,7 @@ my $delimiter = ',';
 
 GetOptions(
     'delimiter=s' => \$delimiter,
-    'help|?' => sub { pod2usage(); },
+    'help|?'      => sub { pod2usage(); },
 );
 
 if( @ARGV ){
