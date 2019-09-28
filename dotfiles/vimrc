@@ -432,6 +432,12 @@ nmap <leader>n :NERDTreeFind<CR>
 nmap <leader>m :NERDTreeToggle<CR>
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""
+" Buffergator Config
+""""""""""""""""""""""""""""""""""""""""""""""""""""""
+map <leader>B :BuffergatorOpen<CR>
+map <leader>W :BuffergatorClose<CR>
+
+""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " Ruby/Rails configuration
 """"""""""""""""""""""""""""""""""""""""""""""""""""""
 " additional Ruby syntax highliting
