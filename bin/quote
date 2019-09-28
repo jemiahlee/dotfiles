@@ -1,0 +1,20 @@
+#!/usr/bin/env perl
+
+use warnings;
+use strict;
+
+use Getopt::Long;
+my($quote, $start_quote, $end_quote);
+
+GetOptions(
+    'backtick' => sub { $start_quote = $end_quote = '`' },
+    'curly'    => sub { $start_quote = '{'; $end_quote = '}'; },
+    'double' => sub { $start_quote = $end_quote = '"' },
+    'parens' => sub { $start_quote = '('; $end_quote = ')'; },
+    'square' => sub { $start_quote = '['; $end_quote = ']'; },
+);
+
+while(<>) {
+    chomp;
+    print $start_quote, $_, $end_quote, qq{\n};
+}
