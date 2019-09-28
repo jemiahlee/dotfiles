@@ -1,19 +1,47 @@
 #!/usr/bin/perl
 
-use Getopt::Std;
+=head1 NAME
 
-#use warnings;
+    rename - rename a set of files, possibly with regex
 
-getopts('evpgrn');
+=head1 SYNOPSIS
+
+    rename [options] <list_of_filenames>
+
+    This script will rename any number of files.
+
+     Options:
+       --dry_run or -n   Print-only mode; do not actually move the files.
+       --evaluate        Evaluate the replacement string as a Perl expression.
+       --global          Make the change in the filename everywhere the pattern exists.
+                         Default is to only replace the first occurrence.
+
+=cut
+
+
+use strict;
+use warnings;
+
+use Getopt::Long;
+use Pod::Usage qw/pod2usage/;
+
+my($dry_run, $evaluate, $global);
+
+GetOptions(
+    'dry_run|n|print' => \$dry_run,
+    'evaluate'        => \$evaluate,
+    'global'          => \$global,
+    'help|?'          => sub { pod2usage(); },
+);
 
 my $pattern = shift;
 my $replacement = shift;
 
-if ( !$opt_e and $replacement =~ m#\$[1-9]# ) {
+if ( !$evaluate and $replacement =~ m#\$[1-9]# ) {
 
-  $opt_e = 1;
-  $replacement =~ s#^|$#'#g;
-  $replacement =~ s#(\$[1-9])#' . $1 . '#g;
+  $evaluate = 1;
+  $replacement =~ s{^|$}{'}g;
+  $replacement =~ s{(\$[1-9])}{' . $1 . '}g;
 
 }
 
@@ -21,17 +49,18 @@ foreach my $filename (@ARGV){
 
   my($newname) = $filename;
 
-  if ( $opt_e and $opt_g ) {
-    $newname =~ s#$pattern#$replacement#eeog;
-  } elsif ( $opt_e ) {
-    $newname =~ s#$pattern#$replacement#eeo;
-  } elsif ( $opt_g ) {
-    $newname =~s#$pattern#$replacement#og;
+  if ( $evaluate and $global ) {
+    $newname =~ s{$pattern}{$replacement}eeog;
+  } elsif ( $evaluate ) {
+    $newname =~ s{$pattern}{$replacement}eeo;
+  } elsif ( $global ) {
+    $newname =~ s{$pattern}{$replacement}og;
   } else {
-    $newname =~ s#$pattern#$replacement#o;
+    $newname =~ s{$pattern}{$replacement}o;
   }
 
-  print "Moving $filename to $newname\n" if $opt_v or $opt_p or $opt_n;
-  rename $filename, $newname unless $opt_p or $opt_n;
+  print "Moving $filename to $newname\n" unless $dry_run;
+  print "NOT! moving $filename to $newname\n" if $dry_run;
+  rename $filename, $newname unless $dry_run;
 
 }
