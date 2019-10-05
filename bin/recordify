@@ -32,6 +32,10 @@
        --template          Process the filename given as the template using a simple
                            handlebar-style template. The template will be rendered
                            once per record.
+
+                           Example template:
+                           This is {{column1}}'s value and {{column2}}'s.
+
        --verbose           Print files separated by spaces instead of newlines.
 
     One note about this script's behavior: it is not particularly intelligent
@@ -178,7 +182,7 @@ while(<>){
     }
     elsif( $template ) {
         no strict 'refs';
-        print '-' x 3, "\n" unless $record_count < 2;
+        print "\n" unless $record_count < 2;
         my $template = $template_content;
         $template =~ s/\{\{(.*?)\}\}/$_{$1}/g;
         $template =~ s/(?<!\n)\z/\n/;

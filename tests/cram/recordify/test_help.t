@@ -26,6 +26,10 @@
              --template          Process the filename given as the template using a simple
                                  handlebar-style template. The template will be rendered
                                  once per record.
+  
+                                 Example template:
+                                 This is {{column1}}'s value and {{column2}}'s.
+  
              --verbose           Print files separated by spaces instead of newlines.
   
           One note about this script's behavior: it is not particularly intelligent
@@ -35,6 +39,13 @@
           insufficient.
   
   [2]
+
+
+
+
+
+
+
   $ $BIN/recordify -?
   Usage:
           recordify [options] <filename>
@@ -63,6 +74,10 @@
              --template          Process the filename given as the template using a simple
                                  handlebar-style template. The template will be rendered
                                  once per record.
+  
+                                 Example template:
+                                 This is {{column1}}'s value and {{column2}}'s.
+  
              --verbose           Print files separated by spaces instead of newlines.
   
           One note about this script's behavior: it is not particularly intelligent
@@ -72,3 +87,10 @@
           insufficient.
   
   [2]
+
+
+
+
+
+
+
