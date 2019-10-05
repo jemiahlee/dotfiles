@@ -135,6 +135,10 @@ while(<>){
             @headers = map { "field$_" } 1..$field_count;
         }
 
+        if ($template) {
+            validate_template($template_content, \@headers);
+        }
+
         if ($column_for_operation and $column_for_operation =~ m{^\d+$}) {
             $column_for_operation = $headers[$column_for_operation-1];
         }
@@ -243,4 +247,23 @@ sub get_fields {
     }
 
     return @fields;
+}
+
+sub validate_template {
+    my($template, $headers) = @_;
+
+    my %headers = map {$_ => 1} @$headers;
+
+    my $errors = 0;
+    while ($template =~ /\{\{(.*?)\}\}/g) {
+        unless ($headers{$1}) {
+            $errors++;
+            print "ERROR! Unknown key: $1\n";
+        }
+    }
+
+    if ($errors > 0) {
+        print "$errors key errors found in the template, not processing.\n";
+        exit 1;
+    }
 }
