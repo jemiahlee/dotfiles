@@ -255,13 +255,17 @@ sub validate_template {
     my %headers = map {$_ => 1} @$headers;
 
     my $errors = 0;
-    while ($template =~ /\{\{(.*?)\}\}/g) {
-        unless ($headers{$1}) {
-            $errors++;
-            print "ERROR! Unknown key: $1\n";
+    my $line_number = 0;
+    while ($template =~ /^(.*?)$/mg) {
+        $line_number++;
+        my $line = $1;
+        while ($line =~ /\{\{(.*?)\}\}/g) {
+            unless ($headers{$1}) {
+                $errors++;
+                print "ERROR! Unknown key on line $line_number: $1\n";
+            }
         }
     }
-
     if ($errors > 0) {
         print "$errors key errors found in the template, not processing.\n";
         exit 1;
