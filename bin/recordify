@@ -102,14 +102,6 @@ my $field_count;
 my %ordered_data;
 my $template_content;
 
-if( $template ) {
-    local $/;
-    undef $/;
-    open my $fh, '<', $template or die "Couldn't open $template $!";
-    $template_content = <$fh>;
-    close $fh;
-}
-
 LINE:
 while(<>){
     next if m{^$};
@@ -136,7 +128,8 @@ while(<>){
         }
 
         if ($template) {
-            validate_template($template_content, \@headers);
+            read_template();
+            validate_template();
         }
 
         if ($column_for_operation and $column_for_operation =~ m{^\d+$}) {
@@ -250,13 +243,11 @@ sub get_fields {
 }
 
 sub validate_template {
-    my($template, $headers) = @_;
-
-    my %headers = map {$_ => 1} @$headers;
+    my %headers = map {$_ => 1} @headers;
 
     my $errors = 0;
     my $line_number = 0;
-    while ($template =~ /^(.*?)$/mg) {
+    while ($template_content =~ /^(.*?)$/mg) {
         $line_number++;
         my $line = $1;
         while ($line =~ /\{\{(.*?)\}\}/g) {
@@ -266,8 +257,17 @@ sub validate_template {
             }
         }
     }
+
     if ($errors > 0) {
         print "$errors key errors found in the template, not processing.\n";
         exit 1;
     }
+}
+
+sub read_template {
+    local $/;
+    undef $/;
+    open my $fh, '<', $template or die "Couldn't open $template: $!";
+    $template_content = <$fh>;
+    close $fh;
 }
