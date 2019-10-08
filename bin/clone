@@ -1,7 +1,13 @@
 #!/bin/bash -x
 
 REPO_NAME=$1
+SHORT_REPO_NAME=`echo ${REPO_NAME} | perl -n -e 'm{.*/(.*?)(?:.git|$)}; print $1, "\n";'`
 
-git clone ${REPO_NAME}
-cd ${REPO_NAME}
+mkdir ${SHORT_REPO_NAME}
+pushd ${SHORT_REPO_NAME}
+git init
 git config user.email jeremiahlee@pinterest.com
+git remote add origin ${REPO_NAME}
+git fetch origin master
+git checkout -b master origin/master
+popd
