@@ -25,9 +25,11 @@ use Getopt::Long;
 use Pod::Usage qw/pod2usage/;
 
 my $delimiter = ',';
+my $number_of_lines;
 
 GetOptions(
     'delimiter=s' => \$delimiter,
+    'lines=i'     => \$number_of_lines,
     'help|?'      => sub { pod2usage(); },
 );
 
@@ -35,10 +37,16 @@ if( @ARGV ){
     print join($delimiter, @ARGV), "\n";
 }
 else {
+    my $line_count = 0;
     while(<>){
-        print $delimiter unless $. == 1;
+        print $delimiter unless $line_count++ == 0;
         chomp;
         print;
+
+        if($number_of_lines and $line_count == $number_of_lines) {
+            $line_count = 0;
+            print "\n";
+        }
     }
-    print "\n";
+    print "\n" unless $number_of_lines;
 }
