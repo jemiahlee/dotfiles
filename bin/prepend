@@ -1,0 +1,9 @@
+#!/bin/bash
+
+args=("$@")
+
+if [[ "0" == "$#" ]]; then
+    quote --start , --end ''
+else
+    quote --start $1 --end '' ${args[@]:1}
+fi
