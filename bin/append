@@ -1,11 +1,9 @@
-#!/usr/bin/env perl
+#!/bin/bash
 
-use warnings;
-use strict;
+args=("$@")
 
-my $append = shift || ',';
-
-while (<>) {
-    chomp;
-    print $_, $append, "\n";
-}
+if [[ "0" == "$#" ]]; then
+    quote --start '' --end ,
+else
+    quote --start '' --end $1 ${args[@]:1}
+fi
