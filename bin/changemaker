@@ -1,0 +1,52 @@
+#!/usr/bin/env perl
+
+use warnings;
+use strict;
+
+my %totals;
+my %textmap = (
+    20 => ['twenty', 'twenties'],
+    10 => ['ten', 'tens'],
+    5  => ['five', 'fives'],
+    1  => ['one', 'ones'],
+);
+my @bills = sort {$b <=> $a} keys %textmap;
+
+while (<>) {
+    chomp;
+
+    next unless m{(\d+)};
+    my $to_change = $1;
+
+    my %subtotals;
+    AMOUNT:
+    foreach my $amount (@bills) {
+        next AMOUNT if $to_change == 0;
+
+        while ($to_change >= $amount) {
+            $to_change -= $amount;
+            $subtotals{$amount}++;
+            $totals{$amount}++;
+        }
+    }
+
+    print "$_: ", pretty_print(\%subtotals), "\n";
+}
+
+print pretty_print(\%totals), "\n";
+
+sub pretty_print {
+    my %amounts = %{$_[0]};
+
+    my @output;
+    foreach my $amount (sort {$b <=> $a} keys %amounts) {
+        if ($amounts{$amount} == 1) {
+            push @output, "$amounts{$amount} $textmap{$amount}[0]"
+        }
+        else {
+            push @output, "$amounts{$amount} $textmap{$amount}[1]"
+        }
+    }
+
+    return join(', ', @output);
+}
