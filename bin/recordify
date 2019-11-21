@@ -230,7 +230,7 @@ sub get_fields {
         push @replacements, $1;
     }
 
-    my @fields = split /$delimiter/, $line;
+    my @fields = split /$delimiter/, $line, -1;
 
     foreach my $field (@fields) {
         if ($field eq $FAKE_FIELD) {
