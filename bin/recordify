@@ -160,7 +160,7 @@ while(<>){
         my $expected = scalar(@headers);
         my $received = scalar(@record_fields);
         if ($expected != $received) {
-           die "Wrong number of fields!, expected $expected but received $received: $_";
+            die "Wrong number of fields!, expected $expected but received $received: $_";
         }
         @_{@headers} = @record_fields;
     }
@@ -226,7 +226,7 @@ sub get_fields {
     my $FAKE_FIELD = '#!FIELDFIELDFIELD!#';
 
     my @replacements;
-    while( $line =~ s{("(?!").*"(?!"))}{$FAKE_FIELD} ){
+    while( $line =~ s{("(?!").*?"(?!"))}{$FAKE_FIELD} ){
         push @replacements, $1;
     }
 
