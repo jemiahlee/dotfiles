@@ -192,7 +192,9 @@ while(<>){
         print '-' x 3, "\n" unless $record_count < 2;
 
         foreach my $index (0..$#headers) {
-            print "$headers[$index]: $record_fields[$index]\n";
+            my $value = $record_fields[$index];
+            $value =~ s/""/"/g;
+            print "$headers[$index]: $value\n";
         }
     }
 }
@@ -226,7 +228,7 @@ sub get_fields {
     my $FAKE_FIELD = '#!FIELDFIELDFIELD!#';
 
     my @replacements;
-    while( $line =~ s{("(?!").*?"(?!"))}{$FAKE_FIELD} ){
+    while( $line =~ s{("(?:""|[^"])*")}{$FAKE_FIELD} ){
         push @replacements, $1;
     }
 

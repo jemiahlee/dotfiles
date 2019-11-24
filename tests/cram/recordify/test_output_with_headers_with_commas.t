@@ -5,7 +5,7 @@
   header4: value4
   ---
   header1: r100value1
-  header2: value,youknow
+  header2: value,"youknow"
   header3: 1123.00
   header4: r100value4
   ---
@@ -26,7 +26,7 @@
   $ $BIN/recordify --keep-headers -e 'print $_, "\n";' $TESTDIR/test_with_headers_with_commas.csv
   header1,header2,header3,header4
   value1,value2,11.0,value4
-  r100value1,"value,youknow",1123.00,r100value4
+  r100value1,"value,""youknow""",1123.00,r100value4
   r3value1,r3value2,300,
   r4value1,"value , value,value ,value,","also, this value has commas",
   r2value1,r2value2,200,r2value4
