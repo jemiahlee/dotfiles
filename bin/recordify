@@ -192,9 +192,7 @@ while(<>){
         print '-' x 3, "\n" unless $record_count < 2;
 
         foreach my $index (0..$#headers) {
-            my $value = $record_fields[$index];
-            $value =~ s/""/"/g;
-            print "$headers[$index]: $value\n";
+            print "$headers[$index]: $record_fields[$index]\n";
         }
     }
 }
@@ -239,6 +237,7 @@ sub get_fields {
             $field = shift @replacements;
         }
         $field =~ s/^"|"$//g;
+        $field =~ s/""/"/g;
     }
 
     return @fields;

@@ -20,7 +20,7 @@
   field4: r3value4
   ---
   field1: r4value1
-  field2: r4value2
+  field2: r4value2 with "quotes"
   field3: 400
   field4: r4value4
   ---

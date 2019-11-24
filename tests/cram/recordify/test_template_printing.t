@@ -4,5 +4,8 @@
   
   The rain in France falls mainly on the Eiffel Tower.
   But, the sunlight in France can be seen everywhere, not just on the Eiffel Tower.
+  
+  The rain in Afghanistan falls mainly on the fun in "picnic area".
+  But, the sunlight in Afghanistan can be seen everywhere, not just on the fun in "picnic area".
 
 
