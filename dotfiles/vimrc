@@ -11,7 +11,6 @@ Plug 'claco/jasmine.vim'
 Plug 'easymotion/vim-easymotion'
 Plug 'elixir-lang/vim-elixir'
 Plug 'hdima/python-syntax'
-Plug 'jeetsukumaran/vim-buffergator'
 Plug 'jelera/vim-javascript-syntax'
 Plug 'jnurmine/Zenburn'
 Plug 'justinmk/vim-sneak'
@@ -34,6 +33,8 @@ Plug 'tpope/vim-surround'
 Plug 'vim-airline/vim-airline'
 Plug 'vim-scripts/JavaScript-Indent'
 Plug 'Xuyuanp/nerdtree-git-plugin'
+
+Plug 'jeetsukumaran/vim-buffergator'
 call plug#end()
 unlet g:plug_url_format
 
@@ -442,10 +443,10 @@ command! Vs so ~/.vimrc
 """"""""""""""""""""""""""""""""""""""""""""""""""""""
 " file-formatting configuration
 """"""""""""""""""""""""""""""""""""""""""""""""""""""
-autocmd FileType * set tabstop=4|set shiftwidth=2|set expandtab
-autocmd FileType python set tabstop=4|set shiftwidth=4|set expandtab
-autocmd FileType perl set tabstop=4|set shiftwidth=4|set expandtab
-autocmd FileType javascript set tabstop=2|set shiftwidth=2|set expandtab
+autocmd FileType * set tabstop=4|set shiftwidth=2|set expandtab|set wrap
+autocmd FileType python set tabstop=4|set shiftwidth=4|set expandtab|set nowrap
+autocmd FileType perl set tabstop=4|set shiftwidth=4|set expandtab|set nowrap
+autocmd FileType javascript set tabstop=2|set shiftwidth=2|set expandtab|set nowrap
 autocmd FileType text set wrap|set tw=75
 au BufRead,BufNewFile *.txt set filetype=text
 
@@ -469,12 +470,6 @@ let NERDTreeIgnore=['\.pyc$', '\~$']
 " allow NerdTree to open the current file's directory.
 nmap <leader>n :NERDTreeFind<CR>
 nmap <leader>m :NERDTreeToggle<CR>
-
-""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" Buffergator Config
-""""""""""""""""""""""""""""""""""""""""""""""""""""""
-map <leader>B :BuffergatorOpen<CR>
-map <leader>W :BuffergatorClose<CR>
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""
 " Ruby/Rails configuration
@@ -558,6 +553,13 @@ set foldlevel=1         "this is just what i use
 " nnoremap <Space> za
 
 map <D-F> :Ag!
+
+""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" Buffergator Config
+""""""""""""""""""""""""""""""""""""""""""""""""""""""
+map <leader>B :BuffergatorOpen<CR>
+map <leader>W :BuffergatorClose<CR>
+
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " Utility functions
