@@ -1,0 +1,30 @@
+#!/usr/bin/env perl
+
+=head1 NAME
+
+    chomp - remove empty lines from the input
+
+=head1 SYNOPSIS
+
+    chomp [--help|-?] [filename [filename2...]]
+    chomp [--help|-?] < filename
+
+    This script will remove empty lines from input on STDIN or
+    from a file list.
+
+=cut
+
+use warnings;
+use strict;
+
+use Getopt::Long;
+use Pod::Usage qw/pod2usage/;
+
+GetOptions(
+    'help|?' => sub { pod2usage() },
+);
+
+while (<>) {
+    next if m{^$};
+    print;
+}
