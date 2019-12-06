@@ -1,17 +1,45 @@
 #!/usr/bin/perl
 
+=head1 NAME
+
+    line - print a line or lines from a file
+
+=head1 SYNOPSIS
+
+    line [options] <line number> [max line number] [filename]
+
+    This script will extract a line or range of lines from a file. By default
+    it will print line numbers when there is a range, but not when there is a
+    single line.
+
+     Options:
+       --no-numbers    Do not print line numbers at the beginning of each
+                       line.
+       --numbers       Force the line number to be printed.
+
+=cut
+
+
 use warnings;
 use strict;
-use File::Basename qw/basename/;
 
-my $usage = basename($0) . " <line number> [max_line_number] [filename]\n";
+use Getopt::Long;
+use Pod::Usage qw/pod2usage/;
 
-die $usage unless @ARGV > 0;
+my $print_numbers = 1;
+my $force_print_numbers;
+
+GetOptions(
+    'help|?'     => sub { pod2usage(); },
+    'no-numbers' => sub { $print_numbers = 0 },
+    'numbers'    => \$force_print_numbers,
+);
+
 
 our $filename;
 
 my($min) = my($max) = shift;
-die $usage unless $min =~ /^\d+$/;
+pod2usage() unless $min =~ /^\d+$/;
 
 if(@ARGV){
     $max = shift;
@@ -22,10 +50,16 @@ if(@ARGV){
     }
 }
 
-my $printed = 0;
+$print_numbers = 0 if $max ne 'END' and $max == $min and not $force_print_numbers;
+$print_numbers = 1 if $force_print_numbers;
 
+my $printed = 0;
 while( <> ) {
-    print "$.: $_" and $printed = 1 if $. >= $min;
+    if( $. >= $min and ($max eq 'END' or $. <= $max) ) {
+        print "$.: " if $print_numbers;
+        print $_;
+        $printed = 1;
+    }
 
     unless( $max eq 'END' ){
         last if $. >= $max;
