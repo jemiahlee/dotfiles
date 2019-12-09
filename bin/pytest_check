@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 
-filenames=`ag -l 'assert(?:True|False|NotEqual|Equal)'`
-
 PWD=`pwd`
 AUTO_FIX=0
 ERRORS=0
+UNDERSCORE=0
+
 
 function print_error {
     RED='\033[0;31m'
@@ -12,271 +12,523 @@ function print_error {
     echo -e "${RED}$1${NC}"
 }
 
-if [[ $1 == '--fix' ]]; then
-  AUTO_FIX=1
-fi
+for arg in $*
+do
+  if [[ $arg == '--fix' ]]; then
+    AUTO_FIX=1
+  elseif [[ $arg == '--underscore' ]]
+    UNDERSCORE=1
+  elseif [[ -d "$arg" ]]
+    pushd $arg
+  elseif [[ -f "$arg" ]]
+    filenames = $arg
+  fi
+
+done
+
+
+filenames=`ag -l -G .py 'assert(?:(?:_t|T)rue|(?:_f|F)alse|_not_equal|NotEqual|(?:_e|E)qual)'`
 
 for file in ${filenames}
 do
     error=0
+    echo "Looking at $file..."
 
-    infractions=`grep -n -e "self.assertTrue(" $file | grep "isinstance("`
+    infractions=`grep -n -e "self.assert(_t|T)rue(" $file | grep "isinstance("`
     if [[ -n "$infractions" ]]; then
         if [[ "$AUTO_FIX" > 0 ]]; then
-            perl -i -p -e 's/self.assertTrue\(isinstance\((.*)\)\)/self.assertIsInstance($1)/g;' $PWD/$file
+            if [[ "$UNDERSCORE" > 0 ]]; then
+              perl -i -p -e 's/self.assert(?:_t|T)rue\(isinstance\((.*)\)\)/self.assert_is_instance($1)/g;' $PWD/$file
+            else
+              perl -i -p -e 's/self.assertTrue\(isinstance\((.*)\)\)/self.assertIsInstance($1)/g;' $PWD/$file
+            fi
         else
             print_error "$file: assertTrue found, use assertIsInstance instead"
-            print_error "fix with \"perl -i -p -e 's/self.assertTrue\\\(isinstance\\\((.*)\\\)\\\)/self.assertIsInstance(\$1)/g;' $PWD/$file\""
+
+            if [[ "$UNDERSCORE" > 0 ]]; then
+              print_error "fix with \"perl -i -p -e 's/self.assert(?:_t|T)rue\\\(isinstance\\\((.*)\\\)\\\)/self.assert_is_instance(\$1)/g;' $PWD/$file\""
+            else
+              print_error "fix with \"perl -i -p -e 's/self.assertTrue\\\(isinstance\\\((.*)\\\)\\\)/self.assertIsInstance(\$1)/g;' $PWD/$file\""
+            fi
+
             print_error "${infractions}"
             error=1
         fi
     fi
-    infractions=`grep -n -e "self.assertFalse(" $file | grep "isinstance("`
+    infractions=`grep -n -e "self.assert(_t|T)rue(" $file | grep "isinstance("`
     if [[ -n "$infractions" ]]; then
         if [[ "$AUTO_FIX" > 0 ]]; then
-            perl -i -p -e 's/self.assertFalse\(isinstance\((.*)\)\)/self.assertNotIsInstance($1)/g;' $PWD/$file
+            if [[ "$UNDERSCORE" > 0 ]]; then
+              perl -i -p -e 's/self.assert(?:_t|T)rue\(isinstance\((.*)\)\)/self.assert_is_instance($1)/g;' $PWD/$file
+            else
+              perl -i -p -e 's/self.assertTrue\(isinstance\((.*)\)\)/self.assertIsInstance($1)/g;' $PWD/$file
+            fi
+        else
+            print_error "$file: assertTrue found, use assertIsInstance instead"
+
+            if [[ "$UNDERSCORE" > 0 ]]; then
+              print_error "fix with \"perl -i -p -e 's/self.assert(?:_t|T)rue\\\(isinstance\\\((.*)\\\)\\\)/self.assert_is_instance(\$1)/g;' $PWD/$file\""
+            else
+              print_error "fix with \"perl -i -p -e 's/self.assertTrue\\\(isinstance\\\((.*)\\\)\\\)/self.assertIsInstance(\$1)/g;' $PWD/$file\""
+            fi
+
+            print_error "${infractions}"
+            error=1
+        fi
+    fi
+
+    infractions=`grep -n -e "self.assert(_f|F)alse(" $file | grep "isinstance("`
+    if [[ -n "$infractions" ]]; then
+        if [[ "$AUTO_FIX" > 0 ]]; then
+            if [[ "$UNDERSCORE" > 0 ]]; then
+              perl -i -p -e 's/self.assert(?:_f|F)alse\(isinstance\((.*)\)\)/self.assert_not_is_instance($1)/g;' $PWD/$file
+            else
+              perl -i -p -e 's/self.assertFalse\(isinstance\((.*)\)\)/self.assertNotIsInstance($1)/g;' $PWD/$file
+            fi
         else
             print_error "$file: assertFalse found, use assertNotIsInstance instead"
-            print_error "fix with \"perl -i -p -e 's/self.assertFalse\\\(isinstance\\\((.*)\\\)\\\)/self.assertNotIsInstance(\$1)/g;' $PWD/$file\""
+
+            if [[ "$UNDERSCORE" > 0 ]]; then
+              print_error "fix with \"perl -i -p -e 's/self.assert(?:_f|F)alse\\\(isinstance\\\((.*)\\\)\\\)/self.assert_not_is_instance(\$1)/g;' $PWD/$file\""
+            else
+              print_error "fix with \"perl -i -p -e 's/self.assertFalse\\\(isinstance\\\((.*)\\\)\\\)/self.assertNotIsInstance(\$1)/g;' $PWD/$file\""
+            fi
+
             print_error "${infractions}"
             error=1
         fi
     fi
 
-    infractions=`grep -n -e "self.assertTrue(" $file | grep -e "(?<! not) in "`
+    infractions=`grep -n -e "self.assert(_t|T)rue(" $file | grep -e "(?<! not) in "`
     if [[ -n "$infractions" ]]; then
         if [[ "$AUTO_FIX" > 0 ]]; then
-            perl -i -p -e 's/self.assertTrue\((.*?) (?!not )in (.*)\)/self.assertIn($1, $2)/g;' $PWD/$file
+            if [[ "$UNDERSCORE" > 0 ]]; then
+              perl -i -p -e 's/self.assert(?:_t|T)rue\((.*?) (?!not )in (.*)\)/self.assert_in($1, $2)/g;' $PWD/$file
+            else
+              perl -i -p -e 's/self.assertTrue\((.*?) (?!not )in (.*)\)/self.assertIn($1, $2)/g;' $PWD/$file
+            fi
         else
             print_error "$file: assertTrue found, use assertIn instead"
-            print_error "fix with \"perl -i -p -e 's/self.assertTrue\\\((.*?) in (.*)\\\)/self.assertIn(\$1, \$2)/g;' $PWD/$file\""
+
+            if [[ "$UNDERSCORE" > 0 ]]; then
+              print_error "fix with \"perl -i -p -e 's/self.assert(?:_t|T)rue\\\((.*?) in (.*)\\\)/self.assert_in(\$1, \$2)/g;' $PWD/$file\""
+            else
+              print_error "fix with \"perl -i -p -e 's/self.assertTrue\\\((.*?) in (.*)\\\)/self.assertIn(\$1, \$2)/g;' $PWD/$file\""
+            fi
+
             print_error "${infractions}"
             error=1
         fi
     fi
-    infractions=`grep -n -e "self.assertFalse(" $file | grep -e " not in "`
+    infractions=`grep -n -e "self.assert(_f|F)alse(" $file | grep -e " not in "`
     if [[ -n "$infractions" ]]; then
         if [[ "$AUTO_FIX" > 0 ]]; then
-            perl -i -p -e 's/self.assertFalse\((.*?) not in (.*)\)/self.assertIn($1, $2)/g;' $PWD/$file
+            if [[ "$UNDERSCORE" > 0 ]]; then
+              perl -i -p -e 's/self.assert(?:_f|F)alse\((.*?) not in (.*)\)/self.assert_in($1, $2)/g;' $PWD/$file
+            else
+              perl -i -p -e 's/self.assertFalse\((.*?) not in (.*)\)/self.assertIn($1, $2)/g;' $PWD/$file
+            fi
         else
             print_error "$file: assertFalse found, use assertIn instead"
-            print_error "fix with \"perl -i -p -e 's/self.assertFalse\\\((.*?) in (.*)\\\)/self.assertIn(\$1, \$2)/g;' $PWD/$file\""
+            if [[ "$UNDERSCORE" > 0 ]]; then
+              print_error "fix with \"perl -i -p -e 's/self.assert(?:_f|F)alse\\\((.*?) in (.*)\\\)/self.assert_in(\$1, \$2)/g;' $PWD/$file\""
+            else
+              print_error "fix with \"perl -i -p -e 's/self.assertFalse\\\((.*?) in (.*)\\\)/self.assertIn(\$1, \$2)/g;' $PWD/$file\""
+            fi
+
             print_error "${infractions}"
             error=1
         fi
     fi
-    infractions=`grep -n -e "self.assertTrue(" $file | grep -e " not in "`
+    infractions=`grep -n -e "self.assert(_t|T)rue(" $file | grep -e " not in "`
     if [[ -n "$infractions" ]]; then
         if [[ "$AUTO_FIX" > 0 ]]; then
-            perl -i -p -e 's/self.assertTrue\((.*?) not in (.*)\)/self.assertNotIn($1, $2)/g;' $PWD/$file
+            if [[ "$UNDERSCORE" > 0 ]]; then
+              perl -i -p -e 's/self.assert(?:_t|T)rue\((.*?) not in (.*)\)/self.assert_not_in($1, $2)/g;' $PWD/$file
+            else
+              perl -i -p -e 's/self.assertTrue\((.*?) not in (.*)\)/self.assertNotIn($1, $2)/g;' $PWD/$file
+            fi
         else
             print_error "$file: assertTrue found, use assertNotIn instead"
-            print_error "fix with \"perl -i -p -e 's/self.assertTrue\\\((.*?) not in (.*)\\\)/self.assertNotIn(\$1, \$2)/g;' $PWD/$file\""
+
+            if [[ "$UNDERSCORE" > 0 ]]; then
+              print_error "fix with \"perl -i -p -e 's/self.assert(?:_t|T)rue\\\((.*?) not in (.*)\\\)/self.assert_not_in(\$1, \$2)/g;' $PWD/$file\""
+            else
+              print_error "fix with \"perl -i -p -e 's/self.assertTrue\\\((.*?) not in (.*)\\\)/self.assertNotIn(\$1, \$2)/g;' $PWD/$file\""
+            fi
+
             print_error "${infractions}"
             error=1
         fi
     fi
-    infractions=`grep -n -e "self.assertFalse(" $file | grep -e "(?<! not) in "`
+    infractions=`grep -n -e "self.assert(_f|F)alse(" $file | grep -e "(?<! not) in "`
     if [[ -n "$infractions" ]]; then
         if [[ "$AUTO_FIX" > 0 ]]; then
-            perl -i -p -e 's/self.assertFalse\((.*?) (?!not )in (.*)\)/self.assertNotIn($1, $2)/g;' $PWD/$file
+            if [[ "$UNDERSCORE" > 0 ]]; then
+              perl -i -p -e 's/self.assert(?:_f|F)alse\((.*?) (?!not )in (.*)\)/self.assert_not_in($1, $2)/g;' $PWD/$file
+            else
+              perl -i -p -e 's/self.assertFalse\((.*?) (?!not )in (.*)\)/self.assertNotIn($1, $2)/g;' $PWD/$file
+            fi
         else
             print_error "$file: assertFalse found, use assertNotIn instead"
-            print_error "fix with \"perl -i -p -e 's/self.assertFalse\\\((.*?) in (.*)\\\)/self.assertNotIn(\$1, \$2)/g;' $PWD/$file\""
+
+            if [[ "$UNDERSCORE" > 0 ]]; then
+              print_error "fix with \"perl -i -p -e 's/self.assert(?:_f|F)alse\\\((.*?) in (.*)\\\)/self.assert_not_in(\$1, \$2)/g;' $PWD/$file\""
+            else
+              print_error "fix with \"perl -i -p -e 's/self.assertFalse\\\((.*?) in (.*)\\\)/self.assertNotIn(\$1, \$2)/g;' $PWD/$file\""
+            fi
+
             print_error "${infractions}"
             error=1
         fi
     fi
 
-    infractions=`grep -n -e "self.assertTrue(" $file | grep " == "`
+    infractions=`grep -n -e "self.assert(_t|T)rue(" $file | grep " == "`
     if [[ -n "$infractions" ]]; then
         if [[ "$AUTO_FIX" > 0 ]]; then
-            perl -i -p -e 's/self.assertTrue\((.*?) == (.*)\)/self.assertEqual($1, $2)/g;' $PWD/$file
+            if [[ "$UNDERSCORE" > 0 ]]; then
+              perl -i -p -e 's/self.assert(?:_t|T)rue\((.*?) == (.*)\)/self.assert_equal($1, $2)/g;' $PWD/$file
+            else
+              perl -i -p -e 's/self.assertTrue\((.*?) == (.*)\)/self.assertEqual($1, $2)/g;' $PWD/$file
+            fi
         else
             print_error "$file: assertTrue found, use assertEqual instead"
-            print_error "fix with \"perl -i -p -e 's/self.assertTrue\\\((.*?) == (.*)\\\)/self.assertEqual(\$1, \$2)/g;' $PWD/$file\""
+
+            if [[ "$UNDERSCORE" > 0 ]]; then
+              print_error "fix with \"perl -i -p -e 's/self.assert(?:_t|T)rue\\\((.*?) == (.*)\\\)/self.assert_equal(\$1, \$2)/g;' $PWD/$file\""
+            else
+              print_error "fix with \"perl -i -p -e 's/self.assertTrue\\\((.*?) == (.*)\\\)/self.assertEqual(\$1, \$2)/g;' $PWD/$file\""
+            fi
+
             print_error "${infractions}"
             error=1
         fi
     fi
-    infractions=`grep -n -e "self.assertFalse(" $file | grep " != "`
+    infractions=`grep -n -e "self.assert(_f|F)alse(" $file | grep " != "`
     if [[ -n "$infractions" ]]; then
         if [[ "$AUTO_FIX" > 0 ]]; then
-            perl -i -p -e 's/self.assertFalse\((.*?) != (.*)\)/self.assertEqual($1, $2)/g;' $PWD/$file
+            if [[ "$UNDERSCORE" > 0 ]]; then
+              perl -i -p -e 's/self.assert(?:_f|F)alse\((.*?) != (.*)\)/self.assert_equal($1, $2)/g;' $PWD/$file
+            else
+              perl -i -p -e 's/self.assertFalse\((.*?) != (.*)\)/self.assertEqual($1, $2)/g;' $PWD/$file
+            fi
         else
             print_error "$file: assertFalse found, use assertEqual instead"
-            print_error "fix with \"perl -i -p -e 's/self.assertFalse\\\((.*?) != (.*)\\\)/self.assertEqual(\$1, \$2)/g;' $PWD/$file\""
+
+            if [[ "$UNDERSCORE" > 0 ]]; then
+              print_error "fix with \"perl -i -p -e 's/self.assert(?:_f|F)alse\\\((.*?) != (.*)\\\)/self.assert_equal(\$1, \$2)/g;' $PWD/$file\""
+            else
+              print_error "fix with \"perl -i -p -e 's/self.assertFalse\\\((.*?) != (.*)\\\)/self.assertEqual(\$1, \$2)/g;' $PWD/$file\""
+            fi
+
             print_error "${infractions}"
             error=1
         fi
     fi
 
-    infractions=`grep -n -e "self.assertTrue(" $file | grep " != "`
+    infractions=`grep -n -e "self.assert(_t|T)rue(" $file | grep " != "`
     if [[ -n "$infractions" ]]; then
         if [[ "$AUTO_FIX" > 0 ]]; then
-            perl -i -p -e 's/self.assertTrue\((.*) != (.*)\)/self.assertNotEqual($1, $2)/g;' $PWD/$file
+            if [[ "$UNDERSCORE" > 0 ]]; then
+              perl -i -p -e 's/self.assert(?:_t|T)rue\((.*) != (.*)\)/self.assert_not_equal($1, $2)/g;' $PWD/$file
+            else
+              perl -i -p -e 's/self.assertTrue\((.*) != (.*)\)/self.assertNotEqual($1, $2)/g;' $PWD/$file
+            fi
         else
             print_error "$file: assertTrue found, use assertNotEqual instead"
-            print_error "fix with \"perl -i -p -e 's/self.assertTrue\\\((.*?) != (.*)\\\)/self.assertNotEqual(\$1, \$2)/g;' $PWD/$file\""
+
+            if [[ "$UNDERSCORE" > 0 ]]; then
+              print_error "fix with \"perl -i -p -e 's/self.assert(?:_t|T)rue\\\((.*?) != (.*)\\\)/self.assert_not_equal(\$1, \$2)/g;' $PWD/$file\""
+            else
+              print_error "fix with \"perl -i -p -e 's/self.assertTrue\\\((.*?) != (.*)\\\)/self.assertNotEqual(\$1, \$2)/g;' $PWD/$file\""
+            fi
+
             print_error "${infractions}"
             error=1
         fi
     fi
-    infractions=`grep -n -e "self.assertFalse(" $file | grep " == "`
+    infractions=`grep -n -e "self.assert(_f|F)alse(" $file | grep " == "`
     if [[ -n "$infractions" ]]; then
         if [[ "$AUTO_FIX" > 0 ]]; then
-            perl -i -p -e 's/self.assertFalse\((.*) == (.*)\)/self.assertNotEqual($1, $2)/g;' $PWD/$file
+            if [[ "$UNDERSCORE" > 0 ]]; then
+              perl -i -p -e 's/self.assert(?:_f|F)alse\((.*) == (.*)\)/self.assert_not_equal($1, $2)/g;' $PWD/$file
+            else
+              perl -i -p -e 's/self.assertFalse\((.*) == (.*)\)/self.assertNotEqual($1, $2)/g;' $PWD/$file
+            fi
         else
             print_error "$file: assertFalse found, use assertNotEqual instead"
-            print_error "fix with \"perl -i -p -e 's/self.assertFalse\\\((.*?) == (.*)\\\)/self.assertNotEqual(\$1, \$2)/g;' $PWD/$file\""
+
+            if [[ "$UNDERSCORE" > 0 ]]; then
+              print_error "fix with \"perl -i -p -e 's/self.assert(?:_f|F)alse\\\((.*?) == (.*)\\\)/self.assert_not_equal(\$1, \$2)/g;' $PWD/$file\""
+            else
+              print_error "fix with \"perl -i -p -e 's/self.assertFalse\\\((.*?) == (.*)\\\)/self.assertNotEqual(\$1, \$2)/g;' $PWD/$file\""
+            fi
+
             print_error "${infractions}"
             error=1
         fi
     fi
 
-    infractions=`grep -n -e "self.assertTrue(" $file | grep " < "`
+    infractions=`grep -n -e "self.assert(_t|T)rue(" $file | grep " < "`
     if [[ -n "$infractions" ]]; then
         if [[ "$AUTO_FIX" > 0 ]]; then
-            perl -i -p -e 's/self.assertTrue\((.*) < (.*)\)/self.assertLess($1, $2)/g;' $PWD/$file
+            if [[ "$UNDERSCORE" > 0 ]]; then
+              perl -i -p -e 's/self.assert(?:_t|T)rue\((.*) < (.*)\)/self.assert_less($1, $2)/g;' $PWD/$file
+            else
+              perl -i -p -e 's/self.assertTrue\((.*) < (.*)\)/self.assertLess($1, $2)/g;' $PWD/$file
+            fi
         else
             print_error "$file: assertTrue found, use assertLess instead"
-            print_error "fix with \"perl -i -p -e 's/self.assertTrue\\\((.*?) < (.*)\\\)/self.assertLess(\$1, \$2)/g;' $PWD/$file\""
+
+            if [[ "$UNDERSCORE" > 0 ]]; then
+              print_error "fix with \"perl -i -p -e 's/self.assert(?:_t|T)rue\\\((.*?) < (.*)\\\)/self.assert_less(\$1, \$2)/g;' $PWD/$file\""
+            else
+              print_error "fix with \"perl -i -p -e 's/self.assertTrue\\\((.*?) < (.*)\\\)/self.assertLess(\$1, \$2)/g;' $PWD/$file\""
+            fi
+
             print_error "${infractions}"
             error=1
         fi
     fi
-    infractions=`grep -n -e "self.assertFalse(" $file | grep " > "`
+    infractions=`grep -n -e "self.assert(_f|F)alse(" $file | grep " > "`
     if [[ -n "$infractions" ]]; then
         if [[ "$AUTO_FIX" > 0 ]]; then
-            perl -i -p -e 's/self.assertFalse\((.*) > (.*)\)/self.assertLessEqual($1, $2)/g;' $PWD/$file
+            if [[ "$UNDERSCORE" > 0 ]]; then
+              perl -i -p -e 's/self.assert(?:_f|F)alse\((.*) > (.*)\)/self.assert_less_equal($1, $2)/g;' $PWD/$file
+            else
+              perl -i -p -e 's/self.assertFalse\((.*) > (.*)\)/self.assertLessEqual($1, $2)/g;' $PWD/$file
+            fi
         else
             print_error "$file: assertFalse found, use assertLessEqual instead"
-            print_error "fix with \"perl -i -p -e 's/self.assertFalse\\\((.*?) > (.*)\\\)/self.assertLessEqual(\$1, \$2)/g;' $PWD/$file\""
+
+            if [[ "$UNDERSCORE" > 0 ]]; then
+              print_error "fix with \"perl -i -p -e 's/self.assert(?:_f|F)alse\\\((.*?) > (.*)\\\)/self.assert_less_equal(\$1, \$2)/g;' $PWD/$file\""
+            else
+              print_error "fix with \"perl -i -p -e 's/self.assertFalse\\\((.*?) > (.*)\\\)/self.assertLessEqual(\$1, \$2)/g;' $PWD/$file\""
+            fi
+
             print_error "${infractions}"
             error=1
         fi
     fi
 
-    infractions=`grep -n -e "self.assertTrue(" $file | grep " > "`
+    infractions=`grep -n -e "self.assert(_t|T)rue(" $file | grep " > "`
     if [[ -n "$infractions" ]]; then
         if [[ "$AUTO_FIX" > 0 ]]; then
-            perl -i -p -e 's/self.assertTrue\((.*) > (.*)\)/self.assertGreater($1, $2)/g;' $PWD/$file
+            if [[ "$UNDERSCORE" > 0 ]]; then
+              perl -i -p -e 's/self.assert(?:_t|T)rue\((.*) > (.*)\)/self.assert_greater($1, $2)/g;' $PWD/$file
+            else
+              perl -i -p -e 's/self.assertTrue\((.*) > (.*)\)/self.assertGreater($1, $2)/g;' $PWD/$file
+            fi
         else
             print_error "$file: assertTrue found, use assertGreater instead"
-            print_error "fix with \"perl -i -p -e 's/self.assertTrue\\\((.*?) > (.*)\\\)/self.assertGreater(\$1, \$2)/g;' $PWD/$file\""
+
+            if [[ "$UNDERSCORE" > 0 ]]; then
+              print_error "fix with \"perl -i -p -e 's/self.assert(?:_t|T)rue\\\((.*?) > (.*)\\\)/self.assert_greater(\$1, \$2)/g;' $PWD/$file\""
+            else
+              print_error "fix with \"perl -i -p -e 's/self.assertTrue\\\((.*?) > (.*)\\\)/self.assertGreater(\$1, \$2)/g;' $PWD/$file\""
+            fi
+
             print_error "${infractions}"
             error=1
         fi
     fi
-    infractions=`grep -n -e "self.assertFalse(" $file | grep " < "`
+    infractions=`grep -n -e "self.assert(_f|F)alse(" $file | grep " < "`
     if [[ -n "$infractions" ]]; then
         if [[ "$AUTO_FIX" > 0 ]]; then
-            perl -i -p -e 's/self.assertFalse\((.*) < (.*)\)/self.assertGreaterEqual($1, $2)/g;' $PWD/$file
+            if [[ "$UNDERSCORE" > 0 ]]; then
+              perl -i -p -e 's/self.assert(?:_f|F)alse\((.*) < (.*)\)/self.assert_greater_equal($1, $2)/g;' $PWD/$file
+            else
+              perl -i -p -e 's/self.assertFalse\((.*) < (.*)\)/self.assertGreaterEqual($1, $2)/g;' $PWD/$file
+            fi
         else
             print_error "$file: assertFalse found, use assertGreaterEqual instead"
-            print_error "fix with \"perl -i -p -e 's/self.assertFalse\\\((.*?) < (.*)\\\)/self.assertGreaterEqual(\$1, \$2)/g;' $PWD/$file\""
+
+            if [[ "$UNDERSCORE" > 0 ]]; then
+              print_error "fix with \"perl -i -p -e 's/self.assert(?:_f|F)alse\\\((.*?) < (.*)\\\)/self.assert_greater_equal(\$1, \$2)/g;' $PWD/$file\""
+            else
+              print_error "fix with \"perl -i -p -e 's/self.assertFalse\\\((.*?) < (.*)\\\)/self.assertGreaterEqual(\$1, \$2)/g;' $PWD/$file\""
+            fi
+
             print_error "${infractions}"
             error=1
         fi
     fi
 
-    infractions=`grep -n -e "self.assertTrue(" $file | grep " >= "`
+    infractions=`grep -n -e "self.assert(_t|T)rue(" $file | grep " >= "`
     if [[ -n "$infractions" ]]; then
         if [[ "$AUTO_FIX" > 0 ]]; then
-            perl -i -p -e 's/self.assertTrue\((.*) >= (.*)\)/self.assertGreaterEqual($1, $2)/g;' $PWD/$file
+            if [[ "$UNDERSCORE" > 0 ]]; then
+              perl -i -p -e 's/self.assert(?:_t|T)rue\((.*) >= (.*)\)/self.assert_greater_equal($1, $2)/g;' $PWD/$file
+            else
+              perl -i -p -e 's/self.assertTrue\((.*) >= (.*)\)/self.assertGreaterEqual($1, $2)/g;' $PWD/$file
+            fi
         else
             print_error "$file: assertTrue found, use assertGreaterEqual instead"
-            print_error "fix with \"perl -i -p -e 's/self.assertTrue\\\((.*?) >= (.*)\\\)/self.assertGreaterEqual(\$1, \$2)/g;' $PWD/$file\""
+
+            if [[ "$UNDERSCORE" > 0 ]]; then
+              print_error "fix with \"perl -i -p -e 's/self.assert(?:_t|T)rue\\\((.*?) >= (.*)\\\)/self.assert_greater_equal(\$1, \$2)/g;' $PWD/$file\""
+            else
+              print_error "fix with \"perl -i -p -e 's/self.assertTrue\\\((.*?) >= (.*)\\\)/self.assertGreaterEqual(\$1, \$2)/g;' $PWD/$file\""
+            fi
+
             print_error "${infractions}"
             error=1
         fi
     fi
-    infractions=`grep -n -e "self.assertFalse(" $file | grep " <= "`
+    infractions=`grep -n -e "self.assert(_f|F)alse(" $file | grep " <= "`
     if [[ -n "$infractions" ]]; then
         if [[ "$AUTO_FIX" > 0 ]]; then
-            perl -i -p -e 's/self.assertFalse\((.*) <= (.*)\)/self.assertGreater($1, $2)/g;' $PWD/$file
+            if [[ "$UNDERSCORE" > 0 ]]; then
+              perl -i -p -e 's/self.assert(?:_f|F)alse\((.*) <= (.*)\)/self.assert_greater($1, $2)/g;' $PWD/$file
+            else
+              perl -i -p -e 's/self.assertFalse\((.*) <= (.*)\)/self.assertGreater($1, $2)/g;' $PWD/$file
+            fi
         else
             print_error "$file: assertFalse found, use assertGreater instead"
-            print_error "fix with \"perl -i -p -e 's/self.assertFalse\\\((.*?) <= (.*)\\\)/self.assertGreater(\$1, \$2)/g;' $PWD/$file\""
+
+            if [[ "$UNDERSCORE" > 0 ]]; then
+              print_error "fix with \"perl -i -p -e 's/self.assert(?:_f|F)alse\\\((.*?) <= (.*)\\\)/self.assert_greater(\$1, \$2)/g;' $PWD/$file\""
+            else
+              print_error "fix with \"perl -i -p -e 's/self.assertFalse\\\((.*?) <= (.*)\\\)/self.assertGreater(\$1, \$2)/g;' $PWD/$file\""
+            fi
             print_error "${infractions}"
             error=1
         fi
     fi
 
-    infractions=`grep -n -e "self.assertTrue(" $file | grep " <= "`
+    infractions=`grep -n -e "self.assert(_t|T)rue(" $file | grep " <= "`
     if [[ -n "$infractions" ]]; then
         if [[ "$AUTO_FIX" > 0 ]]; then
-            perl -i -p -e 's/self.assertTrue\((.*) <= (.*)\)/self.assertLessEqual($1, $2)/g;' $PWD/$file
+            if [[ "$UNDERSCORE" > 0 ]]; then
+              perl -i -p -e 's/self.assert(?:_t|T)rue\((.*) <= (.*)\)/self.assert_less_equal($1, $2)/g;' $PWD/$file
+            else
+              perl -i -p -e 's/self.assertTrue\((.*) <= (.*)\)/self.assertLessEqual($1, $2)/g;' $PWD/$file
+            fi
         else
             print_error "$file: assertTrue found, use assertLessEqual instead"
-            print_error "fix with \"perl -i -p -e 's/self.assertTrue\\\((.*?) <= (.*)\\\)\s*$/self.assertLessEqual(\$1, \$2)/g;' $PWD/$file\""
+
+            if [[ "$UNDERSCORE" > 0 ]]; then
+              print_error "fix with \"perl -i -p -e 's/self.assert(?:_t|T)rue\\\((.*?) <= (.*)\\\)\s*$/self.assert_less_equal(\$1, \$2)/g;' $PWD/$file\""
+            else
+              print_error "fix with \"perl -i -p -e 's/self.assertTrue\\\((.*?) <= (.*)\\\)\s*$/self.assertLessEqual(\$1, \$2)/g;' $PWD/$file\""
+            fi
+
             print_error "${infractions}"
             error=1
         fi
     fi
-    infractions=`grep -n -e "self.assertFalse(" $file | grep " >= "`
+    infractions=`grep -n -e "self.assert(_f|F)alse(" $file | grep " >= "`
     if [[ -n "$infractions" ]]; then
         if [[ "$AUTO_FIX" > 0 ]]; then
-            perl -i -p -e 's/self.assertFalse\((.*) >= (.*)\)/self.assertLess($1, $2)/g;' $PWD/$file
+            if [[ "$UNDERSCORE" > 0 ]]; then
+              perl -i -p -e 's/self.assert(?:_f|F)alse\((.*) >= (.*)\)/self.assert_less($1, $2)/g;' $PWD/$file
+            else
+              perl -i -p -e 's/self.assertFalse\((.*) >= (.*)\)/self.assertLess($1, $2)/g;' $PWD/$file
+            fi
         else
             print_error "$file: assertFalse found, use assertLess instead"
-            print_error "fix with \"perl -i -p -e 's/self.assertFalse\\\((.*?) >= (.*)\\\)/self.assertLess(\$1, \$2)/g;' $PWD/$file\""
+
+            if [[ "$UNDERSCORE" > 0 ]]; then
+              print_error "fix with \"perl -i -p -e 's/self.assert(?:_f|F)alse\\\((.*?) >= (.*)\\\)/self.assert_less(\$1, \$2)/g;' $PWD/$file\""
+            else
+              print_error "fix with \"perl -i -p -e 's/self.assertFalse\\\((.*?) >= (.*)\\\)/self.assertLess(\$1, \$2)/g;' $PWD/$file\""
+            fi
+
             print_error "${infractions}"
             error=1
         fi
     fi
 
-   infractions=`grep -n -E -e "self.assertEquals?(.*, (True|False))\s*(?:#.*)$" $file`
+    infractions=`grep -n -E -e "self.assert(_e|E)quals?(.*, (True|False))\s*(?:#.*)$" $file`
     if [[ -n "$infractions" ]]; then
         if [[ "$AUTO_FIX" > 0 ]]; then
-            perl -i -p -e 's/self.assertEquals?\((.*?), (True|False)\)/\s*(?:#.*)$self.assert$2($1)/g;' $PWD/$file
+            if [[ "$UNDERSCORE" > 0 ]]; then
+              perl -i -p -e 's/self.assert(?:_e|E)quals?\((.*?), (True|False)\)/\s*(?:#.*)$self.assert_\L$2\E($1)/g;' $PWD/$file
+            else
+              perl -i -p -e 's/self.assertEquals?\((.*?), (True|False)\)/\s*(?:#.*)$self.assert$2($1)/g;' $PWD/$file
+            fi
         else
             print_error "$file: assertEqual found, use assert{True,False} instead"
-            print_error "fix with \"perl -i -p -e 's/self.assertEquals?\\\((.*?), (True|False)\\\)\s*(?:#.*)$/self.assert\$2(\$1)/g;' $PWD/$file\""
+
+            if [[ "$UNDERSCORE" > 0 ]]; then
+              print_error "fix with \"perl -i -p -e 's/self.assert(?:_e|E)quals?\\\((.*?), (True|False)\\\)\s*(?:#.*)$/self.assert_\L\$2\E(\$1)/g;' $PWD/$file\""
+            else
+              print_error "fix with \"perl -i -p -e 's/self.assertEquals?\\\((.*?), (True|False)\\\)\s*(?:#.*)$/self.assert\$2(\$1)/g;' $PWD/$file\""
+            fi
+
             print_error "${infractions}"
             error=1
         fi
     fi
-    results=`grep -n -E -e "self.assertEquals?(.*, None)\s*(?:#.*)$" $file`
+    results=`grep -n -E -e "self.assert(_e|E)quals?(.*, None)\s*(?:#.*)$" $file`
     if [[ -n "$infractions" ]]; then
         if [[ "$AUTO_FIX" > 0 ]]; then
-            perl -i -p -e 's/self.assertEquals?\((.*?), None\)\s*(?:#.*)$/self.assertIsNone($1)/g;' $PWD/$file
+            if [[ "$UNDERSCORE" > 0 ]]; then
+              perl -i -p -e 's/self.assert(?:_e|E)quals?\((.*?), None\)\s*(?:#.*)$/self.assert_is_none($1)/g;' $PWD/$file
+            else
+              perl -i -p -e 's/self.assertEquals?\((.*?), None\)\s*(?:#.*)$/self.assertIsNone($1)/g;' $PWD/$file
+            fi
         else
             print_error "$file: assertEqual found, use assertIsNone instead"
-            print_error "fix with \"perl -i -p -e 's/self.assertEquals?\\\((.*?), None\\\)\s*(?:#.*)$/self.assertIsNone(\$1)/g;' $PWD/$file\""
+
+            if [[ "$UNDERSCORE" > 0 ]]; then
+              print_error "fix with \"perl -i -p -e 's/self.assert(?:_e|E)quals?\\\((.*?), None\\\)\s*(?:#.*)$/self.assert_is_none(\$1)/g;' $PWD/$file\""
+            else
+              print_error "fix with \"perl -i -p -e 's/self.assertEquals?\\\((.*?), None\\\)\s*(?:#.*)$/self.assertIsNone(\$1)/g;' $PWD/$file\""
+            fi
+
             print_error "${infractions}"
             error=1
         fi
     fi
-    results=`grep -n -E -e "self.assertNotEquals?(.*, None)\s*(?:#.*)$" $file`
+    results=`grep -n -E -e "self.assert(_not_e|NotE)quals?(.*, None)\s*(?:#.*)$" $file`
     if [[ -n "$infractions" ]]; then
         if [[ "$AUTO_FIX" > 0 ]]; then
-            perl -i -p -e 's/self.assertNotEquals?\((.*?), None\)\s*(?:#.*)$/self.assertIsNotNone($1)/g;' $PWD/$file
+            if [[ "$UNDERSCORE" > 0 ]]; then
+              perl -i -p -e 's/self.assert(?:_not_e|NotE)quals?\((.*?), None\)\s*(?:#.*)$/self.assert_is_not_none($1)/g;' $PWD/$file
+            else
+              perl -i -p -e 's/self.assertNotEquals?\((.*?), None\)\s*(?:#.*)$/self.assertIsNotNone($1)/g;' $PWD/$file
+            fi
         else
             print_error "$file: assertNotEqual found, use assertIsNotNone instead"
-            print_error "fix with \"perl -i -p -e 's/self.assertNotEquals?\\\((.*?), None\\\)\s*(?:#.*)$/self.assertIsNotNone(\$1)/g;' $PWD/$file\""
+
+            if [[ "$UNDERSCORE" > 0 ]]; then
+              print_error "fix with \"perl -i -p -e 's/self.assert(?:_not_e|NotE)quals?\\\((.*?), None\\\)\s*(?:#.*)$/self.assert_is_not_none(\$1)/g;' $PWD/$file\""
+            else
+              print_error "fix with \"perl -i -p -e 's/self.assertNotEquals?\\\((.*?), None\\\)\s*(?:#.*)$/self.assertIsNotNone(\$1)/g;' $PWD/$file\""
+            fi
+
             print_error "${infractions}"
             error=1
         fi
     fi
 
-    if [[ "$error" == 0 ]]; then
-        infractions=`grep -n -e "self.assertEquals(" $file`
-        if [[ -n "$infractions" ]]; then
-            if [[ "$AUTO_FIX" > 0 ]]; then
-                perl -i -p -e 's/self.assertEquals\b/self.assertEqual/g;' $PWD/$file
-            else
-               print_error "$file: assertEquals is deprecated; use assertEqual instead"
-               print_error "fix with \"perl -i -p -e 's/self.assertEquals\\\b/self.assertEqual/g;' $PWD/$file\""
-               print_error "${infractions}"
-               error=1
-            fi
+    infractions=`grep -n -e "self.assert(_e|E)quals(" $file`
+    if [[ -n "$infractions" ]]; then
+      if [[ "$AUTO_FIX" > 0 ]]; then
+        if [[ "$UNDERSCORE" > 0 ]]; then
+          perl -i -p -e 's/self.assert(?:_e|E)quals\b/self.assert_equal/g;' $PWD/$file
+        else
+          perl -i -p -e 's/self.assertEquals\b/self.assertEqual/g;' $PWD/$file
         fi
+      else
+        print_error "$file: assertEquals is deprecated; use assertEqual instead"
+
+        if [[ "$UNDERSCORE" > 0 ]]; then
+          print_error "fix with \"perl -i -p -e 's/self.assert(?:_e|E)quals\\\b/self.assert_equal/g;' $PWD/$file\""
+        else
+          print_error "fix with \"perl -i -p -e 's/self.assertEquals\\\b/self.assertEqual/g;' $PWD/$file\""
+        fi
+
+        print_error "${infractions}"
+        error=1
+      fi
     fi
 
     if [[ "$error" > 0 ]]; then
         ERRORS=1
-        echo
+        echo "Fixed $PWD/$file"
     fi
 done
 
