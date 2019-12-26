@@ -3,6 +3,6 @@
 use warnings;
 use strict;
 
-my $time = shift;
+my $time = shift || time();
 
 print scalar(localtime($time)), "\n";
