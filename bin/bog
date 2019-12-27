@@ -1,0 +1,230 @@
+#!/usr/bin/perl
+
+use warnings;
+use strict;
+
+use Getopt::Long;
+use Curses;
+
+initscr();
+clear();
+addstr(10,10,'This should be at 10,10');
+
+sleep 4;
+
+endwin();
+
+exit;
+
+my $dimension = 5;
+
+GetOptions(
+    'dimension=i' => \$dimension,
+);
+
+die 'Dimension must be a number!' unless $dimension > 0;
+
+my $dictionary_path = '/Users/jeremiahlee/projects/dotfiles/resources/boggle_dict.txt';
+my %dictionary;
+my @board;
+my $minimum_length = 4;
+my %solution_words;
+my %typed_words;
+my %word_already_attempted;
+my %trimmer;
+my $board_positions = 0;
+my %seen_position;
+my %substrings;
+
+my($letter_array) = generate_letter_array();
+# @board = (
+#     ['B', 'C', 'A'],
+#     ['C', 'N', 'A'],
+#     ['L', 'L', 'W'],
+# );
+
+generate_board($letter_array);
+load_dictionary();
+# print_dictionary_stats();
+print "Finding the words: \n";
+find_all_words();
+print_board();
+run_game();
+print join(' ', sort keys %solution_words), "\n";
+print "Looked at $board_positions board positions\n";
+
+sub load_dictionary {
+    open my $fh, '<', $dictionary_path or die "Couldn't open the dictionary: $!";
+    my $word;
+    while( $word = <$fh> ) {
+        chomp $word;
+        $word = uc $word;
+        next unless $word =~ m{^[A-Z]+$};
+
+        for(my $i = 1; $i <= length($word); $i++) {
+            my $substr = substr($word, 0, $i);
+            print "Adding $substr\n" if $word eq 'WEEDS';
+            $substrings{$substr}++;
+        }
+
+        $dictionary{$word} = 1;
+    }
+    close $fh;
+}
+
+sub generate_board {
+    my($letter_array) = @_;
+
+    foreach my $row (1..$dimension) {
+        my @row;
+        foreach my $x (1..$dimension) {
+            push @row, select_letter($letter_array);
+        }
+        push @board, \@row;
+    }
+}
+
+sub print_board {
+    print "\n";
+    foreach my $row (@board) {
+        print ' ' x $dimension;
+        print join(' ', map {sprintf("%2s", $_)} @$row), "\n";
+    }
+    print "\n";
+}
+
+sub select_letter {
+    my($letter_array) = @_;
+    return splice @$letter_array, rand(scalar(@$letter_array)-1), 1;
+}
+
+sub generate_letter_array {
+    my %probabilities = (
+        'A'  => 12,
+        'B'  => 1,
+        'C'  => 4,
+        'D'  => 5,
+        'E'  => 19,
+        'F'  => 4,
+        'G'  => 3,
+        'H'  => 5,
+        'I'  => 11,
+        'J'  => 1,
+        'K'  => 1,
+        'L'  => 5,
+        'M'  => 3,
+        'N'  => 11,
+        'O'  => 11,
+        'P'  => 3,
+        'Qu' => 1,
+        'R'  => 12,
+        'S'  => 9,
+        'T'  => 13,
+        'U'  => 5,
+        'V'  => 1,
+        'W'  => 2,
+        'X'  => 1,
+        'Y'  => 3,
+        'Z'  => 1,
+    );
+
+    my $sum = 0;
+    my @letter_array;
+
+    foreach my $letter (sort keys %probabilities) {
+        my $letter_freq = $probabilities{$letter};
+        $sum += $letter_freq;
+        push @letter_array, $letter foreach 1..$letter_freq;
+    }
+
+    print "Probability total was $sum\n";
+    return \@letter_array;
+}
+
+sub find_all_words {
+    foreach my $y (0..$#board) {
+        foreach my $x (0..$#board) {
+            my $board = array_deepcopy(\@board);
+            find_words($x, $y, $board, '');
+        }
+    }
+}
+
+sub find_words {
+    my($x, $y, $board, $word) = @_;
+
+    $word .= $board->[$y][$x];
+
+    $solution_words{$word} = 1 if length($word) >= $minimum_length and $dictionary{$word};
+
+    return unless $substrings{$word};
+
+    $board_positions++;
+    my $new_board = array_deepcopy($board);
+    $new_board->[$y][$x] = ' ';
+
+    # orthogonal
+    find_words($x+1, $y, $new_board, $word) if $x+1 < $dimension and $new_board->[$y][$x+1] ne ' ';
+    find_words($x-1, $y, $new_board, $word) if $x > 0 and $new_board->[$y][$x-1] ne ' ';
+    find_words($x, $y+1, $new_board, $word) if $y+1 < $dimension and $new_board->[$y+1][$x] ne ' ';
+    find_words($x, $y-1, $new_board, $word) if $y > 0 and $new_board->[$y-1][$x] ne ' ';
+
+    #diagonal
+    find_words($x+1, $y+1, $new_board, $word) if $x+1 < $dimension and $y+1 < $dimension and $new_board->[$y+1][$x+1] ne ' ';
+    find_words($x-1, $y+1, $new_board, $word) if $x > 0 and $y+1 < $dimension and $new_board->[$y+1][$x-1] ne ' ';
+    find_words($x+1, $y-1, $new_board, $word) if $x+1 < $dimension and $y > 0 and $new_board->[$y-1][$x+1] ne ' ';
+    find_words($x-1, $y-1, $new_board, $word) if $x > 0 and $y > 0 and $new_board->[$y-1][$x-1] ne ' ';
+
+    return;
+}
+
+sub hash_board {
+    my $board = shift;
+    my $hash = '';
+
+    foreach my $row (@$board) {
+        foreach my $value (@$row) {
+           $hash .= $value;
+        }
+    }
+
+    return $hash;
+}
+
+sub array_deepcopy {
+    my $array = shift;
+
+    my @new_array;
+
+    foreach my $row (@$array) {
+        my @new_row;
+        foreach my $item (@$row) {
+            push @new_row, $item;
+        }
+        push @new_array, \@new_row;
+    }
+
+    return \@new_array;
+}
+
+sub run_game {
+     eval {
+        local $SIG{ALRM} = sub { die "Time's up!\n" };
+        local $SIG{INT} = sub { die "Early exit!\n" };
+        alarm 180;
+        while(1) {
+            my $word = <STDIN>;
+            chomp $word;
+            $word = uc $word;
+
+            if($solution_words{$word}) {
+                print "\b" x (length($word) + 1);
+                print "\t\tCORRECT!\n";
+                delete $solution_words{$word};
+            }
+            else {
+                print "\t\tWRONG!\n";
+            }
+        }
+    };
+}
