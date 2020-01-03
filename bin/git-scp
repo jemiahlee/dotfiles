@@ -17,8 +17,6 @@
     will transfer anything in there, based on the command-line options.
 
      Options:
-       --base           Base directory to copy files to on remote machine.
-                            Defaults to the same path on remote machine as on this one.
        --blacklist      Do not copy files that match this regular expression.
        --help|-?        This help message.
        --hostname       Remote machine to copy files to.
@@ -28,6 +26,8 @@
        --print_only|-n  Dry-run. Do not copy, just print what would happen.
        --regex          Copy only the files that match this regular expression.
                             This is the default option.
+       --remote_base    Base directory to copy files to on remote machine.
+                            Defaults to the same path on remote machine as on this one.
        --ssh_options    Use these options when copying.
                             Defaults to ENV{GIT_SCP_SSH_OPTIONS}.
        --username       Use this username on remote machine when copying the files.
@@ -55,40 +55,50 @@ use Pod::Usage qw/pod2usage/;
 use warnings;
 use strict;
 
-my $BLACKLIST = [];
-
-my $current_dir = `pwd`;
-chomp $current_dir;
-
 my($interactive, $modified_only, $print_only, $regex, $staged_only, $verbose);
-
 my %transferred;
+
+my $BLACKLIST = [];
+my $GIT_REPO_ROOT = get_relative_git_repo_root();
 
 my $hostname = $ENV{GIT_SCP_HOSTNAME};
 my $username = $ENV{GIT_SCP_USERNAME} || $ENV{USER};
 my $ssh_options = $ENV{GIT_SCP_SSH_OPTIONS} || '';
+my $remote_base_directory = $ENV{GIT_SCP_REMOTE_BASE_DIR} || qq{/home/$username};
 
-# assume mirrored directory setups
-(my $base_directory) = $current_dir =~ m{$ENV{HOME}/(.*)};
+my $current_dir = `pwd`;
+chomp $current_dir;
+$current_dir =~ s{$ENV{HOME}/$GIT_REPO_ROOT}{};
+
 GetOptions(
-    'base=s'        => \$base_directory,
-    'blacklist=s@'  => \$BLACKLIST,
-    'help|?'        => sub { pod2usage(); },
-    'hostname=s'    => \$hostname,
-    'interactive|i' => \$interactive,
-    'modified_only' => \$modified_only,
-    'print_only|n'  => \$print_only,
-    'regex=s'       => \$regex,
-    'ssh_options=s' => \$ssh_options,
-    'staged_only'   => \$staged_only,
-    'username=s'    => \$username,
-    'verbose'       => \$verbose
+    'blacklist=s@'   => \$BLACKLIST,
+    'help|?'         => sub { pod2usage(); },
+    'hostname=s'     => \$hostname,
+    'interactive|i'  => \$interactive,
+    'modified_only'  => \$modified_only,
+    'print_only|n'   => \$print_only,
+    'regex=s'        => \$regex,
+    'remote_base=s'  => \$remote_base_directory,
+    'ssh_options=s'  => \$ssh_options,
+    'staged_only'    => \$staged_only,
+    'username=s'     => \$username,
+    'verbose'        => \$verbose
 );
 
 # make sure all printing happens when we're interactive.
 $verbose = 1 if $interactive;
 
+print "\$GIT_REPO_ROOT is $GIT_REPO_ROOT\n" if $verbose;
+print "\$remote_base_directory is $remote_base_directory\n" if $verbose;
+print "\$current_dir is $current_dir\n" if $verbose;
+
+my $TRANSFER_TO_URL = qq{$hostname:} . join '/', $remote_base_directory, $GIT_REPO_ROOT;
+$TRANSFER_TO_URL = "$username\@$TRANSFER_TO_URL" if $username;
+print "\$TRANSFER_TO_URL is $TRANSFER_TO_URL\n" if $verbose;
+
+# print "not -e $ARGV[0] was true!\n" unless -e $ARGV[0];
 if( @ARGV and not $regex and not -e $ARGV[0] ){
+    print "Processing argument as a regex\n" if $verbose;
     $regex = shift;
 }
 
@@ -101,10 +111,6 @@ $BLACKLIST = join '|', @$BLACKLIST;
 if( $BLACKLIST ) {
     $BLACKLIST = qr/$BLACKLIST/;
 }
-
-my $remote_base_directory = qq{/home/$username};
-my $TRANSFER_TO_URL = qq{$hostname:} . join '/', $remote_base_directory, $base_directory;
-$TRANSFER_TO_URL = "$username\@$TRANSFER_TO_URL" if $username;
 
 if( defined $regex ) {
     my $cwd = getcwd();
@@ -138,6 +144,13 @@ else {
     }
 }
 
+sub get_relative_git_repo_root {
+    my $root = `git rev-parse --show-toplevel`;
+    chomp $root;
+    $root =~ s{$ENV{HOME}/}{}g;
+    return $root;
+}
+
 sub file_is_blacklisted {
     my $filename = shift;
 
@@ -163,10 +176,9 @@ sub file_is_whitelisted {
 sub transfer_file {
     my %options = @_;
 
-    my $filename  = delete $options{filename} or die 'No filename provided for transfer!';
-
+    my $deletion = delete $options{delete};
+    my $filename = delete $options{filename} or die 'No filename provided for transfer!';
     my $filename_as_argument = delete $options{filename_as_argument};
-    my $deletion             = delete $options{delete};
 
     print "Processing filename {$filename}\n" if $verbose;
     $filename =~ s{\\}{/}g;
@@ -175,15 +187,15 @@ sub transfer_file {
     return if file_is_blacklisted($filename);
     return unless file_is_whitelisted($filename);
 
-    my $dirname = dirname($filename);
-    $dirname = '' if $dirname eq '.';
-
-    my $execute;
+    my($execute, $execution_comment);
     if ( $deletion ) {
         $execute = qq{ssh $ssh_options $hostname rm $TRANSFER_TO_URL/$filename};
+        $execution_comment = "DELETING $hostname:$remote_base_directory/$filename";
     }
     else {
+        my $dirname = derive_remote_directory($filename);
         $execute = qq{scp $ssh_options $filename $TRANSFER_TO_URL/$dirname};
+        $execution_comment = "$filename => $TRANSFER_TO_URL/$dirname";
     }
 
     print "Executing: $execute\n" if $verbose or $print_only;
@@ -198,14 +210,26 @@ sub transfer_file {
         }
     }
 
-    if ($deletion) {
-        print "DELETING $hostname:$remote_base_directory/$filename\n";
-    }
-    else {
-        print "$filename => $TRANSFER_TO_URL/$dirname\n";
-    }
+    print $execution_comment, "\n";
 
     if (not $print_only) {
         system($execute);
     }
+}
+
+sub derive_remote_directory {
+    my $filename = shift;
+
+    my $dirname = dirname($filename);
+    $dirname = '' if $dirname eq '.';
+    if($dirname eq '') {
+       print "Set \$dirname to $dirname" if $verbose;
+       return $current_dir;
+    }
+
+    $dirname =~ s{^\Q$ENV{HOME}\E}{};
+    $dirname =~ s{^/?\Q$GIT_REPO_ROOT\E}{};
+    print "Processed dirname('$filename') to get '$dirname'\n" if $verbose;
+
+    return $dirname;
 }
