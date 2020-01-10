@@ -42,7 +42,7 @@ sub fix_division_import {
 
         my($out, $tmp_filename) = tempfile(UNLINK => 0);
 
-        print "Fixing $filename\n";
+        print "Removing unnecessary division import from $File::Find::name\n";
         $file_contents =~ s{^from __future__ import division\n}{}mg;
         print $out $file_contents;
         $out->close;
