@@ -1,0 +1,49 @@
+#!/usr/bin/perl
+
+use warnings;
+use strict;
+
+use File::Temp qw/tempfile/;
+use Getopt::Long;
+use File::Find;
+
+foreach my $filename (@ARGV) {
+    if( -T $filename) {
+        fix_division_import($filename);
+    }
+    elsif( -d _ ) {
+        find(\&wanted, $filename);
+    }
+}
+
+sub wanted {
+    return unless -T $_;
+    return unless /\.py$/;
+
+    fix_long_lines($_);
+}
+
+sub fix_long_lines {
+    my $filename = shift;
+
+    local $/;
+    undef $/;
+    open my $fh, '<', $filename or do {
+        print STDERR "Cannot open $filename for reading: $!\n";
+        return;
+    };
+    my $file_contents = <$fh>;
+    close $fh;
+
+    if( $file_contents =~ m{^(?!.*noqa).{121,}}m ) {
+
+        my($out, $tmp_filename) = tempfile(UNLINK => 0);
+
+        print "Adding E501 exceptions to $File::Find::name\n";
+        $file_contents =~ s{^(?!.*noqa)(.{121,})}{$1  # noqa: E501}mg;
+        print $out $file_contents;
+        $out->close;
+        rename $tmp_filename, $filename;
+        unlink $tmp_filename;
+    }
+}
