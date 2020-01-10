@@ -37,7 +37,9 @@ sub fix_division_import {
     my $file_contents = <$fh>;
     close $fh;
 
-    if( $file_contents =~ m{^from __future__ import division$}m and not m{\s/\s} ) {
+    if( $file_contents =~ m{^from __future__ import division$}m and
+        $file_contents !~ m{\s/\s} ) {
+
         my($out, $tmp_filename) = tempfile(UNLINK => 0);
 
         print "Fixing $filename\n";
