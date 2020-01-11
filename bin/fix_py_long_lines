@@ -3,47 +3,59 @@
 use warnings;
 use strict;
 
-use File::Temp qw/tempfile/;
-use Getopt::Long;
+use File::Basename qw/basename/;
 use File::Find;
+use File::Temp qw/tempfile/;
+
+my $skip_count;
 
 foreach my $filename (@ARGV) {
     if( -T $filename) {
-        fix_division_import($filename);
+        fix_long_lines($filename);
     }
     elsif( -d _ ) {
         find(\&wanted, $filename);
     }
 }
 
-sub wanted {
-    return unless -T $_;
-    return unless /\.py$/;
+print "Skipped $skip_count files.\n";
 
-    fix_long_lines($_);
+
+sub wanted {
+    unless( -T $_ and /\.py$/ ) {
+        $skip_count++;
+        return;
+    }
+
+    fix_long_lines($File::Find::name);
 }
 
 sub fix_long_lines {
     my $filename = shift;
+    my $base_filename = basename($filename);
 
     local $/;
     undef $/;
-    open my $fh, '<', $filename or do {
-        print STDERR "Cannot open $filename for reading: $!\n";
+    open my $fh, '<', $base_filename or do {
+        my $pwd = `pwd`;
+        print STDERR "Cannot open $base_filename for reading from $pwd: $!\n";
         return;
     };
     my $file_contents = <$fh>;
     close $fh;
 
     if( $file_contents =~ m{^(?!.*noqa).{121,}}m ) {
-
         my($out, $tmp_filename) = tempfile(UNLINK => 0);
 
-        print "Adding E501 exceptions to $File::Find::name\n";
+        print "Adding E501 exceptions to $filename\n";
         $file_contents =~ s{^(?!.*noqa)(.{121,})}{$1  # noqa: E501}mg;
         print $out $file_contents;
         $out->close;
-        rename $tmp_filename, $filename;
+
+        rename $tmp_filename, $base_filename;
         unlink $tmp_filename;
+    }
+    else {
+        $skip_count++;
     }
 }
