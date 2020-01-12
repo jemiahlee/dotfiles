@@ -1,11 +1,69 @@
 #!/usr/bin/perl
 
-use warnings;
+=head1 NAME
+
+    fix_python - Container script for manipulation of python code
+
+=cut
+
 use strict;
+use warnings;
 
 use File::Basename qw/basename/;
 use File::Find;
 use File::Temp qw/tempfile/;
+use Getopt::Long;
+use Pod::Usage qw/pod2usage/;
+
+my %MULTIPLEXER = (
+    fix_py_division_imports => {
+        action => sub {
+            my($filename, $file_contents_ref) = @_;
+            print "Removing unnecessary division import from $filename\n";
+            $$file_contents_ref =~ s{^from __future__ import division\n}{}mg;
+            return $file_contents_ref;
+        },
+        check => sub {
+            my($filename, $file_contents_ref) = @_;
+            return ($file_contents_ref =~ m{^from __future__ import division$}m &&
+                    $file_contents_ref !~ m{\s/(?:[=/]|/=)?\s});
+        },
+        help => 'This script removes unnecessary division imports.',
+    },
+    fix_py_long_lines => {
+        action => sub {
+            my($filename, $file_contents_ref) = @_;
+            print "Adding E501 exceptions to $filename\n";
+            $$file_contents_ref =~ s{^(?!.*noqa)(.{121,})}{$1  # noqa: E501}mg;
+            return $file_contents_ref;
+        },
+        check => sub {
+            my($filename, $file_contents_ref) = @_;
+            return $$file_contents_ref =~ m{^(?!.*noqa).{121,}}m;
+        },
+        help => 'This script adds "#noqa: E501" to lines in Python files that need it.',
+    },
+);
+
+my $script_name = basename($0);
+unless( $MULTIPLEXER{$script_name} ) {
+    die "$script_name is not a legal invocation of the script!";
+}
+
+my $HELP_OUTPUT = <<"EOHELP";
+Usage: $script_name [file_or_dir_1 [file_or_dir_2..]]
+
+$MULTIPLEXER{$script_name}{help}
+EOHELP
+
+GetOptions(
+    'help|?' => sub { print $HELP_OUTPUT; exit 1; },
+);
+
+unless( @ARGV ) {
+    print $HELP_OUTPUT;
+    exit 1;
+}
 
 my $skip_count;
 
@@ -38,17 +96,18 @@ sub fix_long_lines {
     undef $/;
     open my $fh, '<', $base_filename or do {
         my $pwd = `pwd`;
+        chomp $pwd;
         print STDERR "Cannot open $base_filename for reading from $pwd: $!\n";
         return;
     };
     my $file_contents = <$fh>;
     close $fh;
 
-    if( $file_contents =~ m{^(?!.*noqa).{121,}}m ) {
+    if( $MULTIPLEXER{$script_name}{check}($filename, \$file_contents) ) {
         my($out, $tmp_filename) = tempfile(UNLINK => 0);
 
-        print "Adding E501 exceptions to $filename\n";
-        $file_contents =~ s{^(?!.*noqa)(.{121,})}{$1  # noqa: E501}mg;
+        $MULTIPLEXER{$script_name}{action}($filename, \$file_contents);
+
         print $out $file_contents;
         $out->close;
 
