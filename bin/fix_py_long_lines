@@ -25,8 +25,8 @@ my %MULTIPLEXER = (
         },
         check => sub {
             my($filename, $file_contents_ref) = @_;
-            return ($file_contents_ref =~ m{^from __future__ import division$}m &&
-                    $file_contents_ref !~ m{\s/(?:[=/]|/=)?\s});
+            return ($$file_contents_ref =~ m{^from __future__ import division$}m &&
+                    $$file_contents_ref !~ m{\s/(?:[=/]|/=)?\s});
         },
         help => 'This script removes unnecessary division imports.',
     },
@@ -106,9 +106,9 @@ sub fix_long_lines {
     if( $MULTIPLEXER{$script_name}{check}($filename, \$file_contents) ) {
         my($out, $tmp_filename) = tempfile(UNLINK => 0);
 
-        $MULTIPLEXER{$script_name}{action}($filename, \$file_contents);
+        my $new_file_contents = $MULTIPLEXER{$script_name}{action}($filename, \$file_contents);
 
-        print $out $file_contents;
+        print $out $$new_file_contents;
         $out->close;
 
         rename $tmp_filename, $base_filename;
