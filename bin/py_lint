@@ -1,0 +1,10 @@
+#!/bin/bash
+
+black $*
+isort -rc $*
+~/bin/fix_py_division_imports $*
+~/bin/fix_py_long_lines $*
+
+echo ""
+echo "Checking for thrift files...."
+git files | grep thrift
