@@ -56,6 +56,9 @@ Usage: $script_name [file_or_dir_1 [file_or_dir_2..]]
 $MULTIPLEXER{$script_name}{help}
 EOHELP
 
+my @BLACKLIST = qw/ttypes.py/;
+my %BLACKLIST = map {$_ => 1} @BLACKLIST;
+
 GetOptions(
     'help|?' => sub { print $HELP_OUTPUT; exit 1; },
 );
@@ -65,11 +68,13 @@ unless( @ARGV ) {
     exit 1;
 }
 
-my $skip_count;
+my $skip_count = 0;
 
 foreach my $filename (@ARGV) {
     if( -T $filename) {
-        fix_long_lines($filename);
+        my $pwd = `pwd`;
+        chomp $pwd;
+        fix_python($filename, $filename);
     }
     elsif( -d _ ) {
         find(\&wanted, $filename);
@@ -85,12 +90,17 @@ sub wanted {
         return;
     }
 
-    fix_long_lines($File::Find::name);
+    if( $BLACKLIST{$_} ) {
+        print "Skipping blacklist file: $_\n";
+        $skip_count++;
+        return;
+    }
+
+    fix_python($_, $File::Find::name);
 }
 
-sub fix_long_lines {
-    my $filename = shift;
-    my $base_filename = basename($filename);
+sub fix_python {
+    my($base_filename, $full_path_name) = @_;
 
     local $/;
     undef $/;
@@ -103,10 +113,11 @@ sub fix_long_lines {
     my $file_contents = <$fh>;
     close $fh;
 
-    if( $MULTIPLEXER{$script_name}{check}($filename, \$file_contents) ) {
+    if( $MULTIPLEXER{$script_name}{check}($full_path_name, \$file_contents) ) {
         my($out, $tmp_filename) = tempfile(UNLINK => 0);
 
-        my $new_file_contents = $MULTIPLEXER{$script_name}{action}($filename, \$file_contents);
+        my $new_file_contents =
+            $MULTIPLEXER{$script_name}{action}($full_path_name, \$file_contents);
 
         print $out $$new_file_contents;
         $out->close;
