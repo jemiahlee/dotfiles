@@ -21,7 +21,7 @@ use strict;
 use Getopt::Long;
 use Pod::Usage qw/pod2usage/;
 
-our($modified_only, $oneline, $staged_only);
+our($modified_only, $oneline, $staged_only, $verbose);
 our $REPO_ROOT = execute_and_chomp('git rev-parse --show-toplevel');
 our $CURRENT_DIR = execute_and_chomp('pwd');
 our $REPO_DIR_DIFF = path_subtract($CURRENT_DIR, $REPO_ROOT);
@@ -31,11 +31,13 @@ GetOptions(
            'modified_only' => \$modified_only,
            'oneline'       => \$oneline,
            'staged|cached' => \$staged_only,
+           'verbose'       => \$verbose,
 );
 
 my $commit = shift;
 
 if($commit){
+    print "Running do_git_show with commit: '$commit'\n" if $verbose;
     do_git_show($commit);
 }
 else {
@@ -84,14 +86,14 @@ sub do_git_show {
     my $command = 'git show --pretty="format:" --name-only';
 
     my $output = `$command $commit`;
-    my @output = map {s{^$REPO_DIR_DIFF/?}{}; $_} split /\n+/, $output;
-    @output = list_uniq(@output);
+    my @file_list = map {s{^$REPO_DIR_DIFF/?}{}; $_} split /\n+/, $output;
+    @file_list = list_uniq(@file_list);
 
     if($oneline){
-        print "@output\n";
+        print "@file_list\n";
     }
     else {
-        print join("\n", @output), "\n";
+        print join("\n", @file_list), "\n";
     }
 }
 
@@ -118,5 +120,5 @@ sub list_uniq {
         $seen{$item}++;
     }
 
-    return keys(%seen);
+    return sort keys(%seen);
 }
