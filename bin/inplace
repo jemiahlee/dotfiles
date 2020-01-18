@@ -1,0 +1,12 @@
+#!/bin/bash +x
+
+TEMPFILE=$(mktemp)
+
+COMMAND=$1
+ORIGINAL_FILE=$2
+
+echo "${COMMAND} ${ORIGINAL_FILE} > ${TEMPFILE}"
+`${COMMAND} ${ORIGINAL_FILE} > ${TEMPFILE}`
+
+echo "mv ${TEMPFILE} ${ORIGINAL_FILE}"
+`mv ${TEMPFILE} ${ORIGINAL_FILE}`
