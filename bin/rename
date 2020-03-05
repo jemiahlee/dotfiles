@@ -25,42 +25,48 @@ use warnings;
 use Getopt::Long;
 use Pod::Usage qw/pod2usage/;
 
-my($dry_run, $evaluate, $global);
+my($dry_run, $evaluate, $global, $verbose);
 
 GetOptions(
     'dry_run|n|print' => \$dry_run,
     'evaluate'        => \$evaluate,
     'global'          => \$global,
     'help|?'          => sub { pod2usage(); },
+    'verbose'         => \$verbose,
 );
 
 my $pattern = shift;
 my $replacement = shift;
 
-if ( !$evaluate and $replacement =~ m#\$[1-9]# ) {
-
+if ( not $evaluate and $replacement =~ m#\$[1-9]# ) {
   $evaluate = 1;
   $replacement =~ s{^|$}{'}g;
   $replacement =~ s{(\$[1-9])}{' . $1 . '}g;
 
+  print qq{Replacement contains a variable, modifying it to "$replacement"\n};
 }
 
 foreach my $filename (@ARGV){
-
-  my($newname) = $filename;
+  my $new_name = $filename;
 
   if ( $evaluate and $global ) {
-    $newname =~ s{$pattern}{$replacement}eeog;
+    $new_name =~ s{$pattern}{$replacement}eeg;
   } elsif ( $evaluate ) {
-    $newname =~ s{$pattern}{$replacement}eeo;
+    print "$new_name matches\n" if $verbose and $new_name =~ /$pattern/;
+    $new_name =~ s{$pattern}{$replacement}ee;
   } elsif ( $global ) {
-    $newname =~ s{$pattern}{$replacement}og;
+    $new_name =~ s{$pattern}{$replacement}eog;
   } else {
-    $newname =~ s{$pattern}{$replacement}o;
+    $new_name =~ s{$pattern}{$replacement}eo;
   }
 
-  print "Moving $filename to $newname\n" unless $dry_run;
-  print "NOT! moving $filename to $newname\n" if $dry_run;
-  rename $filename, $newname unless $dry_run;
+  if($filename eq $new_name){
+    print "$filename: No modification necessary\n" if $verbose;
+    next;
+  }
+
+  print 'NOT! ' if $dry_run;
+  print "Moving $filename to $new_name\n";
+  rename $filename, $new_name unless $dry_run;
 
 }
