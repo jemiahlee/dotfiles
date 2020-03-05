@@ -557,9 +557,15 @@ map <D-F> :Ag!
 """"""""""""""""""""""""""""""""""""""""""""""""""""""
 " Buffergator Config
 """"""""""""""""""""""""""""""""""""""""""""""""""""""
-map <leader>B :BuffergatorOpen<CR>
-map <leader>W :BuffergatorClose<CR>
+nmap <D-B> :BuffergatorOpen<CR>
+nmap <D-W> :BuffergatorClose<CR>
 
+""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" Tab config to make switching tabs identical in
+" browser and iTerm2
+""""""""""""""""""""""""""""""""""""""""""""""""""""""
+nmap <A-D-Left> :tabp<CR>
+nmap <A-D-Right> :tabn<CR>
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " Utility functions
