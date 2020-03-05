@@ -7,8 +7,5 @@ fi
 
 for file in $*
 do
-    t=`perl -e 's{/}{_}g; print' $file`
-    python -mjson.tool $file > /tmp/$t.$$
-    cp /tmp/$t.$$ $file
-    rm /tmp/$t.$$
+    inplace 'python -mjson.tool' ${file}
 done
