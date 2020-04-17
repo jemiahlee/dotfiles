@@ -13,6 +13,7 @@ function safe_link {
     echo "Removing symlink to ${FROM_FILE}"
     rm "${TO_FILE}"
   fi
+
   ln -sfv "${FROM_FILE}" "${TO_FILE}"
 }
 
@@ -60,7 +61,7 @@ function install_files {
   if [[ -d "${FROM_DIR}" ]]; then
     for file in "${FROM_DIR}"/*
     do
-      if [[ -e "$file" ]]; then
+      if [[ -f "$file" ]]; then
         file_name=`basename "${file}"`
 
         if [[ -z "$PREFIX_WITH_DOT" ]]; then
@@ -73,18 +74,6 @@ function install_files {
   else
     echo "${FROM_DIR} does not exist. Skipping."
   fi
-}
-
-function install_fonts {
-  OS=`uname -s`
-  if [[ "Darwin" != "$OS" ]]; then
-    echo "Not on MacOSX. Skipping font installation."
-    return 0
-  fi
-
-  echo "If you'd like programmer fonts, please use FontBook to install from the /fonts dir."
-  echo "There is more information in the README.md in this repository."
-  return 0
 }
 
 function link_bash_profile_includes {
@@ -130,24 +119,25 @@ echo "First, ensuring submodules are up-to-date."
 git submodule init
 git submodule update --recursive
 
-if [[ -d "${HOME}/Google Drive/dotfiles" ]]; then
-  PRIVATE_FILE_PATH="${HOME}/Google Drive/dotfiles"
-fi
 
 link_bash_profile_includes "$START_PWD"
 install_files "${START_PWD}"/bin "${HOME}"/bin
 install_files "${START_PWD}"/dotfiles "${HOME}" true
 
-if [[ -n "${PRIVATE_FILE_PATH}" ]]; then
+if [[ -d "${HOME}/Google Drive/dotfiles" ]]; then
+  PRIVATE_FILE_PATH="${HOME}/Google Drive/dotfiles"
+
   install_files "${PRIVATE_FILE_PATH}"/bin "${HOME}"/bin
   install_files "${PRIVATE_FILE_PATH}"/ssh "${HOME}/.ssh"
   install_files "${PRIVATE_FILE_PATH}"/dotfiles "${HOME}" true
 fi
 
 echo
+echo "Setting up SCM Breeze..."
 setup_scm_breeze
 echo
-install_fonts
+echo "If you'd like programmer fonts, please install them using FontBook on a Mac."
+echo "There are several fonts in the /fonts dir, and more information in the README.md in this repository."
 echo
 
 if [[ $1 != '--no-vim' ]]; then
