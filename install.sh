@@ -119,7 +119,6 @@ echo "First, ensuring submodules are up-to-date."
 git submodule init
 git submodule update --recursive
 
-
 link_bash_profile_includes "$START_PWD"
 install_files "${START_PWD}"/bin "${HOME}"/bin
 install_files "${START_PWD}"/dotfiles "${HOME}" true
