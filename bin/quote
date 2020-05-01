@@ -4,19 +4,24 @@ use warnings;
 use strict;
 
 use Getopt::Long;
-my($start_quote, $end_quote);
-$start_quote = $end_quote = q{'};
+my($start_quote, $end_quote) = ('','');
+my $DEFAULT_QUOTE = q{'};
 
 GetOptions(
     'backtick' => sub { $start_quote = $end_quote = '`' },
     'curly'    => sub { $start_quote = '{'; $end_quote = '}'; },
     'double'   => sub { $start_quote = $end_quote = '"' },
     'end=s'    => sub { $end_quote = $_[1]; },
+    'ordereddict' => sub { $start_quote = q{('}; $end_quote = q{', True),} },
     'parens'   => sub { $start_quote = '('; $end_quote = ')'; },
     'pipes'    => sub { $start_quote = '|'; $end_quote = '|'; },
     'square'   => sub { $start_quote = '['; $end_quote = ']'; },
     'start=s'  => sub { $start_quote = $_[1]; },
 );
+
+unless($start_quote or $end_quote){
+    $start_quote = $end_quote = $DEFAULT_QUOTE;
+}
 
 while(<>) {
     chomp;
