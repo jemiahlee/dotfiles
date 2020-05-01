@@ -21,7 +21,7 @@ alias fu="git fetch upstream"
 alias fum="git fetch upstream master"
 alias fo="git fetch origin"
 alias fom="git fetch origin master"
-alias ffom="git fetch origin master && git merge --ff-only origin/master"
+alias ffom="git fetch origin master && git merge --ff-only origin/master 1> /dev/null"
 
 alias ll="ls -lah"
 
