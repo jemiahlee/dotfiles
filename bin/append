@@ -1,9 +1,0 @@
-#!/bin/bash
-
-args=("$@")
-
-if [[ "0" == "$#" ]]; then
-    quote --start '' --end ,
-else
-    quote --start '' --end $1 "${args[@]:1}"
-fi
