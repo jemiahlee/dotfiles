@@ -28,11 +28,11 @@ use Pod::Usage qw/pod2usage/;
 my($dry_run, $evaluate, $global, $verbose);
 
 GetOptions(
-    'dry_run|n|print' => \$dry_run,
-    'evaluate'        => \$evaluate,
-    'global'          => \$global,
-    'help|?'          => sub { pod2usage(); },
-    'verbose'         => \$verbose,
+    'dry-run|dry_run|n|print' => \$dry_run,
+    'evaluate'                => \$evaluate,
+    'global'                  => \$global,
+    'help|?'                  => sub { pod2usage(); },
+    'verbose'                 => \$verbose,
 );
 
 my $pattern = shift;
