@@ -1,4 +1,4 @@
-  $ $BIN/recordify --template $TESTDIR/test_template.tpl $TESTDIR/test_template.csv
+  $ $BIN/recordify --template $TESTDIR/../input/test_template.tpl $TESTDIR/../input/test_template.csv
   The rain in Spain falls mainly on the plains.
   But, the sunlight in Spain can be seen everywhere, not just on the plains.
   

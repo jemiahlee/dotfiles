@@ -1,4 +1,4 @@
-  $ $BIN/recordify $TESTDIR/test_without_headers.csv
+  $ $BIN/recordify $TESTDIR/../input/test_without_headers.csv
   field1: value1
   field2: value2
   field3: 100

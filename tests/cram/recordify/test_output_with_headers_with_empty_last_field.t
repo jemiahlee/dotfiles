@@ -1,4 +1,4 @@
-  $ $BIN/recordify $TESTDIR/test_with_headers_with_empty_last_field.csv
+  $ $BIN/recordify $TESTDIR/../input/test_with_headers_with_empty_last_field.csv
   header1: value1
   header2: value2
   header3: 11.0
@@ -23,7 +23,7 @@
   header2: r2value2
   header3: 200
   header4: r2value4
-  $ $BIN/recordify --keep-headers -e 'print $_, "\n";' $TESTDIR/test_with_headers_with_empty_last_field.csv
+  $ $BIN/recordify --keep-headers -e 'print $_, "\n";' $TESTDIR/../input/test_with_headers_with_empty_last_field.csv
   header1,header2,header3,header4
   value1,value2,11.0,value4
   r100value1,r100value2,1123.00,r100value4
