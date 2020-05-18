@@ -24,7 +24,7 @@ my $number_to_skip = 1;
 
 GetOptions(
     'help|?' => sub { pod2usage(); },
-    'number' => \$number_to_skip,
+    'number=i' => \$number_to_skip,
 );
 
 while(<>) {
