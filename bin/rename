@@ -35,6 +35,8 @@ GetOptions(
     'verbose'                 => \$verbose,
 );
 
+print "Using verbose mode!\n" if $verbose;
+
 my $pattern = shift;
 my $replacement = shift;
 
@@ -46,13 +48,20 @@ if ( not $evaluate and $replacement =~ m#\$[1-9]# ) {
   print qq{Replacement contains a variable, modifying it to "$replacement"\n};
 }
 
+if( $verbose ){
+    print "pattern received was '$pattern'\n";
+    print "replacement received was '$replacement'\n";
+    print "\n";
+}
+
 foreach my $filename (@ARGV){
+  print "$filename matches\n" if $verbose and $filename =~ /$pattern/;
+
   my $new_name = $filename;
 
   if ( $evaluate and $global ) {
     $new_name =~ s{$pattern}{$replacement}eeg;
   } elsif ( $evaluate ) {
-    print "$new_name matches\n" if $verbose and $new_name =~ /$pattern/;
     $new_name =~ s{$pattern}{$replacement}ee;
   } elsif ( $global ) {
     $new_name =~ s{$pattern}{$replacement}eog;
@@ -68,5 +77,4 @@ foreach my $filename (@ARGV){
   print 'NOT! ' if $dry_run;
   print "Moving $filename to $new_name\n";
   rename $filename, $new_name unless $dry_run;
-
 }
