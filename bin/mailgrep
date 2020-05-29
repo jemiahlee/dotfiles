@@ -1,0 +1,25 @@
+#!/usr/bin/perl
+
+use warnings;
+
+if(@ARGV == 1){
+  $regex = shift;
+  push @ARGV, "/var/spool/mail/$ENV{USER}";
+} elsif( @ARGV > 1 ){
+  $regex = shift;
+}
+
+$/ = "\n\nFrom";
+
+while(<>){
+
+    if(/$regex/i){
+	chomp;
+	($headers) = m#(.*?)\n\n#s;
+	$headers =~ s#^(?!From:|Subject:|Date:|To:|Cc:).*\n?##img;
+	s#.*?\n\n#$headers\n\n#s;
+	print "$_\n\n";
+    }
+
+}
+
