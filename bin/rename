@@ -35,8 +35,6 @@ GetOptions(
     'verbose'                 => \$verbose,
 );
 
-print "Using verbose mode!\n" if $verbose;
-
 my $pattern = shift;
 my $replacement = shift;
 
