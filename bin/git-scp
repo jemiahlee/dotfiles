@@ -17,7 +17,6 @@
     will transfer anything in there, based on the command-line options.
 
      Options:
-       --blacklist      Do not copy files that match this regular expression.
        --help|-?        This help message.
        --hostname       Remote machine to copy files to.
                             Defaults to ENV{GIT_SCP_HOSTNAME} if available.
@@ -28,6 +27,7 @@
                             This is the default option.
        --remote_base    Base directory to copy files to on remote machine.
                             Defaults to the same path on remote machine as on this one.
+       --skiplist       Do not copy files that match this regular expression.
        --ssh_options    Use these options when copying.
                             Defaults to ENV{GIT_SCP_SSH_OPTIONS}.
        --username       Use this username on remote machine when copying the files.
@@ -58,7 +58,7 @@ use strict;
 my($interactive, $modified_only, $print_only, $regex, $staged_only, $verbose);
 my %transferred;
 
-my $BLACKLIST = [];
+my $SKIPLIST = [];
 my $GIT_REPO_ROOT = get_relative_git_repo_root();
 
 my $hostname = $ENV{GIT_SCP_HOSTNAME};
@@ -71,7 +71,6 @@ chomp $current_dir;
 $current_dir =~ s{$ENV{HOME}/$GIT_REPO_ROOT}{};
 
 GetOptions(
-    'blacklist=s@'   => \$BLACKLIST,
     'help|?'         => sub { pod2usage(); },
     'hostname=s'     => \$hostname,
     'interactive|i'  => \$interactive,
@@ -79,6 +78,7 @@ GetOptions(
     'print_only|n'   => \$print_only,
     'regex=s'        => \$regex,
     'remote_base=s'  => \$remote_base_directory,
+    'skiplist=s@'    => \$SKIPLIST,
     'ssh_options=s'  => \$ssh_options,
     'staged_only'    => \$staged_only,
     'username=s'     => \$username,
@@ -96,8 +96,7 @@ my $TRANSFER_TO_URL = qq{$hostname:} . join '/', $remote_base_directory, $GIT_RE
 $TRANSFER_TO_URL = "$username\@$TRANSFER_TO_URL" if $username;
 print "\$TRANSFER_TO_URL is $TRANSFER_TO_URL\n" if $verbose;
 
-# print "not -e $ARGV[0] was true!\n" unless -e $ARGV[0];
-if( @ARGV and not $regex and not -e $ARGV[0] ){
+if( @ARGV and not $regex and (not -e $ARGV[0] or -d $ARGV[0] )){
     print "Processing argument as a regex\n" if $verbose;
     $regex = shift;
 }
@@ -107,9 +106,9 @@ unless( $hostname ){
     exit 1;
 }
 
-$BLACKLIST = join '|', @$BLACKLIST;
-if( $BLACKLIST ) {
-    $BLACKLIST = qr/$BLACKLIST/;
+$SKIPLIST = join '|', @$SKIPLIST;
+if( $SKIPLIST ) {
+    $SKIPLIST = qr/$SKIPLIST/;
 }
 
 if( defined $regex ) {
@@ -135,10 +134,18 @@ else {
     open PROC_OUT, 'git status --short |' or die "Couldn't deal with 'git status': $!";
 
     while( <PROC_OUT> ){
-        my($x, $y, $filename) = m{^(.)(.)\s*(\S+)$};
+        chomp;
+        my($x, $y, $filename) = m{^(.)(.)\s(.+)$};
 
         next if $modified_only and $y ne 'M' and $x ne 'M';
         next if $staged_only and $x eq ' ';
+
+        if($filename =~ m{(\S+) -> (\S+)}){
+            my $deletion_filename = $1;
+            $filename = $2;
+
+            transfer_file(filename => $deletion_filename, delete => 1);
+        }
 
         transfer_file(filename => $filename, delete => ($x eq 'D' or $y eq 'D'));
     }
@@ -151,14 +158,14 @@ sub get_relative_git_repo_root {
     return $root;
 }
 
-sub file_is_blacklisted {
+sub file_is_skiplisted {
     my $filename = shift;
 
-    return 0 if not $BLACKLIST;
-    return $filename =~ $BLACKLIST;
+    return 0 if not $SKIPLIST;
+    return $filename =~ $SKIPLIST;
 }
 
-sub file_is_whitelisted {
+sub file_is_in_matchlist {
     my $filename = shift;
 
     return 1 if not defined $regex;
@@ -184,8 +191,8 @@ sub transfer_file {
     $filename =~ s{\\}{/}g;
 
     return if $transferred{$filename}++;
-    return if file_is_blacklisted($filename);
-    return unless file_is_whitelisted($filename);
+    return if file_is_skiplisted($filename);
+    return unless file_is_in_matchlist($filename);
 
     my($execute, $execution_comment);
     if ( $deletion ) {

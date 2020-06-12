@@ -56,8 +56,8 @@ Usage: $script_name [file_or_dir_1 [file_or_dir_2..]]
 $MULTIPLEXER{$script_name}{help}
 EOHELP
 
-my @BLACKLIST = qw/ttypes.py/;
-my %BLACKLIST = map {$_ => 1} @BLACKLIST;
+my @SKIPLIST = qw/ttypes.py/;
+my %SKIPLIST = map {$_ => 1} @SKIPLIST;
 
 GetOptions(
     'help|?' => sub { print $HELP_OUTPUT; exit 1; },
@@ -90,8 +90,8 @@ sub wanted {
         return;
     }
 
-    if( $BLACKLIST{$_} ) {
-        print "Skipping blacklist file: $_\n";
+    if( $SKIPLIST{$_} ) {
+        print "Skipping skiplist file: $_\n";
         $skip_count++;
         return;
     }
