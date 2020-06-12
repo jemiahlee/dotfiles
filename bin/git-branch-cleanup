@@ -219,8 +219,8 @@ sub add_comparison_branch_to_skiplist {
 
 sub generate_allowedlist_based_on_local_matches {
     my $output = `git branch`;
-    my @whitelist = split /\s+/, $output;
-    @ALLOWEDLIST{@whitelist} = (1) x @allowedlist;
+    my @allowedlist = split /\s+/, $output;
+    @ALLOWEDLIST{@allowedlist} = (1) x @allowedlist;
     print join(',', keys(%ALLOWEDLIST)), "\n";
 }
 
