@@ -1,6 +1,6 @@
 #!/bin/bash
 
-black $*
+black -S $*
 isort -rc $*
 ~/bin/fix_py_division_imports $*
 ~/bin/fix_py_long_lines $*
