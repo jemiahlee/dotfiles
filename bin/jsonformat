@@ -7,5 +7,5 @@ fi
 
 for file in $*
 do
-    inplace 'python -mjson.tool' ${file}
+    inplace 'python -mjson.tool --sort-keys' ${file}
 done
