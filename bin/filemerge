@@ -6,11 +6,11 @@ use strict;
 use Getopt::Long;
 
 my($verbose, $delimiter);
-$delimiter = ',';
 
-GetOptions( 'delimiter=s' => \$delimiter,
-            'verbose'     => \$verbose,
-          );
+GetOptions(
+    'delimiter=s' => \$delimiter,
+    'verbose'     => \$verbose,
+);
 
 unless( @ARGV == 2 ) {
     print "only 2 filenames allowed!\n";
