@@ -6,6 +6,7 @@ use strict;
 use Getopt::Long;
 
 my($verbose, $delimiter);
+$delimiter = '';
 
 GetOptions(
     'delimiter=s' => \$delimiter,
