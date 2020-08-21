@@ -1,0 +1,80 @@
+#!/usr/bin/perl
+
+=head1 NAME
+
+    position - print a character or characters from a file
+
+=head1 SYNOPSIS
+
+    line [options] <byte offset> [max byte offset] [filename]
+
+    This script will extract a character or characters based on how far into the
+    file the supplied offset is.
+
+     Options:
+       --no-numbers    Do not print line numbers at the beginning of each
+                       line.
+       --numbers       Force the line number to be printed.
+
+=cut
+
+
+use warnings;
+use strict;
+
+use Getopt::Long;
+use Pod::Usage qw/pod2usage/;
+
+GetOptions(
+    'help|?' => sub { pod2usage(); },
+);
+
+our $filename;
+
+my($min) = my($max) = shift;
+pod2usage() unless $min =~ /^\d+$/;
+
+if(@ARGV){
+    $max = shift;
+
+    if( $max !~ /^(?:\d+|END)$/ and -e $max ) {
+        unshift @ARGV, $max; #put it back on @ARGV for reading
+        $max = $min;
+    }
+}
+
+my $offset_length = $max > $min ? $max - $min : 1;
+print("Attempting to find $offset_length character(s) at position(s) $min - $max\n");
+
+my $printed = 0;
+my $current_offset = 0;
+while( <> ) {
+    if($current_offset + length($_) < $min){
+        $current_offset += length($_);
+        next;
+    }
+    last if $current_offset > $max;
+
+    $printed = 1;
+    my $current_string_offset = $min - $current_offset;
+
+    if($offset_length == 1 or $current_offset + length($_) <= $max){
+        print("Starting to print on line $. of the input\n");
+        print(substr($_, $current_string_offset, $offset_length), "\n");
+        last;
+    }
+
+    my $characters_remaining = $offset_length;
+    while($characters_remaining > 0){
+        my $num
+        if(length($_) > $characters_remaining){
+            print(substr($_, $current_string_offset, $characters_remaining), "\n");
+            $current_string_offset = 0;
+            $characters_remaining = 0;
+        }
+        print(substr($_, $current_string_offset, $offset_length), "\n");
+        $current_offset += length($_);
+    }
+}
+
+print "Your file did not have that many characters!\n" unless $printed;
