@@ -1,6 +1,6 @@
 [submodule "submodules/scm_breeze"]
 	path = submodules/scm_breeze
-	url = git@github.com:scmbreeze/scm_breeze.git
+	url = git@github.com:jemiahlee/scm_breeze.git
 [submodule "submodules/vim-plug"]
 	path = submodules/vim-plug
 	url = https://github.com/junegunn/vim-plug
