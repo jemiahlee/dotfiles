@@ -11,12 +11,12 @@ GetOptions(
     'backtick' => sub { $start_quote = $end_quote = '`' },
     'curly'    => sub { $start_quote = '{'; $end_quote = '}'; },
     'double'   => sub { $start_quote = $end_quote = '"' },
-    'end=s'    => sub { $end_quote = $_[1]; },
+    'end=s'    => sub { $end_quote = $_[1] or ','; },
     'ordereddict' => sub { $start_quote = q{('}; $end_quote = q{', True),} },
     'parens'   => sub { $start_quote = '('; $end_quote = ')'; },
     'pipes'    => sub { $start_quote = '|'; $end_quote = '|'; },
     'square'   => sub { $start_quote = '['; $end_quote = ']'; },
-    'start=s'  => sub { $start_quote = $_[1]; },
+    'start=s'  => sub { $start_quote = $_[1] or '    '; },
 );
 
 unless($start_quote or $end_quote){
