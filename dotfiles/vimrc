@@ -22,7 +22,7 @@ Plug 'pangloss/vim-javascript'
 Plug 'rking/ag.vim'
 Plug 'scrooloose/nerdtree'
 Plug 'scrooloose/syntastic'
-" Plug 'takac/vim-hardtime'
+Plug 'takac/vim-hardtime'
 Plug 'tpope/vim-commentary'
 Plug 'tpope/vim-fugitive'
 Plug 'tpope/vim-haml'
@@ -557,8 +557,8 @@ map <D-F> :Ag!
 """"""""""""""""""""""""""""""""""""""""""""""""""""""
 " Buffergator Config
 """"""""""""""""""""""""""""""""""""""""""""""""""""""
-nmap <D-B> :BuffergatorOpen<CR>
-nmap <D-W> :BuffergatorClose<CR>
+nmap <D-r> :BuffergatorOpen<CR>
+nmap <D-w> :BuffergatorClose<CR>
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""
 " Tab config to make switching tabs identical in
