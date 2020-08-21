@@ -1,0 +1,18 @@
+#!/usr/bin/env perl
+
+use warnings;
+use strict;
+
+my $regex = shift;
+my $replacement = shift;
+
+while(<>){
+    if($replacement =~ /\$/){
+        s/$regex/$replacement/eeg;
+    }
+    else {
+        s/$regex/$replacement/g;
+    }
+
+    print;
+}
