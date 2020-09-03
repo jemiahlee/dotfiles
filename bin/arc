@@ -1,6 +1,7 @@
 #!/bin/bash
 
 source .venv/bin/activate
+pip install -r requirements/lint.txt
 
 START=`date`
 echo "Starting arc command at ${START}"
