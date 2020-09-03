@@ -2,7 +2,7 @@ function current_git_branch_bare {
     echo `git branch --no-color 2> /dev/null | perl -n -e 'next unless /^\s*\*\s*(?:.\d+.\s*)?(.*)/; print "$1"; exit;'`
 }
 
-alias ag='ag --ignore \*.json'
+alias ag='ag --ignore \*.json --ignore \*.css --ignore \*.scss --ignore \*.po'
 
 alias g=git
 alias gpr="git pull --rebase"
