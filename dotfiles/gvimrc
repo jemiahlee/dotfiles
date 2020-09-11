@@ -1,7 +1,5 @@
 """"""""""""""""""""""""""""""""""""""""""""""""""""""
-" GUI VIM Configuration for Jeremiah Lee
-"
-" This configuration file is for use with Janus
+" GUI VIM Configuration - for use with MacVIM
 """"""""""""""""""""""""""""""""""""""""""""""""""""""
 
 " Set extra options when running in GUI mode
@@ -40,13 +38,6 @@ set guioptions-=L
 set background=dark
 colorscheme solarized
 let g:insert_mode_background_color='#FFFFFF'
-
-" set background=dark
-" let g:solarized_termtrans=1
-" let g:solarized_termcolors=256
-" let g:solarized_contrast="high"
-" let g:solarized_visibility="high"
-" colorscheme solarized
 
 " autosave when focus is lost
 au focuslost * silent! :wa
