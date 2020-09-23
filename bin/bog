@@ -21,7 +21,7 @@ GetOptions(
 die 'Dimension must be a number!' unless $dimension > 0;
 
 my @board;
-my $minimum_word_length = 4;
+my $minimum_word_length = 5;
 my %solution_words;
 my %dictionary;
 
