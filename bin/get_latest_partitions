@@ -1,0 +1,84 @@
+#!/usr/bin/env perl
+
+use warnings;
+use strict;
+
+use Getopt::Long;
+my $verbose = 0;
+my $date;
+my $only_dates;
+
+GetOptions(
+    'date=s'     => \$date,
+    'only-dates' => \$only_dates,
+    'verbose'    => \$verbose,
+);
+
+my $s3root = shift;
+$s3root =~ s{^(?!s3://)}{s3://};
+$s3root =~ s{(?<!/)$}{/};
+
+if($date) {
+    process_date($date);
+}
+else{
+    do_latest();
+}
+
+sub process_date {
+    my $date = shift;
+
+    open LSOUT, "aws s3 ls $s3root | " or die "Could not open $s3root: $!";
+
+    while(<LSOUT>) {
+        chomp;
+
+        next unless m{PRE\s*([\w\-]+)/};
+        my $dir = $1;
+
+        my $command = "aws s3 ls ${s3root}${dir}/dt=$date/";
+        print "$command\n" if $verbose;
+        my $object_out = `$command`;
+
+        if($object_out) {
+            print "$object_out";
+        }
+        else {
+            print "$dir: no partition for this date.\n";
+        }
+    }
+
+    close LSOUT;
+}
+
+sub do_latest {
+    open LSOUT, "aws s3 ls $s3root | " or die "Could not open $s3root: $!";
+
+    while(<LSOUT>) {
+        chomp;
+
+        next unless m{PRE\s*([\w\-]+/)};
+        my $dir = $1;
+
+        my $command = "aws s3 ls ${s3root}${dir} | grep dt | tail -n -1";
+        print "$command\n" if $verbose;
+        my $object_out = `$command`;
+
+        if($object_out =~ m{(dt=([\d\-]+)/)}) {
+            if($only_dates) {
+                print "$dir: $2\n";
+                next;
+            }
+            else {
+                my $dir_command = "aws s3 ls ${s3root}${dir}${1}";
+                my $file_line = `$dir_command`;
+                print "$dir: $file_line";
+            }
+        }
+        else {
+            print "$dir: something went wrong\n";
+        }
+    }
+
+    close LSOUT;
+}
