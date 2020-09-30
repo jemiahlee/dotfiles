@@ -1,6 +1,10 @@
 OS=`uname -s`
 source ~/.bash_profile_includes/${OS}/paths.sh
 
+for file in ~/.bash_profile_includes/aliases.sh ~/.bash_profile_includes/${OS}/aliases.sh; do
+  [[ -r $file ]] && source $file
+done
+
 # Additions to bash should be placed in $HOME/.bash_profile_includes
 # with a .sh extension if they are platform independent
 
