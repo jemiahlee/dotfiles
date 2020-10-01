@@ -37,6 +37,7 @@
                            This is {{column1}}'s value and {{column2}}'s.
 
        --verbose           Print files separated by spaces instead of newlines.
+       --verify-only       Check file to see if there is a column count mismatch.
 
     One note about this script's behavior: it is not particularly intelligent
     about embedded delimiters in the CSV. It looks only for quoted portions of
@@ -66,9 +67,10 @@ my $order_field_numeric_count = 0;
 my $sum_field;
 my $template;
 my $verbose;
+my $verify_only;
 
 GetOptions(
-    'column-to-print=s' => sub {
+    'column=s'          => sub {
                                $column_to_print = $_[1];
                                $column_for_operation = $_[1];
                            },
@@ -87,6 +89,7 @@ GetOptions(
                            },
     'template=s'        => \$template,
     'verbose'           => \$verbose,
+    'verify-only'       => \$verify_only,
 );
 
 $keep_header_line = 1 if $order_field;
@@ -164,6 +167,8 @@ while(<>){
         }
         @_{@headers} = @record_fields;
     }
+
+    next if $verify_only;
 
     @_ = @record_fields;
 
