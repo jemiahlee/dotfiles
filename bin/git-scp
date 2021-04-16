@@ -92,7 +92,10 @@ print "\$GIT_REPO_ROOT is $GIT_REPO_ROOT\n" if $verbose;
 print "\$remote_base_directory is $remote_base_directory\n" if $verbose;
 print "\$current_dir is $current_dir\n" if $verbose;
 
-my $TRANSFER_TO_URL = qq{$hostname:} . join '/', $remote_base_directory, $GIT_REPO_ROOT;
+my $cwd = $current_dir;
+$cwd =~ s{$GIT_REPO_ROOT/}{};
+
+my $TRANSFER_TO_URL = qq{$hostname:} . join '/', $remote_base_directory, $GIT_REPO_ROOT, $cwd;
 $TRANSFER_TO_URL = "$username\@$TRANSFER_TO_URL" if $username;
 print "\$TRANSFER_TO_URL is $TRANSFER_TO_URL\n" if $verbose;
 
