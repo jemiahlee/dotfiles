@@ -66,6 +66,7 @@ my $order_field;
 my $order_field_numeric_count = 0;
 my $sum_field;
 my $template;
+my $template_content;
 my $verbose;
 my $verify_only;
 
@@ -88,6 +89,7 @@ GetOptions(
                                $column_for_operation = $_[1];
                            },
     'template=s'        => \$template,
+    'template-str=s'    => \$template_content,
     'verbose'           => \$verbose,
     'verify-only'       => \$verify_only,
 );
@@ -103,7 +105,6 @@ my $record_count = 0;
 my @headers;
 my $field_count;
 my %ordered_data;
-my $template_content;
 
 LINE:
 while(<>){
@@ -130,8 +131,11 @@ while(<>){
             @headers = map { "field$_" } 1..$field_count;
         }
 
-        if ($template) {
+        if ($template ) {
             read_template();
+        }
+
+        if($template_content){
             validate_template();
         }
 
@@ -182,9 +186,9 @@ while(<>){
         push @{$ordered_data{$_{$column_for_operation}}}, $_;
         $order_field_numeric_count++ if $_{$column_for_operation} =~ /^\d+\.?\d*$/;
     }
-    elsif( $template ) {
+    elsif( $template_content ) {
         no strict 'refs';
-        print "\n" unless $record_count < 2;
+        # print "\n" unless $record_count < 2;
         my $template = $template_content;
         $template =~ s/\{\{(.*?)\}\}/$_{$1}/g;
         $template =~ s/(?<!\n)\z/\n/;
