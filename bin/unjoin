@@ -1,0 +1,20 @@
+#!/usr/bin/env perl
+
+use warnings;
+use strict;
+
+use Getopt::Long;
+
+my($delimiter, $verbose);
+$delimiter = q/\s*,\s*/;
+
+GetOptions(
+    'delimiter=s' => \$delimiter,
+    'verbose'     => \$verbose,
+);
+
+while(<>){
+    chomp;
+
+    print join("\n", split(/$delimiter/)), "\n";
+}
