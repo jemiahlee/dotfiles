@@ -45,7 +45,21 @@ Pro + some ligatures.
 
 ### VIM Configuration
 
-The current version uses !(https://github.com/junegunn/vim-plug)[vim-plug]
+The current version uses [vim-plug](https://github.com/junegunn/vim-plug)
 to manage VIM plugins. During installation, it will briefly open VIM
 to run the plugin installation process. If you'd like to edit the list
 of plugins, they are at the bottom of the `.vimrc` file.
+
+This process also assumes you have a valid SSH token for authenticating to
+github using SSH.
+
+#### Updating the VIM config
+
+After initial installation, at any time if you would like to update the vim
+configuration to the latest versions of the plugins, you just need to run:
+
+```
+:PlugUpdate
+```
+
+from within VIM, and it will run the process to update all of the plugins.
