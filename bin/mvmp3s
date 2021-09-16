@@ -1,0 +1,14 @@
+#!/bin/bash
+
+mp3capitalize *.flac
+mp3capitalize *.mp3
+
+DIR=$1
+
+
+mkdir -p ~/Dropbox/Music/mp3/$DIR
+mv -n *.mp3 ~/Dropbox/Music/mp3/$DIR
+
+mkdir -p ~/Dropbox/Music/flac/$DIR
+mv -n *.flac ~/Dropbox/Music/flac/$DIR
+
