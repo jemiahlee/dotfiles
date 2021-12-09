@@ -125,7 +125,11 @@ install_files "${START_PWD}"/dotfiles "${HOME}" true
 
 if [[ -d "${HOME}/Google Drive/dotfiles" ]]; then
   PRIVATE_FILE_PATH="${HOME}/Google Drive/dotfiles"
+elif [[ -d "${HOME}/Google Drive/My Drive/dotfiles" ]]; then
+  PRIVATE_FILE_PATH="${HOME}/Google Drive/My Drive/dotfiles"
+fi
 
+if [[ -d "$PRIVATE_FILE_PATH" ]]; then
   install_files "${PRIVATE_FILE_PATH}"/bin "${HOME}"/bin
   install_files "${PRIVATE_FILE_PATH}"/ssh "${HOME}/.ssh"
   install_files "${PRIVATE_FILE_PATH}"/dotfiles "${HOME}" true
