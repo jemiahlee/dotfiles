@@ -167,7 +167,7 @@ sub process_branch {
         print "Skipping regex miss: $branch\n" if $verbose;
         return;
     }
-    elsif( %ALLOWLIST and not $ALLOWEDLIST{$branch}) {
+    elsif( %ALLOWEDLIST and not $ALLOWEDLIST{$branch}) {
         print "Skipping branch $branch as it is not in the allowedlist\n" if $verbose;
         return;
     }
