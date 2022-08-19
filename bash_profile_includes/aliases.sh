@@ -22,6 +22,7 @@ alias fum="git fetch upstream master"
 alias fo="git fetch origin"
 alias fom="git fetch origin master"
 alias ffom="git fetch origin master && git merge --ff-only origin/master 1> /dev/null"
+alias ffo='export BRANCH=$(current_git_branch | strip); git fetch origin $BRANCH && git merge --ff-only origin/${BRANCH} 1> /dev/null'
 alias gfom="git fetch origin master"
 
 alias ll="ls -lah"
