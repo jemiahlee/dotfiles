@@ -1,4 +1,7 @@
 function current_git_branch {
+    if [ -n "${TMUX}" ]; then
+        eval "$(tmux show-environment -s)"
+    fi
     echo `git branch --no-color 2> /dev/null | perl -n -e 'next unless /^\s*\*\s*(?:\[\d+\]\s*)?(.*)/; print "[$1]"; exit;'`
 }
 
