@@ -1,0 +1,13 @@
+#!/usr/bin/env perl
+
+use warnings;
+use strict;
+
+foreach my $filename (@ARGV) {
+  next unless $filename =~ m{(?:.*/)?([^.]*)\.?\w*};
+
+  my $basename = $1;
+
+  `enscript -G -p - $filename > /tmp/$basename.ps`;
+  `ps2pdf /tmp/$basename.ps $basename.pdf`;
+}
