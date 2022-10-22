@@ -2,7 +2,7 @@
 
 =head1 NAME
 
-    git_scp - copy modified/added files from local machine to remote machine
+    git-scp - copy modified/added files from local machine to remote machine
 
 =head1 SYNOPSIS
 
