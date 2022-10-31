@@ -44,6 +44,7 @@ To set this script up, it will be useful for you to set two environment variable
 
     GIT_SCP_HOSTNAME
     GIT_SCP_USERNAME
+    GIT_SCP_DELETION
 
 =cut
 
@@ -63,6 +64,7 @@ my $GIT_REPO_ROOT = get_relative_git_repo_root();
 
 my $hostname = $ENV{GIT_SCP_HOSTNAME};
 my $username = $ENV{GIT_SCP_USERNAME} || $ENV{USER};
+my $CAN_DELETE = (defined($ENV{GIT_SCP_DELETION}) and $ENV{GIT_SCP_DELETION} eq 'true') ? 1 : 0;
 my $ssh_options = $ENV{GIT_SCP_SSH_OPTIONS} || '';
 my $remote_base_directory = $ENV{GIT_SCP_REMOTE_BASE_DIR} || qq{/home/$username};
 
@@ -198,7 +200,7 @@ sub transfer_file {
     return unless file_is_in_matchlist($filename);
 
     my($execute, $execution_comment);
-    if ( $deletion ) {
+    if ( $deletion and $CAN_DELETE ) {
         $execute = qq{ssh $ssh_options $hostname rm $TRANSFER_TO_URL/$filename};
         $execution_comment = "DELETING $hostname:$remote_base_directory/$filename";
     }
