@@ -200,9 +200,15 @@ sub transfer_file {
     return unless file_is_in_matchlist($filename);
 
     my($execute, $execution_comment);
-    if ( $deletion and $CAN_DELETE ) {
-        $execute = qq{ssh $ssh_options $hostname rm $TRANSFER_TO_URL/$filename};
-        $execution_comment = "DELETING $hostname:$remote_base_directory/$filename";
+    if ( $deletion ) {
+        if( $CAN_DELETE ){
+            $execute = qq{ssh $ssh_options $hostname rm $TRANSFER_TO_URL/$filename};
+            $execution_comment = "DELETING $hostname:$remote_base_directory/$filename";
+        }
+        else {
+            print "DELETION TURNED OFF: not attempting to remove $hostname:$remote_base_directory/$filename\n";
+            return;
+        }
     }
     else {
         my $dirname = derive_remote_directory($filename);
