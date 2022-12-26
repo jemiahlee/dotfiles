@@ -5,10 +5,28 @@ mp3capitalize *.mp3
 
 DIR=$1
 
+if ls -l | grep -q '\.mp3$'; then
 
-mkdir -p ~/Dropbox/Music/mp3/$DIR
-mv -n *.mp3 ~/Dropbox/Music/mp3/$DIR
+  if [[ -d  ~/Dropbox/Music/mp3/$DIR ]]; then
+    echo "Deleting the files in directory ~/Dropbox/Music/mp3/$DIR"
+    rm -rf ~/Dropbox/Music/mp3/$DIR
+  fi
 
-mkdir -p ~/Dropbox/Music/flac/$DIR
-mv -n *.flac ~/Dropbox/Music/flac/$DIR
+  echo "creating directory ~/Dropbox/Music/mp3/$DIR"
+  mkdir -p ~/Dropbox/Music/mp3/$DIR
 
+  mv *.mp3 ~/Dropbox/Music/mp3/$DIR
+
+fi
+
+if  ls -l | grep -q '\.flac$'; then
+  if [[ -d  ~/Dropbox/Music/flac/$DIR ]]; then
+    echo "Deleting the original directory ~/Dropbox/Music/flac/$DIR"
+    # rm -rf ~/Dropbox/Music/flac/$DIR
+  fi
+
+  echo "creating directory ~/Dropbox/Music/flac/$DIR"
+  mkdir -p ~/Dropbox/Music/flac/$DIR
+
+  mv *.flac ~/Dropbox/Music/flac/$DIR
+fi
