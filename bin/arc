@@ -1,13 +1,3 @@
 #!/bin/bash
 
-source .venv/bin/activate
-pip install -r requirements/lint.txt
-
-START=`date`
-echo "Starting arc command at ${START}"
-/Library/Application\ Support/Pinterest/CPE/pkgs/arcanist/bin/arc $*
-
-END=`date`
-echo "arc command finished at ${END}"
-
-deactivate
+arc lint && arc $*
