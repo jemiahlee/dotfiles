@@ -2,6 +2,7 @@
 
 use warnings;
 use strict;
+use Cwd qw/cwd/;
 use Getopt::Long;
 
 
@@ -14,6 +15,17 @@ GetOptions(
 
 my $DROPBOX_BASE_DIR = qq{$ENV{HOME}/Dropbox/Music};
 my $dirname = shift;
+
+unless($dirname) {
+    my $cwd = cwd();
+    die "Not in a Disc folder!" unless $cwd =~ m{([^/]+/[^/]+)/Disc \d+};
+
+    $dirname = $1;
+    $dirname =~ s/^\s+|\s+$//g;
+    $dirname =~ s/ +/_/g;
+    $dirname =~ s/'//g;
+    print "Using '$dirname' as the directory name.\n";
+}
 
 unless($dry_run) {
   `mp3capitalize *.flac`;
@@ -32,12 +44,12 @@ foreach my $type (qw/mp3 flac/) {
   print "Found filenames: @files (type $type)\n" if $verbose or $dry_run;
 
   my $to_dir = join(q{/}, $DROPBOX_BASE_DIR, $type, $dirname);
+  find_and_delete_files_with_same_prefix($to_dir, @files);
+
   print "Ensuring destination directory $to_dir exists...\n" if $verbose or $dry_run;
   `mkdir -p $to_dir` unless $dry_run;
 
-  find_and_delete_files_with_same_prefix($to_dir, @files);
-
-  foreach my $file (@files) {
+  foreach my $file (sort @files) {
     unless($dry_run) {
       print "Moving $file to $to_dir/$file\n";
       rename $file, "$to_dir/$file";
@@ -63,10 +75,11 @@ sub find_and_delete_files_with_same_prefix {
     print "Deleting $to_dir/* since there are numbers at the starts of the filenames\n" unless $dry_run;
     `rm -f $to_dir/*` unless $dry_run;
   }
+
   if(grep /^Disc_/, @_) {
     my %prefixes;
     foreach my $filename (@_) {
-      next unless /^(Disc_\d+)/;
+      next unless $filename =~ /^(Disc_\d+)/;
       $prefixes{$1} = 1;
     }
 
