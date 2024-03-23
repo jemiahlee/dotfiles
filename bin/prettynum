@@ -29,7 +29,6 @@ sub pretty_print {
     my $num = shift;
 
     my($whole, $mantissa) = split /\./, $num;
-    $mantissa ||= '';
 
     my($rev_whole) = string_reverse($whole);
     $rev_whole =~ s/(\d{3})(?=\d)/$1,/g;
@@ -37,9 +36,11 @@ sub pretty_print {
     my($formatted) = string_reverse($rev_whole);
 
     if($mantissa) {
-        $mantissa = $mantissa / 100;
-        $mantissa = int($mantissa);
-        $formatted .= ".$mantissa";
+        $mantissa = ".$mantissa" * 100;
+        print "$mantissa\n";
+        $mantissa = sprintf(".%02d", int($mantissa));
+        print "$mantissa\n";
+        $formatted .= $mantissa;
     }
 
     return $formatted;
