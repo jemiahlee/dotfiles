@@ -1,0 +1,56 @@
+#!/usr/bin/env perl
+
+use warnings;
+use strict;
+
+while(<>) {
+  chomp;
+
+  my(@parts);
+  @parts = split /\b(\d+(?:\.\d*)?)/;
+
+  @parts = map {is_odd($_->[0]) ? pretty_print($_->[1]) : $_->[1] } map {[$_, $parts[$_]]} 0..$#parts;
+
+  print foreach @parts;
+  print "\n";
+}
+
+
+sub is_odd {
+    my $num = shift;
+
+    return 0 if $num < 1;
+    return 0 if $num % 2 == 0;
+    return 1;
+}
+
+
+sub pretty_print {
+    my $num = shift;
+
+    my($whole, $mantissa) = split /\./, $num;
+    $mantissa ||= '';
+
+    my($rev_whole) = string_reverse($whole);
+    $rev_whole =~ s/(\d{3})(?=\d)/$1,/g;
+
+    my($formatted) = string_reverse($rev_whole);
+
+    if($mantissa) {
+        $mantissa = $mantissa / 100;
+        $mantissa = int($mantissa);
+        $formatted .= ".$mantissa";
+    }
+
+    return $formatted;
+}
+
+sub string_reverse {
+    my @str = split //, shift;
+
+    for(my $i = 0; $i < scalar(@str) / 2; $i++) {
+        ($str[$i], $str[-($i+1)]) = ($str[-($i+1)], $str[$i]);
+    }
+
+    return join('', @str);
+}
