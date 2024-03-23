@@ -4,7 +4,6 @@ use warnings;
 use strict;
 
 use Getopt::Long;
-use List::Util qw/any/;
 use Scalar::Util qw/openhandle/;
 
 my($verbose, $delimiter);
@@ -21,7 +20,7 @@ foreach my $argv (@ARGV) {
     push @filehandles, $fh;
 }
 
-while(any {openhandle($_)} @filehandles) {
+while(grep {openhandle($_)} @filehandles) {
     my @outputs;
 
     foreach my $fh (@filehandles) {
@@ -30,7 +29,7 @@ while(any {openhandle($_)} @filehandles) {
             next;
         }
 
-        my $readline = <>;
+        my $readline = <$fh>;
 
         unless(defined $readline) {
             $fh->close();
@@ -42,5 +41,5 @@ while(any {openhandle($_)} @filehandles) {
         push @outputs, $readline;
     }
 
-    print(join($delimiter, @outputs), "\n");
+    print(join($delimiter, @outputs), "\n") if grep {$_} @outputs;
 }
