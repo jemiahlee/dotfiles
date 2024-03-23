@@ -36,7 +36,7 @@ sub pretty_print {
     my($formatted) = string_reverse($rev_whole);
 
     if($mantissa) {
-        $mantissa = ".$mantissa" * 100;
+        $mantissa = substr($mantissa, 0, 3) / 10;
         $mantissa = sprintf(".%02d", int($mantissa));
         $formatted .= $mantissa;
     }
