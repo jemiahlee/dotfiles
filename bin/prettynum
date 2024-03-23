@@ -37,9 +37,7 @@ sub pretty_print {
 
     if($mantissa) {
         $mantissa = ".$mantissa" * 100;
-        print "$mantissa\n";
         $mantissa = sprintf(".%02d", int($mantissa));
-        print "$mantissa\n";
         $formatted .= $mantissa;
     }
 
