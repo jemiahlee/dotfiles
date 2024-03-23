@@ -31,6 +31,13 @@ while(any {openhandle($_)} @filehandles) {
         }
 
         my $readline = <>;
+
+        unless(defined $readline) {
+            $fh->close();
+            push @outputs, '';
+            next;
+        }
+
         chomp $readline;
         push @outputs, $readline;
     }
