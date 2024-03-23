@@ -4,6 +4,8 @@ use warnings;
 use strict;
 
 use Getopt::Long;
+use List::Util qw/any/;
+use Scalar::Util qw/openhandle/;
 
 my($verbose, $delimiter);
 $delimiter = '';
@@ -13,29 +15,25 @@ GetOptions(
     'verbose'     => \$verbose,
 );
 
-unless( @ARGV == 2 ) {
-    print "only 2 filenames allowed!\n";
-    exit 1;
+my @filehandles;
+foreach my $argv (@ARGV) {
+    open my $fh, '<', $argv or die "Couldn't open $argv: $!";
+    push @filehandles, $fh;
 }
 
-open my $fh1, '<', $ARGV[0] or die "Couldn't open $ARGV[0]: $!";
-open my $fh2, '<', $ARGV[1] or die "Couldn't open $ARGV[1]: $!";
+while(any {openhandle($_)} @filehandles) {
+    my @outputs;
 
-my $line1;
-my $line2;
+    foreach my $fh (@filehandles) {
+        unless(openhandle($fh)) {
+            push @outputs, '';
+            next;
+        }
 
-while( $line1 = <$fh1> ) {
-    chomp $line1;
+        my $readline = <>;
+        chomp $readline;
+        push @outputs, $readline;
+    }
 
-    $line2 = (<$fh2> || '');
-    chomp $line2;
-
-    print join($delimiter, $line1, $line2), "\n";
+    print(join($delimiter, @outputs), "\n");
 }
-
-while( $line2 = <$fh2> ) {
-    print $delimiter, $line2;
-}
-
-close $fh2;
-close $fh1;
