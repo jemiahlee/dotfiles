@@ -115,13 +115,30 @@ else
   START_PWD=`dirname $0`
 fi
 
-echo "First, ensuring submodules are up-to-date."
-git submodule init
+if [[ -z "$GITHUB_USERNAME" && ! -d submodules/dotfiles-private ]]; then
+  echo <<EOTEXT
+Running the install process without a private repository. If you would like to take
+advantage of this additional functionality, you will need to create a shadow repository
+called "dotfiles-private" and tell this script (at least the first time on a particular
+machine) what your github username is.
 
-if [[ -n "$ENV{GITHUB_USERNAME}" ]]; then
-  git submodule add "git@github.com:$ENV{GITHUB_USERNAME}/dotfiles-private" submodules/dotfiles-private
+Please run this script using an environment variable to setup the submodule data:
+
+$ GITHUB_USERNAME=<your_github_username> ./install.sh
+
+EOTEXT
+
 fi
 
+git submodule init
+
+if [[ ! -z "${GITHUB_USERNAME}" ]]; then
+  PRIVATE_DOTFILES_GITHUB='git@github.com:'"${GITHUB_USERNAME}"'/dotfiles-private'
+  echo $PRIVATE_DOTFILES_GITHUB
+  git submodule add $PRIVATE_DOTFILES_GITHUB submodules/dotfiles-private
+fi
+
+echo "First, ensuring submodules are up-to-date."
 git submodule update --recursive
 
 link_bash_profile_includes "$START_PWD"
