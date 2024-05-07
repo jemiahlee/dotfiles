@@ -17,6 +17,22 @@ or Mac OSX, you should just be able to run:
 
 And it should do everything it does.
 
+## Private dotfile information
+
+There may be cases where you want to have private data used in your
+dotfiles that should not end up in a public repo on Github. In this
+case, the install script supports you supplying a `GITHUB_USERNAME`
+environment value; if supplied, it will fetch a repo from your Github
+account called `dotfiles-private` and then run installation scripts
+from that directory as well.
+
+This `dotfiles-private` repository should have the same structure as
+this repository, as the same code will be run from it.
+
+```
+GITHUB_USERNAME=jemiahlee ./install.sh
+```
+
 ### Google Drive configuration
 
 To allow me to have files that are private, and to allow you to override
