@@ -117,18 +117,18 @@ fi
 
 echo "First, ensuring submodules are up-to-date."
 git submodule init
+
+if [[ -n "$ENV{GITHUB_USERNAME}" ]]; then
+  git submodule add "git@github.com:$ENV{GITHUB_USERNAME}/dotfiles-private" submodules/dotfiles-private
+fi
+
 git submodule update --recursive
 
 link_bash_profile_includes "$START_PWD"
 install_files "${START_PWD}"/bin "${HOME}"/bin
 install_files "${START_PWD}"/dotfiles "${HOME}" true
 
-if [[ -d "${HOME}/Google Drive/dotfiles" ]]; then
-  PRIVATE_FILE_PATH="${HOME}/Google Drive/dotfiles"
-elif [[ -d "${HOME}/Google Drive/My Drive/dotfiles" ]]; then
-  PRIVATE_FILE_PATH="${HOME}/Google Drive/My Drive/dotfiles"
-fi
-
+PRIVATE_FILE_PATH="${START_PWD}/submodules/dotfiles-private"
 if [[ -d "$PRIVATE_FILE_PATH" ]]; then
   install_files "${PRIVATE_FILE_PATH}"/bin "${HOME}"/bin
   install_files "${PRIVATE_FILE_PATH}"/ssh "${HOME}/.ssh"
