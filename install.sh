@@ -115,29 +115,7 @@ else
   START_PWD=`dirname $0`
 fi
 
-if [[ -z "$GITHUB_USERNAME" && ! -d submodules/dotfiles-private ]]; then
-  echo <<EOTEXT
-Running the install process without a private repository. If you would like to take
-advantage of this additional functionality, you will need to create a shadow repository
-called "dotfiles-private" and tell this script (at least the first time on a particular
-machine) what your github username is.
-
-Please run this script using an environment variable to setup the submodule data:
-
-$ GITHUB_USERNAME=<your_github_username> ./install.sh
-
-EOTEXT
-
-fi
-
 git submodule init
-
-if [[ ! -z "${GITHUB_USERNAME}" ]]; then
-  PRIVATE_DOTFILES_GITHUB='git@github.com:'"${GITHUB_USERNAME}"'/dotfiles-private'
-  echo $PRIVATE_DOTFILES_GITHUB
-  git submodule add $PRIVATE_DOTFILES_GITHUB submodules/dotfiles-private
-fi
-
 echo "First, ensuring submodules are up-to-date."
 git submodule update --recursive
 
@@ -145,7 +123,7 @@ link_bash_profile_includes "$START_PWD"
 install_files "${START_PWD}"/bin "${HOME}"/bin
 install_files "${START_PWD}"/dotfiles "${HOME}" true
 
-PRIVATE_FILE_PATH="${START_PWD}/submodules/dotfiles-private"
+PRIVATE_FILE_PATH="${START_PWD}/../dotfiles-private"
 if [[ -d "$PRIVATE_FILE_PATH" ]]; then
   install_files "${PRIVATE_FILE_PATH}"/bin "${HOME}"/bin
   install_files "${PRIVATE_FILE_PATH}"/ssh "${HOME}/.ssh"
@@ -173,3 +151,16 @@ if [[ $1 != '--no-vim' ]]; then
   echo "Installing VIM plugins via vim-plug"
   vim -s "${START_PWD}/install/vim_startup_commands"
 fi
+
+if [[ ! -d submodules/dotfiles-private ]]; then
+  echo <<EOTEXT
+
+Ran the install process without a private repository. If you would like to take
+advantage of this additional functionality, you will need to have a "dotfiles-private"
+directory at the same place as this directory. Please see the README for more info.
+
+EOTEXT
+
+fi
+
+
