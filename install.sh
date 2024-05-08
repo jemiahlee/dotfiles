@@ -125,6 +125,8 @@ install_files "${START_PWD}"/dotfiles "${HOME}" true
 
 PRIVATE_FILE_PATH="${START_PWD}/../dotfiles-private"
 if [[ -d "$PRIVATE_FILE_PATH" ]]; then
+  DOTFILES_PATH=`basename ${START_PWD}`
+  PRIVATE_FILE_PATH=`echo $PRIVATE_FILE_PATH | ${START_PWD}/bin/s '\/'$DOTFILES_PATH'\/\.\.' ''`
   install_files "${PRIVATE_FILE_PATH}"/bin "${HOME}"/bin
   install_files "${PRIVATE_FILE_PATH}"/ssh "${HOME}/.ssh"
   install_files "${PRIVATE_FILE_PATH}"/dotfiles "${HOME}" true
@@ -152,9 +154,8 @@ if [[ $1 != '--no-vim' ]]; then
   vim -s "${START_PWD}/install/vim_startup_commands"
 fi
 
-if [[ ! -d submodules/dotfiles-private ]]; then
+if [[ ! -d "submodules/dotfiles-private" ]]; then
   echo <<EOTEXT
-
 Ran the install process without a private repository. If you would like to take
 advantage of this additional functionality, you will need to have a "dotfiles-private"
 directory at the same place as this directory. Please see the README for more info.
@@ -162,5 +163,3 @@ directory at the same place as this directory. Please see the README for more in
 EOTEXT
 
 fi
-
-
