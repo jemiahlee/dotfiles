@@ -21,7 +21,9 @@ find(\&wanted, $AUDIO_FILE_BASE_DIR);
 chdir $START_DIR;
 
 sub wanted {
-    return unless /(?:mp3|flac)$/;
+    return unless /(mp3|flac)$/;
+    my $extension = $1;
+
     return unless $File::Find::dir =~ m{.*/([^/]+)/([^/]+)/Disc (\d+)};
 
     chdir $File::Find::dir;
@@ -31,6 +33,8 @@ sub wanted {
 
     my $fixed_filename = fix_filename($_, $File::Find::name, $disc_number);
     print "Filename is now $fixed_filename\n";
+
+    move_file($artist, $album, $fixed_filename, $extension);
     exit;
 }
 
@@ -62,69 +66,29 @@ sub check_for_multiple_discs {
     return scalar(grep /Disc/, @files) > 1;
 }
 
-__DATA__
+sub move_file {
+    my($artist, $album, $filename, $extension) = @_;
 
+    my $dropbox_path = prepare_directory($artist, $album, $extension);
 
-unless($dry_run) {
-  `mp3capitalize *.flac`;
-  `mp3capitalize *.mp3`;
+    my $new_path = join '/', $full_path, $filename;
+    print "rename $filename, $new_path\n";
+    # rename $filename, $new_path unless $dry_run;
 }
 
-my @filenames_to_process = get_appropriate_filenames();
+sub prepare_directory {
+    my($artist, $album, $extension) = @_;
 
-foreach my $type (qw/mp3 flac/) {
-  my @files = grep /$type/, @filenames_to_process;
-  unless(@files) {
-    print "No files of type $type, skipping!\n" if $verbose or $dry_run;
-    next;
-  }
+    my $dropbox_path = qq{$DROPBOX_BASE_DIR/$extension/$artist/$album};
 
-  print "Found filenames: @files (type $type)\n" if $verbose or $dry_run;
+    if(-d $dropbox_path) {
+        print "$dropbox_path already exists, removing files older than today...\n";
 
-  my $to_dir = join(q{/}, $DROPBOX_BASE_DIR, $type, $dirname);
-  find_and_delete_files_with_same_prefix($to_dir, @files);
-
-  print "Ensuring destination directory $to_dir exists...\n" if $verbose or $dry_run;
-  `mkdir -p $to_dir` unless $dry_run;
-
-  foreach my $file (sort @files) {
-    unless($dry_run) {
-      print "Moving $file to $to_dir/$file\n";
-      rename $file, "$to_dir/$file";
-    }
-  }
-}
-
-sub get_appropriate_filenames {
-  opendir CURRENT_DIR, '.' or die "Couldn't open current directory: $!";
-  my @files = readdir CURRENT_DIR;
-  closedir CURRENT_DIR;
-
-  return grep /\.(?:mp3|flac)$/, @files;
-}
-
-sub find_and_delete_files_with_same_prefix {
-  my $to_dir = shift;
-
-  return unless -d $to_dir;
-
-  if(grep /^\d/, @_) {
-    print "Would delete $to_dir/* since there are numbers at the starts of the filenames\n" if $dry_run;
-    print "Deleting $to_dir/* since there are numbers at the starts of the filenames\n" unless $dry_run;
-    `rm -f $to_dir/*` unless $dry_run;
-  }
-
-  if(grep /^Disc_/, @_) {
-    my %prefixes;
-    foreach my $filename (@_) {
-      next unless $filename =~ /^(Disc_\d+)/;
-      $prefixes{$1} = 1;
+        #`rm -rf $dropbox_path` unless $dry_run;
     }
 
-    foreach my $prefix (keys %prefixes) {
-      print "Would delete $to_dir/$prefix* since there are discs at the starts of the filenames\n" if $dry_run;
-      print "Deleting $to_dir/$prefix* since there are discs at the starts of the filenames\n" unless $dry_run;
-      `rm -f $to_dir/$prefix*` unless $dry_run;
-    }
-  }
+    print "Making directory $dropbox_path\n";
+    # `mkdir -p $dropbox_path` unless $dry_run;
+
+    return $dropbox_path;
 }
