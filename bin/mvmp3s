@@ -3,9 +3,10 @@
 use warnings;
 use strict;
 use Cwd qw/cwd/;
+use File::Find;
 use Getopt::Long;
 
-
+my $START_DIR = cwd();
 my($verbose, $dry_run);
 
 GetOptions(
@@ -14,18 +15,55 @@ GetOptions(
 );
 
 my $DROPBOX_BASE_DIR = qq{$ENV{HOME}/Dropbox/Music};
-my $dirname = shift;
+my $AUDIO_FILE_BASE_DIR = qq{$ENV{HOME}/Music/Phile Audio/audio};
 
-unless($dirname) {
-    my $cwd = cwd();
-    die "Not in a Disc folder!" unless $cwd =~ m{([^/]+/[^/]+)/Disc \d+};
+find(\&wanted, $AUDIO_FILE_BASE_DIR);
+chdir $START_DIR;
 
-    $dirname = $1;
-    $dirname =~ s/^\s+|\s+$//g;
-    $dirname =~ s/ +/_/g;
-    $dirname =~ s/'//g;
-    print "Using '$dirname' as the directory name.\n";
+sub wanted {
+    return unless /(?:mp3|flac)$/;
+    return unless $File::Find::dir =~ m{.*/([^/]+)/([^/]+)/Disc (\d+)};
+
+    chdir $File::Find::dir;
+
+    my($artist, $album, $disc_number) = ($1, $2, $3);
+    print "$File::Find::name : $artist || $album || $disc_number\n";
+
+    my $fixed_filename = fix_filename($_, $File::Find::name, $disc_number);
+    print "Filename is now $fixed_filename\n";
+    exit;
 }
+
+sub fix_filename {
+    my($short_filename, $filename, $disc_number) = @_;
+
+    my $is_part_of_multi_disc = $disc_number > 1 || check_for_multiple_discs($filename);
+    print '     ', ($is_part_of_multi_disc ? 'is ' : 'is not '), "part of a multi-disc collection\n";
+
+    my $new_filename = $short_filename;
+    if($is_part_of_multi_disc) {
+        $new_filename =~ s{^}{/Disc_$disc_number-};
+        print "Would rename $short_filename to $new_filename\n";
+    }
+
+    my $cwd = cwd();
+    print qq{Running `mp3capitalize --bare-print --dry-run '$new_filename'` in $cwd\n};
+    `mp3capitalize --bare-print --dry-run '$new_filename'`;
+}
+
+sub check_for_multiple_discs {
+    my $filename = shift;
+
+    my @file_parts = split m{/Disc}, $filename;
+    opendir CURRENT_DIR, $file_parts[0] or die "Couldn't open directory $file_parts[0]: $!";
+    my @files = readdir CURRENT_DIR;
+    closedir CURRENT_DIR;
+
+    return scalar(grep /Disc/, @files) > 1;
+}
+
+__DATA__
+
 
 unless($dry_run) {
   `mp3capitalize *.flac`;
