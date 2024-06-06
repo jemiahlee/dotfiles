@@ -17,26 +17,37 @@ GetOptions(
 my $DROPBOX_BASE_DIR = qq{$ENV{HOME}/Dropbox/Music};
 my $AUDIO_FILE_BASE_DIR = qq{$ENV{HOME}/Music/Phile Audio/audio};
 
-find(\&wanted, $AUDIO_FILE_BASE_DIR);
+find(\&process_disc_directory, $AUDIO_FILE_BASE_DIR);
 chdir $START_DIR;
 
-sub wanted {
-    return unless /(mp3|flac)$/;
-    my $extension = $1;
+sub process_disc_directory {
+    return unless /Disc\s(\d+)$/;
+    my $disc_number = $1;
 
-    return unless $File::Find::dir =~ m{.*/([^/]+)/([^/]+)/Disc (\d+)};
+    return unless $File::Find::name =~ m{.*/([^/]+)/([^/]+)/Disc\s+\d+$};
+    my($artist, $album) = ($1, $2);
 
-    chdir $File::Find::dir;
+    $artist =~ s/\s+/_/g;
+    $album =~ s/\s+/_/g;
 
-    my($artist, $album, $disc_number) = ($1, $2, $3);
-    print "$File::Find::name : $artist || $album || $disc_number\n";
+    chdir $File::Find::name;
 
-    my $fixed_filename = fix_filename($_, $File::Find::name, $disc_number);
-    print "Filename is now $fixed_filename\n";
+    my $number_of_discs = how_many_discs($File::Find::dir);
+    my($music_files, $file_types) = find_music_files($File::Find::name);
+    print "$File::Find::name : $artist || $album || $disc_number/$number_of_discs || ", join(', ', @$file_types), "\n";
 
-    move_file($artist, $album, $fixed_filename, $extension);
-    exit;
+    foreach my $type (@$file_types) {
+        my $dropbox_path = prepare_directory($artist, $album, $type);
+        foreach my $filename (grep /[.]$type$/, @$music_files) {
+            print "Processing $filename to $dropbox_path\n";
+            my $fixed_filename = fix_filename($file_name, $number_of_discs > 1 ? $disc_number : 0);
+
+            print "Filename is now $fixed_filename\n";
+            move_file($filename, $dropbox_path);
+        }
+    }
 }
+
 
 sub fix_filename {
     my($short_filename, $filename, $disc_number) = @_;
@@ -55,15 +66,27 @@ sub fix_filename {
     `mp3capitalize --bare-print --dry-run '$new_filename'`;
 }
 
-sub check_for_multiple_discs {
-    my $filename = shift;
+sub how_many_discs {
+    my $album_directory = shift;
 
-    my @file_parts = split m{/Disc}, $filename;
-    opendir CURRENT_DIR, $file_parts[0] or die "Couldn't open directory $file_parts[0]: $!";
+    opendir CURRENT_DIR, $album_directory or die "Couldn't open directory $album_directory: $!";
     my @files = readdir CURRENT_DIR;
     closedir CURRENT_DIR;
 
-    return scalar(grep /Disc/, @files) > 1;
+    return scalar(grep /Disc/, @files);
+}
+
+sub find_music_files {
+    my $disc_directory = shift;
+
+    opendir CURRENT_DIR, $album_directory or die "Couldn't open directory $album_directory: $!";
+    my @music_files = readdir CURRENT_DIR;
+    closedir CURRENT_DIR;
+
+    my @music_files = grep /flac|mp3|ogg/, @music_files;
+    my @file_types = grep /flac|mp3|ogg/, map {(split /[.]/)[-1]} @music_files;
+
+    return \@music_files, \@file_types;
 }
 
 sub move_file {
@@ -79,12 +102,13 @@ sub move_file {
 sub prepare_directory {
     my($artist, $album, $extension) = @_;
 
+    die unless $artist and $album and $extension;
+
     my $dropbox_path = qq{$DROPBOX_BASE_DIR/$extension/$artist/$album};
 
     if(-d $dropbox_path) {
-        print "$dropbox_path already exists, removing files older than today...\n";
-
-        #`rm -rf $dropbox_path` unless $dry_run;
+        print "$dropbox_path already exists, deleting...\n";
+        `rm -rf $dropbox_path` unless $dry_run;
     }
 
     print "Making directory $dropbox_path\n";
