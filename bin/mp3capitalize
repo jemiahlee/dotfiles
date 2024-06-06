@@ -1,5 +1,14 @@
 #!/usr/bin/perl
 
+use Getopt::Long;
+
+my($bare_print, $dry_run);
+
+GetOptions(
+  'bare_print|bare-print' => \$bare_print,
+  'dry_run|dry-run|n' => \$dry_run,
+);
+
 foreach (@ARGV){
   next unless -f;
   $filename = $_;
@@ -18,6 +27,7 @@ foreach (@ARGV){
   s/'([DTSM]|Ll|Re|Ve)_/'\l$1_/g;
   s/_{2,}/_/g;
   s/_\././;
-  print "$filename => $_\n";
-  rename $filename, $_;
+  print "$filename => $_\n" unless $bare_print;
+  print "$_" if $bare_print;
+  rename $filename, $_ unless $dry_run;
 }
