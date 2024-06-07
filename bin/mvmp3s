@@ -4,6 +4,7 @@ use warnings;
 use strict;
 use Cwd qw/cwd/;
 use File::chdir;
+use File::Copy qw/move/;
 use File::Find;
 use File::Path qw/make_path/;
 use Getopt::Long;
@@ -18,85 +19,121 @@ GetOptions(
   'verbose'             => \$verbose,
 );
 
-$dry_run = 1;
-$verbose = 1;
+$verbose = 1; # Hard-coded for now for debugging purposes
 
 my $DROPBOX_BASE_DIR = qq{$ENV{HOME}/Dropbox/Music};
 my $AUDIO_FILE_BASE_DIR = qq{$ENV{HOME}/Music/Phile Audio/audio/test};
 
 my %created_dropbox_dirs;
 
-print "Starting from \$START_DIR of $START_DIR\n" if $verbose;
-find(\&process_disc_directory, $AUDIO_FILE_BASE_DIR);
-$CWD = '/Users/jeremiahlee';
+my @directories;
+find(\&wanted, $AUDIO_FILE_BASE_DIR);
 
-sub process_disc_directory {
-    return unless /Disc\s(\d+)$/;
-    my $disc_number = $1;
+@directories = sort {$a->{shortname} cmp $b->{shortname}} @directories;
+print "Will process directories in this order: \n\t", join("\n\t", map {$_->{name}} @directories), "\n" if $verbose and @directories;
 
-    return unless $File::Find::name =~ m{.*/([^/]+)/([^/]+)/Disc\s+\d+$};
-    my($artist, $album) = ($1, $2);
+foreach my $dir (@directories) {
+    process_disc_directory($dir);
+}
+
+$CWD = $START_DIR;
+
+
+sub wanted {
+    return unless -d;
+
+    return unless $File::Find::name =~ m{.*/([^/]+)/([^/]+)/Disc\s+(\d+)$};
+    my($artist, $album, $disc_number) = ($1, $2, $3);
+
+    $artist =~ s/[']/_/g;
+    $album =~ s/[']/_/g;
+
+    $artist =~ s/&/ and /g;
+    $album =~ s/&/ and /g;
 
     $artist =~ s/\s+/_/g;
     $album =~ s/\s+/_/g;
 
-    chdir $File::Find::name;
+    push(@directories, {
+        album       => $album,
+        artist      => $artist,
+        dir         => $File::Find::dir,
+        disc_number => $disc_number,
+        disc_count  => how_many_discs($File::Find::dir),
+        name        => $File::Find::name,
+        shortname   => $_,
+    });
+}
 
-    my $number_of_discs = how_many_discs($File::Find::dir);
-    my($music_files, $file_types) = find_music_files($File::Find::name);
-    print "$File::Find::name : $artist || $album || $disc_number/$number_of_discs || ",
+sub process_disc_directory {
+    my $dir = shift;
+
+    $CWD = $dir->{name};
+
+    my($music_files, $file_types) = find_music_files($dir->{name});
+    print "$dir->{name} : $dir->{artist} || $dir->{album} || $dir->{disc_number}/$dir->{disc_count} || ",
         join(', ', @$file_types), "\n" if $verbose;
 
     foreach my $type (@$file_types) {
-        my $dropbox_path = prepare_directory($artist, $album, $type);
+        my $dropbox_path = prepare_directory($dir->{artist}, $dir->{album}, $type);
         foreach my $filename (grep /[.]$type$/, @$music_files) {
             print "Processing $filename to $dropbox_path\n" if $verbose;
-            my $fixed_filename = fix_filename($filename, $disc_number, $number_of_discs);
+            my $fixed_filename = fix_filename($filename, $dir->{disc_number}, $dir->{disc_count});
 
             print "Filename is now $fixed_filename\n" if $verbose;
             move_file($fixed_filename, $dropbox_path);
+            print "\n" if $verbose;
         }
     }
 
-    remove_album_directory($artist, $album, $File::Find::name);
+    $CWD = $START_DIR;
+    print "Kicking off the process to remove $dir->{name}\n" if $verbose;
+    remove_album_directory($dir->{name});
 }
 
 sub remove_album_directory {
-    my($artist, $album, $full_path) = @_;
+    my($full_path) = @_;
 
-    my $max_directory_cleanout = 4;
+    my $max_directory_cleanout = 3;
     my $directory_path = $full_path;
     while($max_directory_cleanout-- > 0) {
         print qq{Looking to remove $directory_path...\n} if $verbose;
         opendir CURRENT_DIR, $directory_path or die "Couldn't open directory $directory_path: $!";
-        my @files = grep /^[.]+\w*/, readdir CURRENT_DIR;
+        my @files = grep /^[^.]/, readdir CURRENT_DIR;
         closedir CURRENT_DIR;
 
+        print qq{Found files: @files\n};
         last if @files;
 
         print qq{rm -rf $directory_path\n} if $verbose;
-        `rm -rf $directory_path` unless $dry_run;
+        `rm -rf '$directory_path'` unless $dry_run;
 
-        $directory_path =~ s{/$[^/]+$}{};
+        $directory_path =~ s{/[^/]+$}{};
     }
 }
 
 sub fix_filename {
-    my($short_filename, $disc_number, $number_of_discs) = @_;
+    my($filename, $disc_number, $number_of_discs) = @_;
 
     my $is_part_of_multi_disc = $number_of_discs > 1;
     print '     ', ($is_part_of_multi_disc ? 'is ' : 'is not '), "part of a multi-disc collection\n" if $verbose;
 
-    my $new_filename = $short_filename;
+    my $cwd = cwd();
+    my $command = q{mp3capitalize --bare-print } . ($dry_run ? q{--dry-run } : '') . qq{"$filename"};
+    print qq{Running `$command` in $cwd\n} if $verbose;
+    my $new_filename = `$command`;
+    print "Filename is now $new_filename\n" if $verbose;
+
     if($is_part_of_multi_disc) {
-        $new_filename =~ s{^}{/Disc_$disc_number-};
-        print "Would rename $short_filename to $new_filename\n" if $verbose;
+        my $disc_filename = $new_filename;
+        $disc_filename =~ s{^}{Disc_$disc_number-};
+        print "Would rename $new_filename to $disc_filename\n" if $verbose;
+        move($new_filename, $disc_filename) unless $dry_run;
+
+        $new_filename = $disc_filename;
     }
 
-    my $cwd = cwd();
-    my $command = q{mp3capitalize --bare-print } . ($dry_run ? q{--dry-run } : '') . qq{'$new_filename'};
-    print qq{Running `$command` in $cwd\n} if $verbose;
-    `$command`;
+    return $new_filename;
 }
 
 sub how_many_discs {
@@ -131,7 +168,7 @@ sub move_file {
 
     my $new_path = join '/', $dropbox_path, $filename;
     print "rename $filename, $new_path\n" if $verbose;
-    rename $filename, $new_path unless $dry_run;
+    move($filename, $new_path) unless $dry_run;
 }
 
 sub prepare_directory {
@@ -146,7 +183,8 @@ sub prepare_directory {
         print "$dropbox_path already exists, deleting...\n" if $verbose;
         `rm -rf $dropbox_path` unless $dry_run;
     }
-    elsif(not -d $dropbox_path) {
+
+    if(not -d $dropbox_path) {
         $created_dropbox_dirs{$dropbox_path}++;
 
         print "Making directory $dropbox_path\n" if $verbose;
