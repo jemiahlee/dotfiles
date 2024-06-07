@@ -3,22 +3,32 @@
 use warnings;
 use strict;
 use Cwd qw/cwd/;
+use File::chdir;
 use File::Find;
+use File::Path qw/make_path/;
 use Getopt::Long;
+use List::Util qw/uniq/;
 
 my $START_DIR = cwd();
-my($verbose, $dry_run);
+my($verbose, $dry_run, $no_dropbox_deletion);
 
 GetOptions(
-  'dry_run|n' => \$dry_run,
-  'verbose'   => \$verbose,
+  'dry_run|n'           => \$dry_run,
+  'no_dropbox_deletion' => \$no_dropbox_deletion,
+  'verbose'             => \$verbose,
 );
 
-my $DROPBOX_BASE_DIR = qq{$ENV{HOME}/Dropbox/Music};
-my $AUDIO_FILE_BASE_DIR = qq{$ENV{HOME}/Music/Phile Audio/audio};
+$dry_run = 1;
+$verbose = 1;
 
+my $DROPBOX_BASE_DIR = qq{$ENV{HOME}/Dropbox/Music};
+my $AUDIO_FILE_BASE_DIR = qq{$ENV{HOME}/Music/Phile Audio/audio/test};
+
+my %created_dropbox_dirs;
+
+print "Starting from \$START_DIR of $START_DIR\n" if $verbose;
 find(\&process_disc_directory, $AUDIO_FILE_BASE_DIR);
-chdir $START_DIR;
+$CWD = '/Users/jeremiahlee';
 
 sub process_disc_directory {
     return unless /Disc\s(\d+)$/;
@@ -34,85 +44,114 @@ sub process_disc_directory {
 
     my $number_of_discs = how_many_discs($File::Find::dir);
     my($music_files, $file_types) = find_music_files($File::Find::name);
-    print "$File::Find::name : $artist || $album || $disc_number/$number_of_discs || ", join(', ', @$file_types), "\n";
+    print "$File::Find::name : $artist || $album || $disc_number/$number_of_discs || ",
+        join(', ', @$file_types), "\n" if $verbose;
 
     foreach my $type (@$file_types) {
         my $dropbox_path = prepare_directory($artist, $album, $type);
         foreach my $filename (grep /[.]$type$/, @$music_files) {
-            print "Processing $filename to $dropbox_path\n";
-            my $fixed_filename = fix_filename($file_name, $number_of_discs > 1 ? $disc_number : 0);
+            print "Processing $filename to $dropbox_path\n" if $verbose;
+            my $fixed_filename = fix_filename($filename, $disc_number, $number_of_discs);
 
-            print "Filename is now $fixed_filename\n";
-            move_file($filename, $dropbox_path);
+            print "Filename is now $fixed_filename\n" if $verbose;
+            move_file($fixed_filename, $dropbox_path);
         }
+    }
+
+    remove_album_directory($artist, $album, $File::Find::name);
+}
+
+sub remove_album_directory {
+    my($artist, $album, $full_path) = @_;
+
+    my $max_directory_cleanout = 4;
+    my $directory_path = $full_path;
+    while($max_directory_cleanout-- > 0) {
+        print qq{Looking to remove $directory_path...\n} if $verbose;
+        opendir CURRENT_DIR, $directory_path or die "Couldn't open directory $directory_path: $!";
+        my @files = grep /^[.]+\w*/, readdir CURRENT_DIR;
+        closedir CURRENT_DIR;
+
+        last if @files;
+
+        print qq{rm -rf $directory_path\n} if $verbose;
+        `rm -rf $directory_path` unless $dry_run;
+
+        $directory_path =~ s{/$[^/]+$}{};
     }
 }
 
-
 sub fix_filename {
-    my($short_filename, $filename, $disc_number) = @_;
+    my($short_filename, $disc_number, $number_of_discs) = @_;
 
-    my $is_part_of_multi_disc = $disc_number > 1 || check_for_multiple_discs($filename);
-    print '     ', ($is_part_of_multi_disc ? 'is ' : 'is not '), "part of a multi-disc collection\n";
+    my $is_part_of_multi_disc = $number_of_discs > 1;
+    print '     ', ($is_part_of_multi_disc ? 'is ' : 'is not '), "part of a multi-disc collection\n" if $verbose;
 
     my $new_filename = $short_filename;
     if($is_part_of_multi_disc) {
         $new_filename =~ s{^}{/Disc_$disc_number-};
-        print "Would rename $short_filename to $new_filename\n";
+        print "Would rename $short_filename to $new_filename\n" if $verbose;
     }
 
     my $cwd = cwd();
-    print qq{Running `mp3capitalize --bare-print --dry-run '$new_filename'` in $cwd\n};
-    `mp3capitalize --bare-print --dry-run '$new_filename'`;
+    my $command = q{mp3capitalize --bare-print } . ($dry_run ? q{--dry-run } : '') . qq{'$new_filename'};
+    print qq{Running `$command` in $cwd\n} if $verbose;
+    `$command`;
 }
 
 sub how_many_discs {
     my $album_directory = shift;
 
+    print "Looking for how many discs in $album_directory\n" if $verbose;
+
     opendir CURRENT_DIR, $album_directory or die "Couldn't open directory $album_directory: $!";
     my @files = readdir CURRENT_DIR;
     closedir CURRENT_DIR;
 
-    return scalar(grep /Disc/, @files);
+    my $count = scalar(grep /Disc/, @files);
+    print "Found $count Disc directories among ", join(', ', @files), "\n" if $verbose;
+    return $count;
 }
 
 sub find_music_files {
     my $disc_directory = shift;
 
-    opendir CURRENT_DIR, $album_directory or die "Couldn't open directory $album_directory: $!";
+    opendir CURRENT_DIR, $disc_directory or die "Couldn't open directory $disc_directory: $!";
     my @music_files = readdir CURRENT_DIR;
     closedir CURRENT_DIR;
 
-    my @music_files = grep /flac|mp3|ogg/, @music_files;
-    my @file_types = grep /flac|mp3|ogg/, map {(split /[.]/)[-1]} @music_files;
+    @music_files = grep /flac|mp3|ogg/, @music_files;
+    my @file_types = uniq grep /flac|mp3|ogg/, map {(split /[.]/)[-1]} @music_files;
 
     return \@music_files, \@file_types;
 }
 
 sub move_file {
-    my($artist, $album, $filename, $extension) = @_;
+    my($filename, $dropbox_path) = @_;
 
-    my $dropbox_path = prepare_directory($artist, $album, $extension);
-
-    my $new_path = join '/', $full_path, $filename;
-    print "rename $filename, $new_path\n";
-    # rename $filename, $new_path unless $dry_run;
+    my $new_path = join '/', $dropbox_path, $filename;
+    print "rename $filename, $new_path\n" if $verbose;
+    rename $filename, $new_path unless $dry_run;
 }
 
 sub prepare_directory {
     my($artist, $album, $extension) = @_;
+    print "Preparing directory for $extension/$artist/$album\n";
 
     die unless $artist and $album and $extension;
 
     my $dropbox_path = qq{$DROPBOX_BASE_DIR/$extension/$artist/$album};
 
-    if(-d $dropbox_path) {
-        print "$dropbox_path already exists, deleting...\n";
+    if(-d $dropbox_path and not $created_dropbox_dirs{$dropbox_path} and not $no_dropbox_deletion) {
+        print "$dropbox_path already exists, deleting...\n" if $verbose;
         `rm -rf $dropbox_path` unless $dry_run;
     }
+    elsif(not -d $dropbox_path) {
+        $created_dropbox_dirs{$dropbox_path}++;
 
-    print "Making directory $dropbox_path\n";
-    # `mkdir -p $dropbox_path` unless $dry_run;
+        print "Making directory $dropbox_path\n" if $verbose;
+        make_path($dropbox_path) unless $dry_run;
+    }
 
     return $dropbox_path;
 }
