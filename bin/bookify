@@ -1,0 +1,24 @@
+#!/usr/bin/env perl
+
+use warnings;
+use strict;
+use File::Basename;
+
+my $start_filename = shift;
+my $start_basename = basename($start_filename);
+
+my $end_filename = shift;
+
+die "Doesn't look like a PDF!" unless $start_basename =~ s/\.pdf$//;
+die "Need an output filename!" unless $end_filename;
+
+print $start_basename, "\n";
+
+`pdf2ps $start_filename /tmp/$start_basename.ps`;
+`psbook /tmp/$start_basename.ps /tmp/${start_basename}_book.ps`;
+`psnup -n 2 /tmp/${start_basename}_book.ps /tmp/${start_basename}_2up.ps`;
+`ps2pdf /tmp/${start_basename}_2up.ps $end_filename`;
+
+for my $version ('', '_book', '_2up') {
+    unlink qq{/tmp/${start_basename}${version}.ps};
+}
