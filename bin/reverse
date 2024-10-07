@@ -6,4 +6,9 @@ while (<>) {
     unshift @lines, $_;
 }
 
+# the last line may not have a newline
+unless($lines[0] =~ /\n/) {
+    $lines[0] .= "\n";
+}
+
 print @lines;
