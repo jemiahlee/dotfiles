@@ -19,7 +19,7 @@ fi
 
 source $AGENT_FILE
 
-for file in /Users/"$USER"/.ssh/id_rsa
+for file in /Users/"$USER"/.ssh/id_{rsa,ed25519}
 do
 	present=`$SSH_KEY_LIST | /usr/bin/grep ${file}`
 
