@@ -19,12 +19,12 @@ fi
 
 source $AGENT_FILE
 
-for file in /Users/"$USER"/.ssh/id_{rsa,ed25519}
+for ssh_type in {rsa,ed25519}
 do
-	present=`$SSH_KEY_LIST | /usr/bin/grep ${file}`
+	present=`$SSH_KEY_LIST | /usr/bin/grep -i ${ssh_type}`
 
 	if [ -z "$present" ]; then
-		echo "Adding $file to the SSH keychain"
-		ssh-add $file
+		echo "Adding /Users/"$USER"/.ssh/id_$ssh_type to the SSH keychain"
+		ssh-add /Users/"$USER"/.ssh/id_$ssh_type
 	fi
 done
