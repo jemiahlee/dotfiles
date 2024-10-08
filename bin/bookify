@@ -6,6 +6,7 @@ use File::Basename;
 
 my $start_filename = shift;
 my $start_basename = basename($start_filename);
+$start_basename =~ s/\s+/_/g;
 
 my $end_filename = shift;
 
@@ -14,9 +15,16 @@ die "Need an output filename!" unless $end_filename;
 
 print $start_basename, "\n";
 
-`pdf2ps $start_filename /tmp/$start_basename.ps`;
+print "Converting '$start_filename' to PostScript...\n";
+`pdf2ps '$start_filename' /tmp/$start_basename.ps`;
+
+print "Converting file to book order...\n";
 `psbook /tmp/$start_basename.ps /tmp/${start_basename}_book.ps`;
+
+print "Converting file to 2-up file...\n";
 `psnup -n 2 /tmp/${start_basename}_book.ps /tmp/${start_basename}_2up.ps`;
+
+print "Converting file to PDF...\n";
 `ps2pdf /tmp/${start_basename}_2up.ps $end_filename`;
 
 for my $version ('', '_book', '_2up') {
