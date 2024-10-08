@@ -27,7 +27,7 @@ my $AUDIO_FILE_BASE_DIR = qq{$ENV{HOME}/Music/Phile Audio/audio/test};
 my %created_dropbox_dirs;
 
 my @directories;
-find(\&wanted, $AUDIO_FILE_BASE_DIR);
+find(\&aggregate_directories, $AUDIO_FILE_BASE_DIR);
 
 @directories = sort {$a->{shortname} cmp $b->{shortname}} @directories;
 print "Will process directories in this order: \n\t", join("\n\t", map {$_->{name}} @directories), "\n" if $verbose and @directories;
@@ -39,7 +39,7 @@ foreach my $dir (@directories) {
 $CWD = $START_DIR;
 
 
-sub wanted {
+sub aggregate_directories {
     return unless -d;
 
     return unless $File::Find::name =~ m{.*/([^/]+)/([^/]+)/Disc\s+(\d+)$};
@@ -116,7 +116,7 @@ sub fix_filename {
     my($filename, $disc_number, $number_of_discs) = @_;
 
     my $is_part_of_multi_disc = $number_of_discs > 1;
-    print '     ', ($is_part_of_multi_disc ? 'is ' : 'is not '), "part of a multi-disc collection\n" if $verbose;
+    print '     ', ($is_part_of_multi_disc ? 'is' : 'is not'), " part of a multi-disc collection\n" if $verbose;
 
     my $cwd = cwd();
     my $command = q{mp3capitalize --bare-print } . ($dry_run ? q{--dry-run } : '') . qq{"$filename"};
