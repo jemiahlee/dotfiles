@@ -130,6 +130,7 @@ if [[ -d "$PRIVATE_FILE_PATH" ]]; then
   install_files "${PRIVATE_FILE_PATH}"/bin "${HOME}"/bin
   install_files "${PRIVATE_FILE_PATH}"/ssh "${HOME}/.ssh"
   install_files "${PRIVATE_FILE_PATH}"/dotfiles "${HOME}" true
+  gpg --import ${PRIVATE_FILE_PATH}/gpg_key/keyfile
 fi
 
 echo
