@@ -1,5 +1,7 @@
 BIN=$(shell git rev-parse --show-toplevel)/bin
 
+.PHONY: test testfix virtualenv requirements
+
 virtualenv:
 	virtualenv venv
 

@@ -27,11 +27,16 @@ GetOptions(
 
 my $sum = 0;
 
-if( @ARGV ){
+if( scalar(@ARGV) > 1 ){
     map { $sum += $_ } @ARGV;
 }
 else {
-    $sum += $_ while <>;
+    while(<>) {
+        next unless /^\d/;
+
+        chomp;
+        $sum += $_;
+    }
 }
 
 print $sum, "\n";
