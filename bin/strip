@@ -20,11 +20,19 @@ use warnings;
 use Getopt::Long;
 use Pod::Usage qw/pod2usage/;
 
+my $numeric = 0;
+
 GetOptions(
-    'help|?'      => sub { pod2usage() },
+    'help|?' => sub { pod2usage() },
+    'numeric'=> \$numeric,
 );
 
 while(<>) {
-    s{^[[:punct:]\s]*|[[:punct:]\s]*$}{}g;
+    if($numeric) {
+        s{^((?![+-])[[:punct:]\s])*|[[:punct:]\s]*$}{}g;
+    }
+    else {
+        s{^[[:punct:]\s]*|[[:punct:]\s]*$}{}g;
+    }
     print "$_\n";
 }
