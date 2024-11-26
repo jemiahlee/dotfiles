@@ -6,13 +6,19 @@ use strict;
 while(<>) {
   chomp;
 
+  my $mantissa = '';
+  if(/(\.\d*)$/) {
+      $mantissa = $1;
+      s/$mantissa$//;
+  }
+
   my(@parts);
-  @parts = split /\b(\d+(?:\.\d*)?)/;
+  @parts = split /\b(\d+)/;
 
   @parts = map {is_odd($_->[0]) ? pretty_print($_->[1]) : $_->[1] } map {[$_, $parts[$_]]} 0..$#parts;
 
   print foreach @parts;
-  print "\n";
+  print "$mantissa\n";
 }
 
 
