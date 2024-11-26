@@ -1,0 +1,36 @@
+#!/usr/bin/env perl
+
+=head1 NAME
+
+    countup - count from one integer value to another
+
+=head1 SYNOPSIS
+
+    countup <num1> <num2>
+
+    This script will generate a list of numbers, one per line, starting
+    from the first value provided, ending on the second number provided.
+
+=cut
+
+
+use strict;
+use warnings;
+
+use Getopt::Long;
+use Pod::Usage qw/pod2usage/;
+
+GetOptions(
+    'help|?' => sub { pod2usage(); },
+);
+
+my($first, $second) = @ARGV;
+
+die "values must be numeric!" unless $first =~ /^\d+$/ and $second =~ /^\d+$/;
+die "first value must be zero or greater!" unless $first >= 0;
+die "first value must be less than the second!" unless $first < $second;
+
+my $current = $first;
+do {
+    print $current, "\n";
+} while ++$current <= $second;
