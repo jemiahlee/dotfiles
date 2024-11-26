@@ -32,6 +32,7 @@ if( scalar(@ARGV) > 1 ){
 }
 else {
     while(<>) {
+        s/,//g;
         next unless /^[-+]?(\d+)?(\.\d+)?$/;
         next unless $1 or $2;
 
