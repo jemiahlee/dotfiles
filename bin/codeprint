@@ -8,6 +8,7 @@ foreach my $filename (@ARGV) {
 
   my $basename = $1;
 
-  `enscript -C -G -p - $filename > /tmp/$basename.ps`;
+  `enscript -C -G --media=Letter -p - $filename > /tmp/$basename.ps`;
   `ps2pdf /tmp/$basename.ps $basename.pdf`;
+  `lp -o sides=two-sided-long-edge -o media=Letter $basename.pdf`;
 }
