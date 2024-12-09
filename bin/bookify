@@ -1,32 +1,64 @@
 #!/usr/bin/env perl
 
+=head1 NAME
+
+    bookify - convert PDF into book signature
+
+=head1 SYNOPSIS
+
+    bookify [options] <filename>
+
+    This script will produce a PDF that is ready for printing 2-sided (flip on short edge)
+    so that a pamphlet or signature could be made.
+
+     Options:
+       --help    This help message.
+       --print   Print the output, do not just generate the output. This will use
+                 the "lp" command with the correct command-line options to print
+                 to the default printer.
+
+=cut
+
+
 use warnings;
 use strict;
 use File::Basename;
+use Getopt::Long;
+use Pod::Usage qw/pod2usage/;
 
-my $start_filename = shift;
-my $start_basename = basename($start_filename);
-$start_basename =~ s/\s+/_/g;
+my $print_on;
 
-my $end_filename = shift;
+GetOptions(
+    'help|?'      => sub { pod2usage() },
+    'print'       => \$print_on,
+);
 
-die "Doesn't look like a PDF!" unless $start_basename =~ s/\.pdf$//;
-die "Need an output filename!" unless $end_filename;
+for my $start_filename (@ARGV) {
+    my $start_basename = basename($start_filename);
+    $start_basename =~ s/\s+/_/g;
 
-print $start_basename, "\n";
+    my $end_filename = shift;
 
-print "Converting '$start_filename' to PostScript...\n";
-`pdf2ps '$start_filename' /tmp/$start_basename.ps`;
+    die "Doesn't look like a PDF!" unless $start_basename =~ s/\.pdf$//;
+    die "Need an output filename!" unless $end_filename;
 
-print "Converting file to book order...\n";
-`psbook /tmp/$start_basename.ps /tmp/${start_basename}_book.ps`;
+    print $start_basename, "\n";
 
-print "Converting file to 2-up file...\n";
-`psnup -n 2 /tmp/${start_basename}_book.ps /tmp/${start_basename}_2up.ps`;
+    print "Converting '$start_filename' to PostScript...\n";
+    `pdf2ps '$start_filename' /tmp/$start_basename.ps`;
 
-print "Converting file to PDF...\n";
-`ps2pdf /tmp/${start_basename}_2up.ps $end_filename`;
+    print "Converting file to book order...\n";
+    `psbook /tmp/$start_basename.ps /tmp/${start_basename}_book.ps`;
 
-for my $version ('', '_book', '_2up') {
-    unlink qq{/tmp/${start_basename}${version}.ps};
+    print "Converting file to 2-up file...\n";
+    `psnup -n 2 /tmp/${start_basename}_book.ps /tmp/${start_basename}_2up.ps`;
+
+    print "Converting file to PDF...\n";
+    `ps2pdf /tmp/${start_basename}_2up.ps $end_filename`;
+
+    for my $version ('', '_book', '_2up') {
+        unlink qq{/tmp/${start_basename}${version}.ps};
+    }
+
+    `lp -o sides=two-sided-long-edge -o media=Letter $end_filename` if $print_on;
 }
