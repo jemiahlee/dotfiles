@@ -1,4 +1,9 @@
 OS=`uname -s`
+
+if [[ -e "${HOME}/.bash_local_pre" ]]; then
+  source "${HOME}/.bash_local_pre"
+fi
+
 source ~/.bash_profile_includes/${OS}/paths.sh
 
 for file in ~/.bash_profile_includes/aliases.sh ~/.bash_profile_includes/${OS}/aliases.sh; do
@@ -36,6 +41,11 @@ for file in ~/.bash_profile_includes/${OS}/*.sh; do
   fi
 done
 
+
 if [[ -e "${HOME}/.bash_local" ]]; then
   source "${HOME}/.bash_local"
+fi
+
+if [[ -e "${HOME}/.bash_local_post" ]]; then
+  source "${HOME}/.bash_local_post"
 fi
