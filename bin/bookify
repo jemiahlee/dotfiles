@@ -30,16 +30,17 @@ my $print_on;
 
 GetOptions(
     'help|?'      => sub { pod2usage() },
-    'print'       => \$print_on,
+    'print'       => \$print_it,
 );
 
 for my $start_filename (@ARGV) {
     my $start_basename = basename($start_filename);
     $start_basename =~ s/\s+/_/g;
 
-    my $end_filename = shift;
+    my $end_filename = $start_basename;
+    $end_filename =~ s/(?<!bookified_)[.]pdf$/_bookified.pdf/;
 
-    die "Doesn't look like a PDF!" unless $start_basename =~ s/\.pdf$//;
+    die "$start_filename doesn't look like a PDF!" unless $start_basename =~ s/\.pdf$//;
     die "Need an output filename!" unless $end_filename;
 
     print $start_basename, "\n";
@@ -60,5 +61,5 @@ for my $start_filename (@ARGV) {
         unlink qq{/tmp/${start_basename}${version}.ps};
     }
 
-    `lp -o sides=two-sided-long-edge -o media=Letter $end_filename` if $print_on;
+    `lp -o sides=two-sided-long-edge -o media=Letter $end_filename` if $print_it;
 }
