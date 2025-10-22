@@ -1,0 +1,20 @@
+#!/usr/bin/env perl
+
+use warnings;
+use strict;
+
+my $NEWLINE = "\n";
+
+use Getopt::Long;
+GetOptions(
+    'n' => sub { $NEWLINE = '' },
+);
+
+my $hostname = `/usr/bin/hostname`;
+chomp $hostname;
+
+if($ENV{HOSTNAME}) {
+    $hostname = $ENV{HOSTNAME};
+}
+
+print qq{$hostname$NEWLINE};
