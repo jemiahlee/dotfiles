@@ -8,6 +8,6 @@ pushd ${SHORT_REPO_NAME}
 git init
 git config user.email jelee@easypost.com
 git remote add origin ${REPO_NAME}
-git fetch origin master
-git checkout -b master origin/master
+git fetch origin main
+git checkout -b main origin/main
 popd
