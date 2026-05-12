@@ -10,5 +10,9 @@ ORIGINAL_FILE=$2
 echo "${COMMAND} ${ORIGINAL_FILE} > ${TEMPFILE}"
 `${COMMAND} ${ORIGINAL_FILE} > ${TEMPFILE}`
 
-echo "mv ${TEMPFILE} ${ORIGINAL_FILE}"
-`mv ${TEMPFILE} ${ORIGINAL_FILE}`
+if [ $? -ne 0 ]; then
+  echo "Error running initial command, not copying over the original file"
+else
+  echo "mv ${TEMPFILE} ${ORIGINAL_FILE}"
+  `mv ${TEMPFILE} ${ORIGINAL_FILE}`
+fi
