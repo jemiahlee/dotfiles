@@ -22,7 +22,7 @@ GetOptions(
 $verbose = 1; # Hard-coded for now for debugging purposes
 
 my $DROPBOX_BASE_DIR = qq{$ENV{HOME}/Dropbox/Music};
-my $AUDIO_FILE_BASE_DIR = qq{$ENV{HOME}/Music/Phile Audio/audio/test};
+my $AUDIO_FILE_BASE_DIR = qq{$ENV{HOME}/Music/Phile Audio/audio};
 
 my %created_dropbox_dirs;
 
@@ -53,6 +53,9 @@ sub aggregate_directories {
 
     $artist =~ s/\s+/_/g;
     $album =~ s/\s+/_/g;
+
+    $artist =~ s/["'()]//g;
+    $album =~ s/["'()]//g;
 
     push(@directories, {
         album       => $album,
@@ -94,6 +97,8 @@ sub process_disc_directory {
 sub remove_album_directory {
     my($full_path) = @_;
 
+    my $cwd = cwd();
+
     my $max_directory_cleanout = 3;
     my $directory_path = $full_path;
     while($max_directory_cleanout-- > 0) {
@@ -105,8 +110,10 @@ sub remove_album_directory {
         print qq{Found files: @files\n};
         last if @files;
 
-        print qq{rm -rf $directory_path\n} if $verbose;
-        `rm -rf '$directory_path'` unless $dry_run;
+        print qq{unlinking $directory_path\n} if $verbose;
+
+        $directory_path =~ s/ /\\ /g;
+        unlink $directory_path unless $dry_run;
 
         $directory_path =~ s{/[^/]+$}{};
     }
