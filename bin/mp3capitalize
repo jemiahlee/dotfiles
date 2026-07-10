@@ -1,6 +1,11 @@
+#!/usr/bin/perl
+#
 use strict;
 use warnings;
+
+use Encode qw(decode_utf8 encode_utf8);
 use Getopt::Long;
+use Unicode::Normalize qw(NFD);
 
 my ($bare_print, $dry_run);
 GetOptions(
@@ -11,6 +16,15 @@ GetOptions(
 foreach (@ARGV) {
     next unless -f;
     my $orig = $_;
+
+    # deal with unicode conversions
+    $_ = decode_utf8($_);
+    $_ = NFD($_);           # decompose: é → e + combining accent
+    s/\pM//g;               # strip combining marks (the accents)
+    # $_ = encode_utf8($_);   # back to bytes... or just:
+    s/[^\x00-\x7F]//g;      # nuke anything non-ASCII that survived
+
+
     s/\s+/_/g;
     s/\(U\)//g;
     s/\[!\]//g;
@@ -25,7 +39,7 @@ foreach (@ARGV) {
     s/\.{2,}/./g;
     s/_+-_+/-/g;
     s/_\././g;
-    print "$orig => $_\n" unless $bare_print;
+    print "$orig => $_\n" unless $bare_print or $orig eq $_;
     print "$_"            if $bare_print;
     rename $orig, $_ unless $dry_run or $orig eq $_;
 }
