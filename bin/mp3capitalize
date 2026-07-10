@@ -1,33 +1,31 @@
-#!/usr/bin/perl
-
+use strict;
+use warnings;
 use Getopt::Long;
 
-my($bare_print, $dry_run);
-
+my ($bare_print, $dry_run);
 GetOptions(
-  'bare_print|bare-print' => \$bare_print,
-  'dry_run|dry-run|n' => \$dry_run,
+    'bare-print|bare_print' => \$bare_print,
+    'dry-run|dry_run|n'     => \$dry_run,
 );
 
-foreach (@ARGV){
-  next unless -f;
-  $filename = $_;
-  s/\s+/_/g;
-  s/_+/_/g;
-  s/_\./\./g;
-  s/_-_/-/g;
-  s/\(U\)//g;
-  s/\[!\]//g;
-  s/['()\[\]]//g;
-  s/'//g;
-  s/&/_and_/g;
-  s/(^|_|\b)(\w)/$1\u$2/g;
-  s/([^A-Za-z])([IiVv]+)([^A-Za-z])/$1\U$2\E$3/g;
-  s/\.([A-Z])(\w+)$/\.\l$1$2/;
-  s/'([DTSM]|Ll|Re|Ve)_/'\l$1_/g;
-  s/_{2,}/_/g;
-  s/_\././;
-  print "$filename => $_\n" unless $bare_print;
-  print "$_" if $bare_print;
-  rename $filename, $_ unless $dry_run;
+foreach (@ARGV) {
+    next unless -f;
+    my $orig = $_;
+    s/\s+/_/g;
+    s/\(U\)//g;
+    s/\[!\]//g;
+    s/[?'()\[\]]//g;
+    s/&/_and_/g;
+    s/%/_Percent_/g;
+    s/[\\:;*?"<>|]/_/g;
+    s/(^|_|\b)(\w)/$1\u$2/g;
+    s/([^A-Za-z])([IiVv]+)([^A-Za-z])/$1\U$2\E$3/g;
+    s/(\.\w+)$/lc($1)/e;
+    s/_{2,}/_/g;
+    s/\.{2,}/./g;
+    s/_+-_+/-/g;
+    s/_\././g;
+    print "$orig => $_\n" unless $bare_print;
+    print "$_"            if $bare_print;
+    rename $orig, $_ unless $dry_run or $orig eq $_;
 }
