@@ -31,6 +31,10 @@
                                  This is {{column1}}'s value and {{column2}}'s.
   
              --verbose           Print files separated by spaces instead of newlines.
+             --verify-only       Check file to see if there is a column count mismatch.
+             --without           This option may be used multiple times to choose indices or field
+                                 numbers from the file. The file will be reprinted *WITHOUT* those
+                                 columns.
   
           One note about this script's behavior: it is not particularly intelligent
           about embedded delimiters in the CSV. It looks only for quoted portions of
@@ -79,6 +83,10 @@
                                  This is {{column1}}'s value and {{column2}}'s.
   
              --verbose           Print files separated by spaces instead of newlines.
+             --verify-only       Check file to see if there is a column count mismatch.
+             --without           This option may be used multiple times to choose indices or field
+                                 numbers from the file. The file will be reprinted *WITHOUT* those
+                                 columns.
   
           One note about this script's behavior: it is not particularly intelligent
           about embedded delimiters in the CSV. It looks only for quoted portions of
