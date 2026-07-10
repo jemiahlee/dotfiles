@@ -2,5 +2,5 @@
 
 for hostname in $*
 do
-  perl -i -n -e "print unless m{^${hostname}};" ~/.ssh/known_hosts
+  perl -i -n -e "print unless m{^\S*${hostname}};" ~/.ssh/known_hosts
 done
