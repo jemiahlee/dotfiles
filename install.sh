@@ -122,6 +122,14 @@ git submodule update --recursive
 link_bash_profile_includes "$START_PWD"
 install_files "${START_PWD}"/bin "${HOME}"/bin
 install_files "${START_PWD}"/dotfiles "${HOME}" true
+install_files "${START_PWD}"/hammerspoon "${HOME}/.hammerspoon"
+
+pushd "$HOME/.hammerspoon"
+mkdir Spoons 2>/dev/null
+cd Spoons
+ln -s "${START_PWD}/submodules/hammerspoon-shiftit" "ShiftIt.spoon"
+ln -s "${START_PWD}/submodules/HS_SpoonsContrib/FocusFollowsMouse.spoon"
+popd
 
 PRIVATE_FILE_PATH="${START_PWD}/../dotfiles-private"
 if [[ -d "$PRIVATE_FILE_PATH" ]]; then
@@ -131,6 +139,14 @@ if [[ -d "$PRIVATE_FILE_PATH" ]]; then
   install_files "${PRIVATE_FILE_PATH}"/ssh "${HOME}/.ssh"
   install_files "${PRIVATE_FILE_PATH}"/dotfiles "${HOME}" true
   gpg --import ${PRIVATE_FILE_PATH}/gpg_key/keyfile
+else
+  echo <<EOTEXT
+Ran the install process without a private repository. If you would like to take
+advantage of this additional functionality, you will need to have a "dotfiles-private"
+directory at the same place as this directory. Please see the README for more info.
+
+EOTEXT
+
 fi
 
 echo
@@ -151,16 +167,8 @@ if [[ $1 != '--no-vim' ]]; then
   fi
   safe_link "${START_PWD}/submodules/vim-plug/plug.vim" "${HOME}/.vim/autoload/plug.vim"
 
+  # something about this is outputting crap the to screen at the end of the install
+  # TODO: figure this out and fix that
   echo "Installing VIM plugins via vim-plug"
   vim -s "${START_PWD}/install/vim_startup_commands"
-fi
-
-if [[ ! -d "submodules/dotfiles-private" ]]; then
-  echo <<EOTEXT
-Ran the install process without a private repository. If you would like to take
-advantage of this additional functionality, you will need to have a "dotfiles-private"
-directory at the same place as this directory. Please see the README for more info.
-
-EOTEXT
-
 fi

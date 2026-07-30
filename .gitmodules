@@ -4,3 +4,9 @@
 [submodule "submodules/vim-plug"]
 	path = submodules/vim-plug
 	url = https://github.com/junegunn/vim-plug
+[submodule "submodules/hammerspoon-shiftit"]
+	path = submodules/hammerspoon-shiftit
+	url = git@github.com:jemiahlee/hammerspoon-shiftit
+[submodule "submodules/HS_SpoonsContrib"]
+	path = submodules/HS_SpoonsContrib
+	url = git@github.com:jemiahlee/HS_SpoonsContrib.git
