@@ -19,7 +19,7 @@ fi
 
 source $AGENT_FILE
 
-for ssh_type in {rsa,ed25519}
+for ssh_type in ed25519
 do
 	present=`$SSH_KEY_LIST | /usr/bin/grep -i ${ssh_type}`
 
