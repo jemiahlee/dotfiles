@@ -1,0 +1,12 @@
+#!/usr/bin/perl
+
+use warnings;
+use strict;
+
+my $output = `git branch`;
+my @branches = split /\n/, $output;
+
+my $main = grep /\bmain\b/, @branches;
+my $master = grep /\bmaster\b/, @branches;
+
+print +($main ? "main" : "master"), "\n";
