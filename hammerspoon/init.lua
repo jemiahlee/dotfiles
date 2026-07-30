@@ -2,6 +2,10 @@ hs.loadSpoon("ShiftIt")
 spoon.ShiftIt:bindHotkeys({
   nextScreen = {{"ctrl", "cmd", "alt"}, "f"},
   previousScreen = {{"ctrl", "cmd", "alt"}, "d"},
+  upleft = {{"ctrl", "alt", "shift"}, "left"},
+  upright = {{"ctrl", "alt", "shift"}, "down"},
+  botleft = {{"ctrl", "alt", "shift"}, "up"},
+  botright = {{"ctrl", "alt", "shift"}, "right"},
 })
 spoon.ShiftIt:setWindowCyclingSizes({ 50, 33, 67 }, { 50 })
 spoon.ShiftIt:setLocationSize('left', { 60 }, { 100 })
