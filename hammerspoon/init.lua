@@ -1,7 +1,7 @@
 hs.loadSpoon("ShiftIt")
 spoon.ShiftIt:bindHotkeys({
-  nextScreen = {{"ctrl", "cmd", "alt"}, "f"},
-  previousScreen = {{"ctrl", "cmd", "alt"}, "d"},
+  nextScreen = {{"ctrl", "alt"}, "left"},
+  previousScreen = {{"ctrl", "alt"}, "right"},
   upleft = {{"ctrl", "alt", "shift"}, "left"},
   upright = {{"ctrl", "alt", "shift"}, "up"},
   botleft = {{"ctrl", "alt", "shift"}, "down"},
