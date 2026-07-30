@@ -3,8 +3,8 @@ spoon.ShiftIt:bindHotkeys({
   nextScreen = {{"ctrl", "cmd", "alt"}, "f"},
   previousScreen = {{"ctrl", "cmd", "alt"}, "d"},
   upleft = {{"ctrl", "alt", "shift"}, "left"},
-  upright = {{"ctrl", "alt", "shift"}, "down"},
-  botleft = {{"ctrl", "alt", "shift"}, "up"},
+  upright = {{"ctrl", "alt", "shift"}, "up"},
+  botleft = {{"ctrl", "alt", "shift"}, "down"},
   botright = {{"ctrl", "alt", "shift"}, "right"},
 })
 spoon.ShiftIt:setWindowCyclingSizes({ 50, 33, 67 }, { 50 })
