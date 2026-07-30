@@ -23,7 +23,7 @@ for ssh_type in {rsa,ed25519}
 do
 	present=`$SSH_KEY_LIST | /usr/bin/grep -i ${ssh_type}`
 
-	if [ -z "$present" ]; then
+	if [[ -z "$present" && -e "${HOME}/.ssh/id_${ssh_type}" ]]; then
 		echo "Adding /Users/"$USER"/.ssh/id_$ssh_type to the SSH keychain"
 		ssh-add /Users/"$USER"/.ssh/id_$ssh_type
 	fi
