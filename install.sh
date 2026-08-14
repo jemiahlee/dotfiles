@@ -123,6 +123,7 @@ link_bash_profile_includes "$START_PWD"
 install_files "${START_PWD}"/bin "${HOME}"/bin
 install_files "${START_PWD}"/dotfiles "${HOME}" true
 install_files "${START_PWD}"/hammerspoon "${HOME}/.hammerspoon"
+install_files "${START_PWD}"/claude "${HOME}/.claude"
 
 pushd "$HOME/.hammerspoon"
 mkdir Spoons 2>/dev/null
@@ -131,14 +132,15 @@ ln -s "${START_PWD}/submodules/hammerspoon-shiftit" "ShiftIt.spoon"
 ln -s "${START_PWD}/submodules/HS_SpoonsContrib/FocusFollowsMouse.spoon"
 popd
 
-PRIVATE_FILE_PATH="${START_PWD}/../dotfiles-private"
-if [[ -d "$PRIVATE_FILE_PATH" ]]; then
-  DOTFILES_PATH=`basename ${START_PWD}`
-  PRIVATE_FILE_PATH=`echo $PRIVATE_FILE_PATH | ${START_PWD}/bin/s '\/'$DOTFILES_PATH'\/\.\.' ''`
-  install_files "${PRIVATE_FILE_PATH}"/bin "${HOME}"/bin
-  install_files "${PRIVATE_FILE_PATH}"/ssh "${HOME}/.ssh"
-  install_files "${PRIVATE_FILE_PATH}"/dotfiles "${HOME}" true
-  gpg --import ${PRIVATE_FILE_PATH}/gpg_key/keyfile
+PRIVATE_START_PWD="${START_PWD}/../dotfiles-private"
+if [[ -d "$PRIVATE_START_PWD" ]]; then
+  DOTFILES_PWD=`basename ${START_PWD}`
+  PRIVATE_START_PWD=`echo $PRIVATE_START_PWD | ${START_PWD}/bin/s '\/'$DOTFILES_PATH'\/\.\.' ''`
+  install_files "${PRIVATE_START_PWD}"/bin "${HOME}"/bin
+  install_files "${PRIVATE_START_PWD}"/ssh "${HOME}/.ssh"
+  install_files "${PRIVATE_START_PWD}"/dotfiles "${HOME}" true
+  install_files "${PRIVATE_START_PWD}"/claude "${HOME}/.claude"
+  gpg --import ${PRIVATE_START_PWD}/gpg_key/keyfile
 else
   echo <<EOTEXT
 Ran the install process without a private repository. If you would like to take
