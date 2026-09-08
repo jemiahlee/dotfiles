@@ -1,4 +1,4 @@
-BIN=$(shell git rev-parse --show-toplevel)/bin
+BIN=$(shell git rev-parse --show-toplevel)/stow/bin/bin
 
 .PHONY: test testfix virtualenv requirements
 

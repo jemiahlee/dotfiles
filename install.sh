@@ -2,6 +2,120 @@
 
 # Install script to create all of the symlinks for this directory
 
+function resolve_symlink {
+  # Resolves a (possibly relative, possibly dangling) one-level symlink to
+  # an absolute path, without relying on GNU-only `readlink -f`.
+  local link=$1
+  local raw_target
+  raw_target=$(readlink "$link")
+  if [[ "$raw_target" != /* ]]; then
+    raw_target="$(dirname "$link")/${raw_target}"
+  fi
+  local resolved_dir
+  resolved_dir=$(cd -P "$(dirname "$raw_target")" 2>/dev/null && pwd -P)
+  if [[ -z "$resolved_dir" ]]; then
+    return 1
+  fi
+  echo "${resolved_dir}/$(basename "$raw_target")"
+}
+
+function canonical_path {
+  # Absolutizes and canonicalizes a path's directory portion (following any
+  # symlinks in it) without following the path's own final component --
+  # used to compare "what a symlink literally points at" against a source
+  # file, even when that source file is itself a symlink (e.g. the
+  # Hammerspoon Spoons, which point on into a submodule).
+  local p=$1
+  local dir
+  dir=$(cd -P "$(dirname "$p")" 2>/dev/null && pwd -P)
+  [[ -z "$dir" ]] && return 1
+  echo "${dir}/$(basename "$p")"
+}
+
+function is_owned_by_a_stow_dir {
+  # Mirrors GNU Stow's own multi-stow-dir convention: a symlink is legitimately
+  # stow-owned if it resolves to a path under some directory containing a
+  # ".stow" marker file (see `info stow` -- Multiple Stow Directories).
+  local resolved=$1
+  [[ -e "$resolved" ]] || return 1
+  local d="$resolved"
+  while [[ -n "$d" && "$d" != "/" ]]; do
+    [[ -f "${d}/.stow" ]] && return 0
+    d=$(dirname "$d")
+  done
+  return 1
+}
+
+function stow_with_backup {
+  local stow_dir=$1 target_dir=$2
+  shift 2
+
+  for pkg in "$@"; do
+    while IFS= read -r -d '' src_file; do
+      local rel=${src_file#"$stow_dir"/"$pkg"/}
+      local translated=""
+      local IFS_OLD=$IFS
+      IFS=/
+      local segments=($rel)
+      IFS=$IFS_OLD
+      for i in "${!segments[@]}"; do
+        local segment=${segments[$i]}
+        if [[ $segment == dot-* ]]; then
+          segment=".${segment#dot-}"
+        fi
+        if [[ -z "$translated" ]]; then
+          translated="$segment"
+        else
+          translated="${translated}/${segment}"
+        fi
+      done
+      local target="${target_dir}/${translated}"
+
+      # Walk from target_dir down to target's parent, clearing out any
+      # stale directory symlink left over from the pre-stow install (e.g.
+      # the old whole-directory ~/.bash_profile_includes symlink). If we
+      # instead hit a symlink that's legitimately stow-owned (this run's
+      # or a cooperating repo's, per the .stow marker), stop -- stow will
+      # unfold it correctly on its own, and the leaf below is just the
+      # real source file seen through that fold, not a conflict.
+      local ancestor_is_link=false
+      local check_dir=$(dirname "$target")
+      while [[ "$check_dir" != "$target_dir" && "$check_dir" != "/" ]]; do
+        if [[ -L "$check_dir" ]]; then
+          local resolved
+          resolved=$(resolve_symlink "$check_dir")
+          if [[ -n "$resolved" ]] && is_owned_by_a_stow_dir "$resolved"; then
+            ancestor_is_link=true
+          else
+            echo "Removing stale directory symlink at ${check_dir}"
+            rm "$check_dir"
+          fi
+          break
+        fi
+        check_dir=$(dirname "$check_dir")
+      done
+
+      if [[ "$ancestor_is_link" == true ]]; then
+        continue
+      fi
+
+      if [[ -L "$target" ]]; then
+        local target_points_to
+        target_points_to=$(resolve_symlink "$target")
+        if [[ "$target_points_to" != "$(canonical_path "$src_file")" ]]; then
+          echo "Removing stale symlink at ${target}"
+          rm "$target"
+        fi
+      elif [[ -e "$target" ]]; then
+        echo "Moving ${target} to ${target}_bak"
+        mv "$target" "${target}_bak"
+      fi
+    done < <(find "${stow_dir}/${pkg}" \( -type f -o -type l \) -print0)
+  done
+
+  stow -d "$stow_dir" -t "$target_dir" --dotfiles -R "$@"
+}
+
 function safe_link {
   FROM_FILE=$1
   TO_FILE=$2
@@ -34,70 +148,6 @@ function setup_scm_breeze {
   fi
 }
 
-function install_files {
-  FROM_DIR=$1
-  TO_DIR=$2
-  PREFIX_WITH_DOT=$3
-
-  if [[ -z "${FROM_DIR}" ]]; then
-    echo "Cannot copy files from an empty directory!"
-    return 1
-  fi
-
-  if [[ ! -e "${TO_DIR}" ]]; then
-    echo "Making directory ${TO_DIR}"
-    mkdir "${TO_DIR}" 2>/dev/null
-    if [[ ! -d "${TO_DIR}" ]]; then
-      echo "Directory ${TO_DIR} does not exist after attempting to make it. Skipping."
-      return 1
-    fi
-  elif [[ ! -d "${TO_DIR}" ]]; then
-    echo "${TO_DIR} exists and is not a directory. Skipping installation from ${FROM_DIR}"
-    return 1
-  fi
-
-  echo "Installing files from ${FROM_DIR} to ${TO_DIR}"
-
-  if [[ -d "${FROM_DIR}" ]]; then
-    for file in "${FROM_DIR}"/*
-    do
-      if [[ -f "$file" ]]; then
-        file_name=`basename "${file}"`
-
-        if [[ -z "$PREFIX_WITH_DOT" ]]; then
-          safe_link "${FROM_DIR}"/${file_name} "${TO_DIR}/${file_name}"
-        else
-          safe_link "${FROM_DIR}"/${file_name} "${TO_DIR}/.${file_name}"
-        fi
-      fi
-    done
-  else
-    echo "${FROM_DIR} does not exist. Skipping."
-  fi
-}
-
-function link_bash_profile_includes {
-  FROM_DIR=$1
-  if [[ -z "${FROM_DIR}" ]]; then
-    echo "Cannot copy files from an empty directory!"
-    return 1
-  fi
-
-  pushd "$HOME"
-
-  if [[ -e ".bash_profile_includes" && ! -L ".bash_profile_includes" ]]; then
-    echo "${HOME}/.bash_profile_includes already exists and is not symlink\'ed. Not modifying."
-  elif [[ -L ".bash_profile_includes" ]]; then
-    echo "${HOME}/.bash_profile_includes is a symlink already. Removing it and pointing it here."
-    rm ~/.bash_profile_includes
-    ln -sfv "${START_PWD}/bash_profile_includes" .bash_profile_includes
-  else
-    ln -sfv "${START_PWD}/bash_profile_includes" .bash_profile_includes
-  fi
-
-  popd
-}
-
 function backup_vim_files {
   pushd "${HOME}" > /dev/null
 
@@ -119,28 +169,14 @@ git submodule init
 echo "First, ensuring submodules are up-to-date."
 git submodule update --recursive
 
-link_bash_profile_includes "$START_PWD"
-install_files "${START_PWD}"/bin "${HOME}"/bin
-install_files "${START_PWD}"/dotfiles "${HOME}" true
-install_files "${START_PWD}"/hammerspoon "${HOME}/.hammerspoon"
-install_files "${START_PWD}"/claude "${HOME}/.claude"
+stow_with_backup "${START_PWD}/stow" "${HOME}" bin shell bash_profile_includes hammerspoon
 
-pushd "$HOME/.hammerspoon"
-mkdir Spoons 2>/dev/null
-cd Spoons
-ln -s "${START_PWD}/submodules/hammerspoon-shiftit" "ShiftIt.spoon"
-ln -s "${START_PWD}/submodules/HS_SpoonsContrib/FocusFollowsMouse.spoon"
-popd
-
-PRIVATE_START_PWD="${START_PWD}/../dotfiles-private"
-if [[ -d "$PRIVATE_START_PWD" ]]; then
-  DOTFILES_PWD=`basename ${START_PWD}`
-  PRIVATE_START_PWD=`echo $PRIVATE_START_PWD | ${START_PWD}/bin/s '\/'$DOTFILES_PATH'\/\.\.' ''`
-  install_files "${PRIVATE_START_PWD}"/bin "${HOME}"/bin
-  install_files "${PRIVATE_START_PWD}"/ssh "${HOME}/.ssh"
-  install_files "${PRIVATE_START_PWD}"/dotfiles "${HOME}" true
-  install_files "${PRIVATE_START_PWD}"/claude "${HOME}/.claude"
-  gpg --import ${PRIVATE_START_PWD}/gpg_key/keyfile
+PRIVATE_DIR="${START_PWD}/../dotfiles-private"
+if [[ -d "${PRIVATE_DIR}/stow" ]]; then
+  stow_with_backup "${PRIVATE_DIR}/stow" "${HOME}" bin shell bash_profile_includes ssh
+  gpg --import "${PRIVATE_DIR}/gpg_key/keyfile"
+elif [[ -d "$PRIVATE_DIR" ]]; then
+  echo "WARNING: ${PRIVATE_DIR} exists but has no stow/ directory yet -- migrate it to the new layout. Skipping private dotfiles." >&2
 else
   echo <<EOTEXT
 Ran the install process without a private repository. If you would like to take
