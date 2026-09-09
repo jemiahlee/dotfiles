@@ -175,6 +175,9 @@ PRIVATE_DIR="${START_PWD}/../dotfiles-private"
 if [[ -d "${PRIVATE_DIR}/stow" ]]; then
   stow_with_backup "${PRIVATE_DIR}/stow" "${HOME}" bin shell bash_profile_includes ssh
   gpg --import "${PRIVATE_DIR}/gpg_key/keyfile"
+  if [[ -x "${PRIVATE_DIR}/custom-install.sh" ]]; then
+    "${PRIVATE_DIR}/custom-install.sh"
+  fi
 elif [[ -d "$PRIVATE_DIR" ]]; then
   echo "WARNING: ${PRIVATE_DIR} exists but has no stow/ directory yet -- migrate it to the new layout. Skipping private dotfiles." >&2
 else
