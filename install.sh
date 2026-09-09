@@ -2,23 +2,6 @@
 
 # Install script to create all of the symlinks for this directory
 
-function resolve_symlink {
-  # Resolves a (possibly relative, possibly dangling) one-level symlink to
-  # an absolute path, without relying on GNU-only `readlink -f`.
-  local link=$1
-  local raw_target
-  raw_target=$(readlink "$link")
-  if [[ "$raw_target" != /* ]]; then
-    raw_target="$(dirname "$link")/${raw_target}"
-  fi
-  local resolved_dir
-  resolved_dir=$(cd -P "$(dirname "$raw_target")" 2>/dev/null && pwd -P)
-  if [[ -z "$resolved_dir" ]]; then
-    return 1
-  fi
-  echo "${resolved_dir}/$(basename "$raw_target")"
-}
-
 function canonical_path {
   # Absolutizes and canonicalizes a path's directory portion (following any
   # symlinks in it) without following the path's own final component --
@@ -30,6 +13,18 @@ function canonical_path {
   dir=$(cd -P "$(dirname "$p")" 2>/dev/null && pwd -P)
   [[ -z "$dir" ]] && return 1
   echo "${dir}/$(basename "$p")"
+}
+
+function resolve_symlink {
+  # Resolves a (possibly relative, possibly dangling) one-level symlink to
+  # an absolute path, without relying on GNU-only `readlink -f`.
+  local link=$1
+  local raw_target
+  raw_target=$(readlink "$link")
+  if [[ "$raw_target" != /* ]]; then
+    raw_target="$(dirname "$link")/${raw_target}"
+  fi
+  canonical_path "$raw_target"
 }
 
 function is_owned_by_a_stow_dir {
@@ -58,8 +53,8 @@ function stow_with_backup {
       IFS=/
       local segments=($rel)
       IFS=$IFS_OLD
-      for i in "${!segments[@]}"; do
-        local segment=${segments[$i]}
+      local segment
+      for segment in "${segments[@]}"; do
         if [[ $segment == dot-* ]]; then
           segment=".${segment#dot-}"
         fi
@@ -136,7 +131,7 @@ function setup_scm_breeze {
   scmbDir="$THIS_DIR/submodules/scm_breeze"
   SCM_BREEZE_INSTALL_DIR="$HOME/.scm_breeze"
 
-  if [[ ! -e "$HOME/.scm_breeze" ]]; then
+  if [[ ! -e "$SCM_BREEZE_INSTALL_DIR" ]]; then
     echo "Installing scm_breeze: Symlinking $SCM_BREEZE_INSTALL_DIR to $scmbDir"
     ln -fs "$scmbDir" "$SCM_BREEZE_INSTALL_DIR"
     source "$scmbDir/lib/scm_breeze.sh"
@@ -181,7 +176,7 @@ if [[ -d "${PRIVATE_DIR}/stow" ]]; then
 elif [[ -d "$PRIVATE_DIR" ]]; then
   echo "WARNING: ${PRIVATE_DIR} exists but has no stow/ directory yet -- migrate it to the new layout. Skipping private dotfiles." >&2
 else
-  echo <<EOTEXT
+  cat <<EOTEXT
 Ran the install process without a private repository. If you would like to take
 advantage of this additional functionality, you will need to have a "dotfiles-private"
 directory at the same place as this directory. Please see the README for more info.
