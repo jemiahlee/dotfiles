@@ -58,6 +58,7 @@ stow/shell/dot-vimrc                                -> ~/.vimrc
 stow/shell/dot-tmux.conf                            -> ~/.tmux.conf
 stow/bash_profile_includes/dot-bash_profile_includes/*  -> ~/.bash_profile_includes/*
 stow/hammerspoon/dot-hammerspoon/*                  -> ~/.hammerspoon/*
+stow/claude/dot-claude/*                            -> ~/.claude/*
 ```
 
 The path under a package directory is reproduced verbatim under

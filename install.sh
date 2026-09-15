@@ -164,7 +164,7 @@ git submodule init
 echo "First, ensuring submodules are up-to-date."
 git submodule update --recursive
 
-stow_with_backup "${START_PWD}/stow" "${HOME}" bin shell bash_profile_includes hammerspoon
+stow_with_backup "${START_PWD}/stow" "${HOME}" bin shell bash_profile_includes hammerspoon claude
 
 PRIVATE_DIR="${START_PWD}/../dotfiles-private"
 if [[ -d "${PRIVATE_DIR}/stow" ]]; then

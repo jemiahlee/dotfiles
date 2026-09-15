@@ -8,7 +8,7 @@ default:
 restow: restow-public restow-private
 
 restow-public:
-    stow -d stow -t ~ --dotfiles -R bin shell bash_profile_includes hammerspoon
+    stow -d stow -t ~ --dotfiles -R bin shell bash_profile_includes hammerspoon claude
 
 restow-private:
     #!/usr/bin/env bash
