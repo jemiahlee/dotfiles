@@ -1,0 +1,9 @@
+#!/usr/bin/perl
+
+use warnings;
+use strict;
+
+while(<>) {
+  my $ts = localtime();
+  print $ts, ' ', $_;
+}
