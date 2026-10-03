@@ -1,106 +1,109 @@
 {
-  "agentPushNotifEnabled" : true,
-  "hooks" : {
-    "Notification" : [
+  "hooks": {
+    "Notification": [
       {
-        "hooks" : [
+        "hooks": [
           {
-            "command" : "\/Users\/jeremiahlee\/.config\/iterm2\/cc-status",
-            "type" : "command"
+            "type": "command",
+            "command": "f=\"$HOME/.config/iterm2/cc-status\"; [ ! -x \"$f\" ] || \"$f\""
           }
         ]
       }
     ],
-    "PermissionRequest" : [
+    "PermissionRequest": [
       {
-        "hooks" : [
+        "hooks": [
           {
-            "command" : "\/Users\/jeremiahlee\/.config\/iterm2\/cc-status",
-            "type" : "command"
+            "type": "command",
+            "command": "f=\"$HOME/.config/iterm2/cc-status\"; [ ! -x \"$f\" ] || \"$f\""
           }
         ]
       }
     ],
-    "PostToolUse" : [
+    "PostToolUse": [
       {
-        "hooks" : [
+        "hooks": [
           {
-            "command" : "\/Users\/jeremiahlee\/.config\/iterm2\/cc-status",
-            "type" : "command"
+            "type": "command",
+            "command": "f=\"$HOME/.config/iterm2/cc-status\"; [ ! -x \"$f\" ] || \"$f\""
           }
         ]
       }
     ],
-    "PreToolUse" : [
+    "PreToolUse": [
       {
-        "hooks" : [
+        "hooks": [
           {
-            "command" : "\/Users\/jeremiahlee\/.config\/iterm2\/cc-status",
-            "type" : "command"
+            "type": "command",
+            "command": "f=\"$HOME/.config/iterm2/cc-status\"; [ ! -x \"$f\" ] || \"$f\""
           }
         ]
       }
     ],
-    "SessionEnd" : [
+    "SessionEnd": [
       {
-        "hooks" : [
+        "hooks": [
           {
-            "command" : "\/Users\/jeremiahlee\/.config\/iterm2\/cc-status",
-            "type" : "command"
+            "type": "command",
+            "command": "f=\"$HOME/.config/iterm2/cc-status\"; [ ! -x \"$f\" ] || \"$f\""
           }
         ]
       }
     ],
-    "SessionStart" : [
+    "SessionStart": [
       {
-        "hooks" : [
+        "hooks": [
           {
-            "command" : "\/Users\/jeremiahlee\/.config\/iterm2\/cc-status",
-            "type" : "command"
+            "type": "command",
+            "command": "f=\"$HOME/.config/iterm2/cc-status\"; [ ! -x \"$f\" ] || \"$f\""
           }
         ]
       }
     ],
-    "Stop" : [
+    "Stop": [
       {
-        "hooks" : [
+        "hooks": [
           {
-            "command" : "\/Users\/jeremiahlee\/.config\/iterm2\/cc-status",
-            "type" : "command"
+            "type": "command",
+            "command": "f=\"$HOME/.config/iterm2/cc-status\"; [ ! -x \"$f\" ] || \"$f\""
           }
         ]
       }
     ],
-    "StopFailure" : [
+    "StopFailure": [
       {
-        "hooks" : [
+        "hooks": [
           {
-            "command" : "\/Users\/jeremiahlee\/.config\/iterm2\/cc-status",
-            "type" : "command"
+            "type": "command",
+            "command": "f=\"$HOME/.config/iterm2/cc-status\"; [ ! -x \"$f\" ] || \"$f\""
           }
         ]
       }
     ],
-    "SubagentStop" : [
+    "SubagentStop": [
       {
-        "hooks" : [
+        "hooks": [
           {
-            "command" : "\/Users\/jeremiahlee\/.config\/iterm2\/cc-status",
-            "type" : "command"
+            "type": "command",
+            "command": "f=\"$HOME/.config/iterm2/cc-status\"; [ ! -x \"$f\" ] || \"$f\""
           }
         ]
       }
     ],
-    "UserPromptSubmit" : [
+    "UserPromptSubmit": [
       {
-        "hooks" : [
+        "hooks": [
           {
-            "command" : "\/Users\/jeremiahlee\/.config\/iterm2\/cc-status",
-            "type" : "command"
+            "type": "command",
+            "command": "f=\"$HOME/.config/iterm2/cc-status\"; [ ! -x \"$f\" ] || \"$f\""
           }
         ]
       }
     ]
   },
-  "theme" : "dark"
+  "theme": "dark",
+  "agentPushNotifEnabled": true,
+  "enabledPlugins": {
+    "mattpocock-skills@claude-plugins-official": true
+  }
 }
