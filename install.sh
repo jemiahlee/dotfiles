@@ -95,9 +95,12 @@ function stow_with_backup {
       fi
 
       if [[ -L "$target" ]]; then
+        # Stow only recognizes relative symlinks as its own; an absolute one
+        # (even to the right file) is a conflict that aborts the whole run.
         local target_points_to
         target_points_to=$(resolve_symlink "$target")
-        if [[ "$target_points_to" != "$(canonical_path "$src_file")" ]]; then
+        if [[ "$(readlink "$target")" == /* ||
+              "$target_points_to" != "$(canonical_path "$src_file")" ]]; then
           echo "Removing stale symlink at ${target}"
           rm "$target"
         fi
